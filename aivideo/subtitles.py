@@ -182,3 +182,84 @@ def write_srt(events, path: Path) -> None:
         text, s, e = ev[:3]
         out.append(f"{k}\n{_srt_time(s)} --> {_srt_time(e)}\n{wrap(text).replace(chr(92) + 'N', chr(10))}\n")
     path.write_text("\n".join(out), encoding="utf-8")
+
+
+# ------------------------------------------------------------------ カウンター (HUD)
+JP_UNITS = [(10 ** 24, "じょ"), (10 ** 20, "垓"), (10 ** 16, "京"), (10 ** 12, "兆"), (10 ** 8, "億"), (10 ** 4, "万")]
+
+
+def jp_number(x: float) -> str:
+    """6.6万 / 2,749億 / 115京 のような日本語の大きな数の表記。"""
+    for unit, name in JP_UNITS:
+        if x >= unit:
+            v = x / unit
+            if v >= 1000:
+                return f"{int(round(v)):,}{name}"
+            if v >= 100:
+                return f"{int(round(v))}{name}"
+            return f"{v:.1f}".rstrip("0").rstrip(".") + name
+    return f"{int(round(x)):,}"
+
+
+def hud_events(hud: dict, anchors: list[tuple[float, float, str]], total: float, step: float = 0.1):
+    """動画時刻 → 経過秒数の対応 (anchors: (動画秒, 経過秒, レベル)) からカウンター表示を作る。"""
+    anchors = sorted(anchors)
+    end_sec = float(hud.get("end_sec") or anchors[-1][1])
+    pts = [(0.0, anchors[0][1], anchors[0][2])] + anchors + [(total, max(end_sec, anchors[-1][1]), anchors[-1][2])]
+
+    def story(t):
+        for (t0, s0, lv), (t1, s1, _) in zip(pts, pts[1:]):
+            if t0 <= t <= t1:
+                return s0 + (s1 - s0) * ((t - t0) / (t1 - t0) if t1 > t0 else 0), lv
+        return pts[-1][1], pts[-1][2]
+
+    base = float(hud.get("base") or 2)
+    interval = float(hud.get("interval_sec") or 1)
+    events, cur, t = [], None, 0.0
+    while t < total:
+        sec, lv = story(t)
+        sec_i = int(sec)
+        key = (sec_i, lv)
+        if key != cur:
+            if events:
+                events[-1][1] = t
+            mult = base ** (sec_i / interval)
+            events.append([t, total, sec_i, jp_number(mult), lv])
+            cur = key
+        t += step
+    return events
+
+
+def write_hud(path: Path, hud: dict, events, serif_family: str, gothic_family: str,
+              width: int, height: int) -> None:
+    """画面上部に、問い・経過秒数・倍率・レベル・注意書きを常に表示する (ニュース風の明朝体)。"""
+    q = hud.get("question", "")
+    for kw in hud.get("keywords", []) or []:
+        if kw and kw in q:
+            q = q.replace(kw, "{\\1c&H00FFC87A&}" + kw + "{\\1c&H00FFFFFF&}")
+    q = q.replace("、", "、\\N", 1) if len(hud.get("question", "")) > 14 else q
+    cx = width // 2
+    y0 = int(height * 0.085)
+    styles = f"""
+Style: HudQ,{serif_family},58,&H00FFFFFF,&H00FFFFFF,&H00000000,&H78000000,0,0,0,0,100,100,1,0,1,3,2,8,40,40,0,1
+Style: HudBig,{serif_family},124,&H00FFFFFF,&H00FFFFFF,&H00000000,&H78000000,0,0,0,0,100,100,1,0,1,4,3,8,40,40,0,1
+Style: HudLabel,{gothic_family},42,&H00FFFFFF,&H00FFFFFF,&H00000000,&H78000000,0,0,0,0,100,100,1,0,1,3,2,8,40,40,0,1
+Style: HudBadge,{gothic_family},40,&H00FFFFFF,&H00FFFFFF,&H50000000,&H50000000,0,0,0,0,100,100,1,0,3,10,0,8,40,40,0,1
+Style: HudNote,{gothic_family},26,&H00DDDDDD,&H00DDDDDD,&H00000000,&H78000000,0,0,0,0,100,100,0,0,1,2,1,2,40,40,0,1
+"""
+    text = path.read_text(encoding="utf-8")
+    text = text.replace("\n[Events]", styles + "\n[Events]", 1)
+    lines = []
+    T = _ass_time
+    end = events[-1][1] if events else 0
+    lines.append(f"Dialogue: 2,{T(0)},{T(end)},HudQ,,0,0,0,,{{\\pos({cx},{y0})}}{q}\n")
+    for s, e, sec, mult, lv in events:
+        y = y0 + 170
+        lines.append(f"Dialogue: 2,{T(s)},{T(e)},HudBig,,0,0,0,,{{\\pos({cx},{y})}}{sec}{{\\fs60}}秒目\n")
+        lines.append(f"Dialogue: 2,{T(s)},{T(e)},HudLabel,,0,0,0,,{{\\pos({cx},{y + 150})}}{hud.get('label', '')}\n")
+        lines.append(f"Dialogue: 2,{T(s)},{T(e)},HudBig,,0,0,0,,{{\\pos({cx},{y + 200})}}{mult}{{\\fs60}}倍\n")
+        if lv:
+            lines.append(f"Dialogue: 2,{T(s)},{T(e)},HudBadge,,0,0,0,,{{\\pos({cx},{y + 362})}}{lv}\n")
+    if hud.get("disclaimer"):
+        lines.append(f"Dialogue: 2,{T(0)},{T(end)},HudNote,,0,0,0,,{{\\an2\\pos({cx},{height - 40})}}{hud['disclaimer']}\n")
+    path.write_text(text + "".join(lines), encoding="utf-8")

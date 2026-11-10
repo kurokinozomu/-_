@@ -343,7 +343,7 @@ def telop(img: Image.Image, text: str, font_path: str, color: tuple) -> None:
 
 
 def compose_scene(base: Image.Image, text: str, font_path: str, accent: tuple, big: bool,
-                  heavy_font: str | None = None) -> Image.Image:
+                  heavy_font: str | None = None, top_shade: bool = False) -> Image.Image:
     """背景に字幕エリアのグラデーションを重ねる (テロップは telop_overlay で別に作る)。"""
     img = base.resize((IMG_W, IMG_H), Image.LANCZOS)
     if base.width < IMG_W * 0.6:  # 小さい画像 (無料枠の AI 画像) は拡大後に軽くシャープに
@@ -352,7 +352,9 @@ def compose_scene(base: Image.Image, text: str, font_path: str, accent: tuple, b
     W, H = img.size
     grad = np.zeros((H, W, 4), dtype=np.uint8)
     ys = np.clip((np.arange(H) - H * 0.7) / (H * 0.3), 0, 1) ** 1.5
-    grad[..., 3] = (ys * 130).astype(np.uint8)[:, None]
+    if top_shade:  # 上部のカウンターを読みやすく
+        ys = np.maximum(ys, np.clip((H * 0.42 - np.arange(H)) / (H * 0.42), 0, 1) ** 1.2 * 1.1)
+    grad[..., 3] = (np.clip(ys, 0, 1) * 130).astype(np.uint8)[:, None]
     img = Image.alpha_composite(img, Image.fromarray(grad, "RGBA"))
     text = (text or "").strip()
     if text and big:  # イラストなしのオフライン背景: 中央に大きく
@@ -549,7 +551,8 @@ class SceneImager:
         base, kind = self.base_image(scene)
         big = kind == "procedural"
         compose_scene(base, scene.get("onscreen_text", ""), self.settings.font_path,
-                      self.accent, big=big, heavy_font=self.heavy_font).save(out)
+                      self.accent, big=big and not self.plan.get("hud"), heavy_font=self.heavy_font,
+                      top_shade=bool(self.plan.get("hud"))).save(out)
         tel = out.with_name(out.stem + "_telop.png")
         if not big and telop_overlay(scene.get("onscreen_text", ""), self.heavy_font or self.settings.font_path,
                                      self.accent, tel):

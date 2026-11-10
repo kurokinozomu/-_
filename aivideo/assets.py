@@ -26,6 +26,7 @@ FONTS = {
     "subtitle": ("MPLUSRounded1c-ExtraBold.ttf", "mplusrounded1c", "Rounded Mplus 1c ExtraBold"),
     "heavy": ("DelaGothicOne-Regular.ttf", "delagothicone", "Dela Gothic One"),
     "rounded_black": ("MPLUSRounded1c-Black.ttf", "mplusrounded1c", "Rounded Mplus 1c Black"),
+    "serif": ("ShipporiMinchoB1-ExtraBold.ttf", "shipporiminchob1", "Shippori Mincho B1 ExtraBold"),
 }
 FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/{dir}/{file}"
 EMOJI_URL = "https://registry.npmjs.org/@iconify-json/noto/-/noto-1.2.10.tgz"
@@ -40,7 +41,11 @@ def _download(url: str, timeout: int = 120) -> bytes:
 def font(kind: str) -> tuple[str, str] | None:
     """(フォントファイルのパス, ASS 用フォント名)。取得できなければ None。"""
     file, d, name = FONTS[kind]
-    path = CACHE / "fonts" / kind / file
+    path = CACHE / "fonts" / file   # 字幕描画 (libass) が 1 つのフォルダから読めるよう全フォントを同じ場所に置く
+    old = CACHE / "fonts" / kind / file
+    if not path.exists() and old.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        old.replace(path)
     if not path.exists():
         try:
             log(f"フォントをダウンロード中: {file}")

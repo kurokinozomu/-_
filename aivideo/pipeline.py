@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -169,6 +170,10 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     log(f"動画の長さ: {total:.1f}秒")
 
     # 4. シーン画像
+    if plan.get("hud"):
+        for sc in scenes:
+            sc["onscreen_text"] = ""
+        os.environ.setdefault("AIVIDEO_AI_EVERY", "1")
     imager = SceneImager(settings, plan, cache / "images")
     log("シーン画像を生成中...")
     img_paths = [work / f"{s['id']}.png" for s in scenes]
@@ -204,7 +209,18 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     sub_font = assets.font("subtitle")
     sub_font_path, sub_font_name = sub_font if sub_font else (settings.font_path, settings.font_family)
     outer = vivid(imager.palette[0], 0.2, 0.3, 0.7) if imager.palette else (20, 60, 140)
+    if plan.get("hud"):
+        outer = (0, 0, 0)  # ドキュメンタリー調: 色フチなしの白文字 + 黒フチ
     subtitles.write_ass(events, ass, sub_font_name, outer, config.WIDTH, config.HEIGHT)
+    hud = plan.get("hud")
+    if hud:  # 「1秒ごとに2倍」系: 経過秒数と倍率のカウンターを常に表示
+        anchors = [(tm["voice_start"], float(sc["at_sec"]), str(sc.get("level", "")))
+                   for sc, tm in zip(scenes, tl) if isinstance(sc.get("at_sec"), (int, float))]
+        if anchors:
+            serif = assets.font("serif")
+            hud_ev = subtitles.hud_events(hud, anchors, total)
+            subtitles.write_hud(ass, hud, hud_ev, serif[1] if serif else sub_font_name,
+                                sub_font_name, config.WIDTH, config.HEIGHT)
     subtitles.write_srt(events, out_dir / "subtitles.srt")
 
     # 8b-9. 結合・書き出し
