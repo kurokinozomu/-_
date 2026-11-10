@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 import os
+import re
 from typing import Any
 
 from .config import log
@@ -58,6 +59,7 @@ def _concept_prompt(theme: str, target_sec: float, n_chapters: int) -> str:
 ナレーション総文字数の目安は約{total_chars}文字です（合成音声で毎秒約{CHARS_PER_SEC:.0f}文字）。
 章の数は{n_chapters}個にしてください（1個目は導入フック、最後はまとめ。1個だけなら全体で1章）。
 
+{escalation_guide(theme)}
 次の JSON を出力:
 {{
   "concept": {{
@@ -90,6 +92,25 @@ def _concept_prompt(theme: str, target_sec: float, n_chapters: int) -> str:
 chapters の seconds の合計は約{target_sec:.0f}にしてください。"""
 
 
+ESCALATION_RE = re.compile(r"倍|毎秒|毎日|ごとに|ずつ|増え続け|大きくなり続け")
+
+
+def escalation_guide(theme: str) -> str:
+    """「もしも〇〇が1秒ごとに2倍になったら」系 (どんどんエスカレートする想像系) の演出指示。"""
+    if not ESCALATION_RE.search(theme):
+        return ""
+    return """
+【この動画は「もしも〇〇が△ごとに2倍になったら」系のエスカレーション動画です】
+- 時間の経過に沿って進め、影響の規模を「自分 → 部屋 → 家 → 町 → 国 → 地球 → 宇宙」のように段階的に広げる
+- 各シーンの onscreen_text は経過時間と倍率のカウンター（例:「10秒後 1024倍」「1分後 115京倍」）。
+  倍率は正確に計算すること（2倍ずつなら n 秒後は 2のn乗。万・億・兆・京・垓 で表す）
+- 比較に使う実在の数値（音速、エベレストの高さ、地球の直径など）はおおむね正しく
+- 起こる出来事は想像でよいが、ナレーションで「〜かもしれません」と断りつつ、テンポよくツッコミを入れて笑わせる
+- 1段階ごとに「ところが」「さらに」で驚きを積み上げ、最後は意外なオチで締める
+- bgm_mood は upbeat
+"""
+
+
 def _scenes_prompt(theme: str, plan: dict, idx: int, prev_tail: str) -> str:
     ch = plan["chapters"][idx]
     secs = float(ch.get("seconds") or 30)
@@ -113,6 +134,7 @@ def _scenes_prompt(theme: str, plan: dict, idx: int, prev_tail: str) -> str:
 章の狙い: {ch.get('goal', '')}
 {position}{cont}
 
+{escalation_guide(theme)}
 これを約{n_scenes}個のシーンに分割してください。1シーンは4〜10秒（ナレーション25〜60文字、1〜3文）。
 画像はシーンごとにAIで生成します。visual_prompt は英語で、具体的な被写体・構図・光・雰囲気を書き、
 文字・ロゴ・実在の人物や作品は含めないでください（画面に文字を入れたい場合は onscreen_text を使う）。
@@ -136,14 +158,19 @@ def _scenes_prompt(theme: str, plan: dict, idx: int, prev_tail: str) -> str:
 
 def _shorts_prompt(theme: str, target_sec: float) -> str:
     chars = int(target_sec * 0.8 * 6.6)
+    if os.environ.get("AIVIDEO_SHORTS_RELATED", "").strip() in ("1", "true", "yes"):
+        cta = "「詳しくは関連動画で」と一言だけ添える"
+    else:
+        cta = "「コメントで教えてね」か「フォローしてね」など短い一言で締める（存在しない関連動画には誘導しない）"
     n = max(8, round(target_sec / 3.5))
     return f"""テーマ「{theme}」で、YouTubeショート（縦型・約{target_sec:.0f}秒）の台本を書いてください。
 ナレーションは合計約{chars}文字（±10%）、約{n}シーン。1シーンは2〜4秒（ナレーション10〜25文字、1文）。
 
+{escalation_guide(theme)}
 ショートの鉄則:
 - 最初の1文（1〜2秒）で結論か強烈な問いを出す。挨拶・前置きは入れない
 - 1シーン1情報。テンポよく畳みかけ、途中で「実は」「しかも」で展開を変える
-- 最後は答えを言い切ってスッキリさせ、「詳しくは関連動画で」と一言だけ添える
+- 最後は答えを言い切ってスッキリさせ、{cta}
 - onscreen_text は全シーンに入れる（8文字以内、画面上部の大きな見出しになる）
 
 次の JSON を出力:

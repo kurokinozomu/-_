@@ -20,6 +20,9 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(parse_request("宇宙の謎というテーマで8分の動画を作って"), ("宇宙の謎", 480.0))
         self.assertEqual(parse_request("睡眠の科学について30秒の動画"), ("睡眠の科学", 30.0))
         self.assertEqual(parse_request("テーマ：深海生物で1分30秒の動画を作って"), ("深海生物", 90.0))
+        self.assertEqual(parse_request("もしもオナラが1秒ごとに2倍臭くなったらというテーマでショート動画を作って"),
+                         ("もしもオナラが1秒ごとに2倍臭くなったら", None))
+        self.assertEqual(parse_request("猫の不思議 3分"), ("猫の不思議", 180.0))
 
 
 class SubtitleTest(unittest.TestCase):
@@ -37,6 +40,14 @@ class SubtitleTest(unittest.TestCase):
         try:
             for line in subtitles.wrap("江戸の庶民は昼すぎには仕事を終えていたんです").split("\\N"):
                 self.assertLessEqual(len(line), subtitles.LINE_MAX + 2)
+        finally:
+            subtitles.configure(False)
+
+    def test_no_break_inside_number(self):
+        subtitles.configure(True)
+        try:
+            w = subtitles.wrap("1分後、オナラが115京倍臭くなったら？")
+            self.assertIn("115京倍", w.replace("\\N", "|").split("|")[-1] + w.split("\\N")[0])
         finally:
             subtitles.configure(False)
 

@@ -11,6 +11,7 @@ from pathlib import Path
 LINE_MAX = 19      # 1 行の最大文字数 (大きめの文字に合わせる)
 EVENT_MAX = 34     # 1 画面 (2 行) の最大文字数
 PARTICLES = ("は", "が", "を", "に", "で", "と", "も", "へ", "の", "から", "まで", "より", "ので", "けど", "て")
+NUM_UNITS = set(".,%万億兆京垓倍秒分時日年回個人円度キロメートル")
 NO_LINE_START = set("、。！？!?」』）)ぁぃぅぇぉっゃゅょゎァィゥェォッャュョーヶ・…")
 
 
@@ -24,6 +25,9 @@ def clean(text: str) -> str:
 def _break_score(s: str, i: int) -> float:
     """位置 i (s[:i] | s[i:]) で改行したときの良さ。"""
     if i <= 0 or i >= len(s) or s[i] in NO_LINE_START:
+        return -1e9
+    # 「115京倍」「3.6万」のような数字と単位の途中では改行しない
+    if (s[i - 1].isdigit() or s[i - 1] in ".,") and (s[i].isdigit() or s[i] in NUM_UNITS):
         return -1e9
     prev = s[:i]
     score = 0.0
@@ -52,6 +56,11 @@ def best_split(s: str, target: int, lo: int, hi: int) -> int:
         v = _break_score(s, i) - abs(i - target) * 0.8
         if v > best_v:
             best, best_v = i, v
+    if best_v < -1e8:  # 範囲内に良い位置がなければ、少しはみ出しても数字の途中は避ける
+        for i in range(max(1, lo - 4), min(len(s) - 1, hi + 4) + 1):
+            v = _break_score(s, i) - abs(i - target) * 0.8
+            if v > best_v:
+                best, best_v = i, v
     return best
 
 

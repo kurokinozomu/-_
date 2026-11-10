@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -12,18 +13,30 @@ from pathlib import Path
 from .config import Settings, log
 
 
-def parse_request(text: str) -> tuple[str, float | None]:
-    """「〇〇というテーマで8分の動画を作って」からテーマと秒数を取り出す。"""
-    secs = None
+MARKER = r"というテーマ|をテーマに|についての|について|のテーマで|テーマで"
+
+
+def _duration(text: str) -> float | None:
     m = re.search(r"(\d+(?:\.\d+)?)\s*分(?:\s*(\d+)\s*秒)?", text)
     if m:
-        secs = float(m.group(1)) * 60 + (float(m.group(2)) if m.group(2) else 0)
+        return float(m.group(1)) * 60 + (float(m.group(2)) if m.group(2) else 0)
+    m = re.search(r"(\d+)\s*秒", text)
+    return float(m.group(1)) if m else None
+
+
+def parse_request(text: str) -> tuple[str, float | None]:
+    """「〇〇というテーマで8分の動画を作って」からテーマと秒数を取り出す。
+
+    テーマ部分の数字 (例:「1秒ごとに2倍」) を長さと取り違えないよう、
+    「というテーマで」などの区切りがあれば、長さはその後ろからだけ読む。
+    """
+    parts = re.split(MARKER, text, maxsplit=1)
+    if len(parts) == 2:
+        theme, rest = parts
+        secs = _duration(rest)
     else:
-        m = re.search(r"(\d+)\s*秒", text)
-        if m:
-            secs = float(m.group(1))
-    theme = re.split(r"というテーマ|をテーマに|についての|について|のテーマで|テーマで", text)[0]
-    theme = re.sub(r"(で)?\s*\d+(\.\d+)?\s*(分|秒).*$", "", theme)
+        secs = _duration(text)
+        theme = re.sub(r"(で)?\s*\d+(\.\d+)?\s*(分|秒).*$", "", text)
     theme = re.sub(r"^(テーマ[:：は]?)", "", theme).strip(" 「」『』\"'、。")
     return theme or text.strip(), secs
 
@@ -43,6 +56,7 @@ def main(argv=None) -> int:
     ap.add_argument("--workers", type=int, default=3, help="並列レンダリング数")
     ap.add_argument("--check", action="store_true", help="実行環境をチェックして終了")
     ap.add_argument("--shorts", action="store_true", help="縦型ショート動画 (1080x1920) を作る")
+    ap.add_argument("--related", action="store_true", help="ショートの最後を「詳しくは関連動画で」にする (長尺がある場合)")
     a = ap.parse_args(argv)
     if a.check:
         from .doctor import check
@@ -78,6 +92,8 @@ def main(argv=None) -> int:
         settings.visuals = a.visuals
     if a.tts:
         settings.tts = a.tts
+    if a.related or (a.request and re.search(r"関連動画|長尺", a.request)):
+        os.environ["AIVIDEO_SHORTS_RELATED"] = "1"
     if a.allow_paid:
         settings.allow_paid = True
 
