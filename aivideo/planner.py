@@ -79,7 +79,7 @@ def _concept_prompt(theme: str, target_sec: float, n_chapters: int) -> str:
     "emphasis": "line1かline2の中の、赤で強調する語（そのまま含まれる2〜4文字）",
     "sub_text": "下帯の補足（16文字以内）",
     "badge": "丸いバッジの語（2〜4文字。例: 必見 / 衝撃 / 新説）",
-    "emoji": ["サムネイルに大きく置くイラストの絵文字を2個（内容に直結する物）"],
+    "emoji": ["サムネイルに大きく置くイラストの絵文字を2個（内容に直結する物。時代・国に合うもの）"],
     "image_prompt": "AI画像生成用のサムネイル背景（英語、文字なし、被写体が右側）",
     "ideas": ["サムネイル構図案を3個（日本語）"]
   }},
@@ -127,7 +127,7 @@ def _scenes_prompt(theme: str, plan: dict, idx: int, prev_tail: str) -> str:
       "camera": "{'|'.join(CAMERAS)} のいずれか（単調にならないよう変化をつける）",
       "transition": "{'|'.join(TRANSITIONS)} のいずれか（このシーンに入るときの転換）",
       "sfx": "none|whoosh|pop|impact|chime のいずれか（強調したい所だけ）",
-      "emoji": ["このシーンの内容を表すイラスト用の絵文字を1〜3個（具体的な物・人・場所。例: 🏯🔥⚔️🚢）"],
+      "emoji": ["このシーンの内容を表すイラスト用の絵文字を1〜3個（具体的な物・人・場所。例: 🏯🔥⚔️🚢）。テーマの時代・国に合わないもの（昔の日本の話で💲🏙️🛢️📱など）は選ばない"],
       "highlight": ["字幕で黄色く強調する語（narration にそのまま含まれる2〜8文字、0〜2個）"]
     }}
   ]
