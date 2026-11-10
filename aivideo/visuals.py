@@ -501,6 +501,7 @@ class SceneImager:
                     + ("シーン内容に合わせたイラストを使用します。" if self.illustrations
                        else "オフライン生成グラフィックを使用します。"))
         self.used: set[str] = set()
+        self.first_ai: Image.Image | None = None
 
     def _use_ai(self, scene: dict) -> bool:
         """無料枠は 45 秒に 1 枚なので、AI 画像は章の頭と 2 シーンに 1 回にして、
@@ -532,6 +533,8 @@ class SceneImager:
             img = self._ai_image(prompt, seed)
             if img is not None:
                 self.used.add(self.ai.credit)
+                if self.first_ai is None:
+                    self.first_ai = img
                 return img, "ai"
         if self.illustrations and scene.get("emoji"):
             img = illustration_scene(scene["emoji"], self.palette, seed)
@@ -555,8 +558,9 @@ class SceneImager:
 
     def thumbnail(self, out: Path) -> None:
         th = self.plan.get("thumbnail", {})
-        base = None
-        if self.ai and th.get("image_prompt"):
+        # 冒頭シーンの AI 画像を優先 (テーマに直結し、無料枠も節約できる)
+        base = self.first_ai
+        if base is None and self.ai and th.get("image_prompt"):
             base = self._ai_image(f"{th['image_prompt']}, {self.plan.get('visual_style', '')}, "
                                   "no text, no watermark", 7)
         make_thumbnail(base, th, self.settings.font_path, self.heavy_font, self.palette, out)
