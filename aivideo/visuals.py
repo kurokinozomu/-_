@@ -10,7 +10,9 @@ from __future__ import annotations
 import colorsys
 import hashlib
 import io
+import os
 import random
+import re
 import time
 import urllib.parse
 from pathlib import Path
@@ -49,31 +51,57 @@ def hex_rgb(h: str) -> tuple[int, int, int]:
 
 
 class PollinationsProvider:
+    """Pollinations.ai の無料枠 (登録不要)。
+
+    無料枠の制限: 1 枚 / 45 秒 (IP ごと)、最大 1024x576、右下に小さなロゴ。
+    制限に当たったら、サーバーが返す待ち時間だけ待って再試行する。
+    """
     name = "pollinations"
-    credit = "画像: AI生成 (Pollinations.ai / FLUX)"
     BASE = "https://image.pollinations.ai/prompt/"
+    MIN_INTERVAL = 46.0
+
+    def __init__(self):
+        self.model = "sana"
+        try:
+            models = requests.get("https://image.pollinations.ai/models", timeout=15).json()
+            if isinstance(models, list) and models:
+                self.model = "flux" if "flux" in models else str(models[0])
+        except Exception:
+            pass
+        self.credit = f"画像: AI生成 (Pollinations.ai / {self.model})"
+        self._last = 0.0
 
     @classmethod
     def available(cls) -> bool:
+        # 画像生成は無料枠を消費するため、モデル一覧で接続だけ確認する
         try:
-            r = requests.get(cls.BASE + "test?width=64&height=64&nologo=true", timeout=15)
-            return r.ok and r.headers.get("content-type", "").startswith("image")
+            r = requests.get("https://image.pollinations.ai/models", timeout=15)
+            return r.ok
         except Exception:
             return False
 
     def generate(self, prompt: str, seed: int) -> Image.Image:
         url = (self.BASE + urllib.parse.quote(prompt[:900])
-               + f"?width={config.WIDTH}&height={config.HEIGHT}&nologo=true&model=flux&seed={seed}")
+               + f"?width={config.WIDTH}&height={config.HEIGHT}&nologo=true&model={self.model}&seed={seed}")
         last = None
-        for attempt in range(3):
+        for attempt in range(6):
+            wait = self.MIN_INTERVAL - (time.time() - self._last)
+            if wait > 0:
+                time.sleep(wait)
             try:
                 r = requests.get(url, timeout=180)
+                self._last = time.time()
                 if r.ok and r.headers.get("content-type", "").startswith("image"):
                     return Image.open(io.BytesIO(r.content)).convert("RGB")
                 last = f"HTTP {r.status_code}"
+                if r.status_code in (402, 429):
+                    m = re.search(r"Retry after (\d+)", r.text)
+                    time.sleep(int(m.group(1)) + 2 if m else 20)
+                    self._last = 0.0
+                    continue
             except Exception as e:
                 last = e
-            time.sleep(3 * (attempt + 1))
+            time.sleep(5 * (attempt + 1))
         raise RuntimeError(f"pollinations failed: {last}")
 
 
@@ -317,7 +345,10 @@ def telop(img: Image.Image, text: str, font_path: str, color: tuple) -> None:
 def compose_scene(base: Image.Image, text: str, font_path: str, accent: tuple, big: bool,
                   heavy_font: str | None = None) -> Image.Image:
     """背景に字幕エリアのグラデーションを重ねる (テロップは telop_overlay で別に作る)。"""
-    img = base.resize((IMG_W, IMG_H), Image.LANCZOS).convert("RGBA")
+    img = base.resize((IMG_W, IMG_H), Image.LANCZOS)
+    if base.width < IMG_W * 0.6:  # 小さい画像 (無料枠の AI 画像) は拡大後に軽くシャープに
+        img = img.filter(ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2))
+    img = img.convert("RGBA")
     W, H = img.size
     grad = np.zeros((H, W, 4), dtype=np.uint8)
     ys = np.clip((np.arange(H) - H * 0.7) / (H * 0.3), 0, 1) ** 1.5
@@ -471,6 +502,15 @@ class SceneImager:
                        else "オフライン生成グラフィックを使用します。"))
         self.used: set[str] = set()
 
+    def _use_ai(self, scene: dict) -> bool:
+        """無料枠は 45 秒に 1 枚なので、AI 画像は章の頭と 2 シーンに 1 回にして、
+        残りはシーン内容に合わせたイラストにする (AIVIDEO_AI_EVERY で変更可)。"""
+        every = max(1, int(os.environ.get("AIVIDEO_AI_EVERY", "2") or 2))
+        if not self.illustrations or not scene.get("emoji"):
+            return True
+        idx = int(scene["id"].lstrip("s") or 0)
+        return scene.get("_chapter_first", False) or idx % every == 0
+
     def _ai_image(self, prompt: str, seed: int) -> Image.Image | None:
         key = hashlib.sha1(f"pollinations|{prompt}|{seed}".encode()).hexdigest()[:20]
         f = self.cache / f"{key}.png"
@@ -488,7 +528,7 @@ class SceneImager:
         """(画像, 種類 'ai' | 'illustration' | 'procedural') を返す。"""
         prompt = f"{scene.get('visual_prompt', '')}, {self.plan.get('visual_style', '')}, no text, no watermark"
         seed = int(hashlib.sha1(scene["id"].encode() + prompt.encode()).hexdigest()[:7], 16)
-        if self.ai:
+        if self.ai and self._use_ai(scene):
             img = self._ai_image(prompt, seed)
             if img is not None:
                 self.used.add(self.ai.credit)

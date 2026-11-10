@@ -251,6 +251,7 @@ def normalize_plan(plan: dict) -> dict:
     for ch in plan["chapters"]:
         if ch.get("scenes"):
             first = ch["scenes"][0]
+            first["_chapter_first"] = True
             if first["sfx"] == "none":
                 first["sfx"] = "impact" if first["id"] == "s000" else "whoosh"
             if not first["onscreen_text"]:
