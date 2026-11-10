@@ -19,10 +19,17 @@ import numpy as np
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+from . import config
 from .config import Settings, log
 
 # 画面に焼き込む画像は 1.2 倍の解像度で作り、ズーム時も文字がぼやけないようにする
 IMG_W, IMG_H = 2304, 1296
+
+
+def set_canvas(width: int, height: int) -> None:
+    """出力解像度に合わせて、画像の作成サイズ (1.2 倍) を切り替える。"""
+    global IMG_W, IMG_H
+    IMG_W, IMG_H = int(width * 1.2), int(height * 1.2)
 
 MOOD_PALETTES = {
     "calm": ["#0f2b46", "#1f6f8b", "#99d6ea"],
@@ -56,7 +63,7 @@ class PollinationsProvider:
 
     def generate(self, prompt: str, seed: int) -> Image.Image:
         url = (self.BASE + urllib.parse.quote(prompt[:900])
-               + f"?width=1920&height=1080&nologo=true&model=flux&seed={seed}")
+               + f"?width={config.WIDTH}&height={config.HEIGHT}&nologo=true&model=flux&seed={seed}")
         last = None
         for attempt in range(3):
             try:
@@ -232,22 +239,24 @@ def radial_glow(size, center, color, radius, strength=0.8) -> Image.Image:
 
 
 def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
-                       size=(IMG_W, IMG_H)) -> Image.Image | None:
+                       size=None) -> Image.Image | None:
     """絵文字イラストを使った、シーン内容に合わせた背景イラスト。"""
     from . import assets
     rnd = random.Random(seed)
-    W, H = size
-    main_size = int(H * 0.46)
-    imgs = [assets.emoji_image(e, main_size if i == 0 else int(main_size * 0.55))
+    W, H = size = size or (IMG_W, IMG_H)
+    tall = H > W
+    main_size = int(W * 0.52) if tall else int(H * 0.46)
+    side_ratio = 0.45 if H > W else 0.55
+    imgs = [assets.emoji_image(e, main_size if i == 0 else int(main_size * side_ratio))
             for i, e in enumerate(emojis[:3])]
     imgs = [im for im in imgs if im is not None]
     if not imgs:
         return None
     base_c = vivid(palette[rnd.randrange(len(palette))], 0.2, 0.32, 0.55)
     ray_c = _lighten(base_c, 0.07)
-    layout = rnd.choice(["center", "left", "right"])
+    layout = "center" if tall else rnd.choice(["center", "left", "right"])
     cx = {"center": W * 0.5, "left": W * 0.36, "right": W * 0.64}[layout]
-    cy = H * 0.49
+    cy = H * (0.47 if tall else 0.49)
     style = rnd.choice(["rays", "rays", "dots", "plain"])
     if style == "rays":
         bg = sunburst(size, (cx, cy), base_c, ray_c, rays=rnd.choice([20, 24, 28]), rot=rnd.random())
@@ -270,7 +279,9 @@ def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
 
     main = sticker(imgs[0])
     bg.alpha_composite(main, (int(cx - main.width / 2), int(cy - main.height / 2)))
-    if layout == "center":
+    if tall:  # 縦長: 上下に散らす (中央は字幕、右下はショートのボタン類)
+        side = [(W * 0.2, H * 0.29), (W * 0.8, H * 0.29)]
+    elif layout == "center":
         side = [(W * 0.17, H * 0.4), (W * 0.83, H * 0.4)]
     else:
         sx = W * 0.79 if layout == "left" else W * 0.21
@@ -287,9 +298,11 @@ def telop(img: Image.Image, text: str, font_path: str, color: tuple) -> None:
         return
     W, H = img.size
     d = ImageDraw.Draw(img)
-    f = _fit_font(d, text, font_path, W * 0.62, int(H * 0.085), 36)
+    tall = H > W
+    f = _fit_font(d, text, font_path, W * (0.82 if tall else 0.62),
+                  int(min(H * 0.085, W * 0.1)), 36)
     tw = d.textlength(text, font=f)
-    x, y = int(W * 0.045), int(H * 0.07)
+    x, y = int(W * 0.06), int(H * (0.12 if tall else 0.07))
     px, py = int(f.size * 0.45), int(f.size * 0.28)
     box = [x - px, y - py, x + tw + px, y + f.size * 1.1 + py]
     d.polygon([(box[0] + 4, box[1] + 10), (box[2] + 24, box[1] + 10), (box[2] + 4, box[3] + 10),
@@ -323,11 +336,11 @@ def compose_scene(base: Image.Image, text: str, font_path: str, accent: tuple, b
 
 
 def telop_overlay(text: str, font_path: str, accent: tuple, out: Path) -> bool:
-    """カメラの動きに影響されない、画面固定の見出しテロップ (透過 PNG, 1920x1080)。"""
+    """カメラの動きに影響されない、画面固定の見出しテロップ (透過 PNG, 出力解像度)。"""
     text = (text or "").strip()
     if not text:
         return False
-    img = Image.new("RGBA", (1920, 1080), (0, 0, 0, 0))
+    img = Image.new("RGBA", (config.WIDTH, config.HEIGHT), (0, 0, 0, 0))
     telop(img, text, font_path, vivid(accent, 0.38, 0.48, 0.8))
     img.save(out)
     return True

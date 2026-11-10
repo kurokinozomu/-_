@@ -134,10 +134,58 @@ def _scenes_prompt(theme: str, plan: dict, idx: int, prev_tail: str) -> str:
 }}"""
 
 
-def make_plan(llm, theme: str, target_sec: float) -> dict[str, Any]:
+def _shorts_prompt(theme: str, target_sec: float) -> str:
+    chars = int(target_sec * 0.8 * 6.6)
+    n = max(8, round(target_sec / 3.5))
+    return f"""テーマ「{theme}」で、YouTubeショート（縦型・約{target_sec:.0f}秒）の台本を書いてください。
+ナレーションは合計約{chars}文字（±10%）、約{n}シーン。1シーンは2〜4秒（ナレーション10〜25文字、1文）。
+
+ショートの鉄則:
+- 最初の1文（1〜2秒）で結論か強烈な問いを出す。挨拶・前置きは入れない
+- 1シーン1情報。テンポよく畳みかけ、途中で「実は」「しかも」で展開を変える
+- 最後は答えを言い切ってスッキリさせ、「詳しくは関連動画で」と一言だけ添える
+- onscreen_text は全シーンに入れる（8文字以内、画面上部の大きな見出しになる）
+
+次の JSON を出力:
+{{
+  "concept": {{"angle": "切り口（1文）", "hook": "最初の1文"}},
+  "visual_style": "共通の画像スタイル（英語、縦構図 vertical composition を含める）",
+  "bgm_mood": "{'|'.join(MOODS)} のいずれか（ショートは upbeat か mysterious が向く）",
+  "palette": ["#RRGGBB", "#RRGGBB", "#RRGGBB"],
+  "titles": ["ショートのタイトル案を5個（30文字以内、末尾に #shorts）"],
+  "description": "概要欄（100〜200文字、ハッシュタグ3〜5個、#shorts を含む）",
+  "tags": ["タグを8〜12個"],
+  "thumbnail": {{"text": "表紙の短文（10文字以内）", "ideas": []}},
+  "chapters": [{{"title": "{theme[:14]}", "goal": "", "scenes": [
+    {{
+      "narration": "読み上げる日本語（1文）",
+      "onscreen_text": "見出し（8文字以内）",
+      "visual_prompt": "English image prompt, vertical composition",
+      "camera": "{'|'.join(CAMERAS)}",
+      "transition": "{'|'.join(TRANSITIONS)}",
+      "sfx": "none|whoosh|pop|impact|chime",
+      "emoji": ["内容を表す絵文字1〜3個（時代・国に合うもの）"],
+      "highlight": ["字幕で黄色く強調する語（narration にそのまま含まれる、0〜1個）"]
+    }}
+  ]}}]
+}}"""
+
+
+def make_plan(llm, theme: str, target_sec: float, shorts: bool = False) -> dict[str, Any]:
     if llm is None:
         log("LLM が利用できないため、オフラインテンプレートで台本を作成します（品質は限定的）。")
-        return offline_plan(theme, target_sec)
+        plan = offline_plan(theme, target_sec)
+        plan["shorts"] = shorts
+        return plan
+
+    if shorts:
+        log(f"ショート動画の台本を生成中 ({llm.name})...")
+        plan = complete_json(llm, system_prompt(), _shorts_prompt(theme, target_sec))
+        plan.update(theme=theme, target_seconds=target_sec, shorts=True)
+        for ch in plan.get("chapters", []):
+            ch["scenes"] = [x for x in ch.get("scenes", []) if x.get("narration", "").strip()]
+            ch["seconds"] = target_sec
+        return normalize_plan(plan)
 
     n_ch = _chapter_count(target_sec)
     log(f"企画・章立てを生成中 ({llm.name}, {n_ch}章)...")

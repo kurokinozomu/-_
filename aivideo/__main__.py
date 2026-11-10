@@ -42,6 +42,7 @@ def main(argv=None) -> int:
     ap.add_argument("--out", type=Path, help="出力先ディレクトリ")
     ap.add_argument("--workers", type=int, default=3, help="並列レンダリング数")
     ap.add_argument("--check", action="store_true", help="実行環境をチェックして終了")
+    ap.add_argument("--shorts", action="store_true", help="縦型ショート動画 (1080x1920) を作る")
     a = ap.parse_args(argv)
     if a.check:
         from .doctor import check
@@ -49,6 +50,9 @@ def main(argv=None) -> int:
 
     theme, secs = (parse_request(a.request) if a.request else (None, None))
     theme = a.theme or theme
+    shorts = a.shorts or bool(a.request and re.search(r"ショート|shorts|縦型", a.request, re.I))
+    if theme:
+        theme = re.sub(r"(の)?(ショート動画|ショート|縦型動画)$", "", theme).strip(" 「」") or theme
     if a.minutes:
         secs = a.minutes * 60
     if a.seconds:
@@ -59,7 +63,10 @@ def main(argv=None) -> int:
     if a.plan and not secs:
         import json
         secs = float(json.loads(a.plan.read_text(encoding="utf-8")).get("target_seconds") or 60)
-    secs = secs or 60.0
+    secs = secs or (50.0 if shorts else 60.0)
+    if shorts and secs > 180:
+        log("ショート動画は 3 分以内です。50秒で作ります。")
+        secs = 50.0
     if secs < 15 or secs > 3600:
         log("動画の長さは 15秒〜60分 の範囲で指定してください。")
         return 2
@@ -79,7 +86,7 @@ def main(argv=None) -> int:
         theme = json.loads(a.plan.read_text(encoding="utf-8")).get("theme", "video")
     log(f"テーマ: {theme} / 目標の長さ: {secs:.0f}秒")
     from .pipeline import make_video
-    make_video(theme, secs, settings, out_root=a.out, plan_path=a.plan, workers=a.workers)
+    make_video(theme, secs, settings, out_root=a.out, plan_path=a.plan, workers=a.workers, shorts=shorts)
     return 0
 
 

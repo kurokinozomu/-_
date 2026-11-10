@@ -69,12 +69,22 @@ python -m aivideo "テーマ：ピラミッドの謎で1分30秒"
 # 引数で指定
 python -m aivideo --theme "量子コンピュータ入門" --minutes 10
 
+# ショート動画 (縦型 1080x1920、既定 50 秒)
+python -m aivideo "江戸の庶民は昼で仕事終了？というテーマでショート動画を作って"
+python -m aivideo --theme "信長が生きていたら" --shorts --seconds 45
+
 # 台本 (plan.json) を手直ししてから作り直す
 python -m aivideo --plan output/xxxx/plan.json
 
 # ネットワークを使わずに動かす (動作確認用)
 python -m aivideo "テスト" --seconds 30 --llm offline --visuals procedural
 ```
+
+### ショート動画
+指示文に「ショート」「縦型」が入っているか `--shorts` を付けると、縦型 (1080x1920) で作ります。
+- 台本: 最初の 1 文で結論か強い問いを出し、1 シーン 2〜4 秒のテンポで進めて、最後に「詳しくは関連動画で」と長尺へ誘導
+- 画面: 見出しテロップは上部、字幕はショートの下部ボタンにかからない高さに配置
+- 表紙はアプリ上で動画内のフレームを選ぶため、サムネイル画像は作りません (タイトル・概要欄・タグは作ります)
 
 ### 声と語り口を変える (`.env`)
 - `AIVIDEO_VOICE=happy` … 明るく柔らかい声 (既定)。`normal` は落ち着いた声、`bashful` はささやくようなゆっくりした声

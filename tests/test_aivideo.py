@@ -32,6 +32,14 @@ class SubtitleTest(unittest.TestCase):
             for line in subtitles.wrap(p).split("\\N"):
                 self.assertLessEqual(len(line), subtitles.LINE_MAX + 2)
 
+    def test_vertical_line_length(self):
+        subtitles.configure(True)
+        try:
+            for line in subtitles.wrap("江戸の庶民は昼すぎには仕事を終えていたんです").split("\\N"):
+                self.assertLessEqual(len(line), subtitles.LINE_MAX + 2)
+        finally:
+            subtitles.configure(False)
+
     def test_events_cover_sentence_time(self):
         ev = subtitles.build_events([("短い文です。", 1.0, 2.0), ("次の文。", 2.5, 3.5)])
         self.assertAlmostEqual(ev[0][1], 1.0)

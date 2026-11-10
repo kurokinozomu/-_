@@ -124,6 +124,12 @@ def _highlight(line: str, words: list[str]) -> str:
     return line
 
 
+def configure(vertical: bool) -> None:
+    """縦型ショートでは 1 行を短く、2 行までに収める。"""
+    global LINE_MAX, EVENT_MAX
+    LINE_MAX, EVENT_MAX = (11, 22) if vertical else (19, 34)
+
+
 def write_ass(events, path: Path, font_family: str, outer: tuple[int, int, int] = (20, 60, 140),
               width=1920, height=1080) -> None:
     """テレビ・YouTube でよく使われる「二重縁取り」の字幕。
@@ -131,6 +137,9 @@ def write_ass(events, path: Path, font_family: str, outer: tuple[int, int, int] 
     レイヤー0: 太い色付きの外縁 / レイヤー1: 白文字 + 黒の内縁 + 影。強調語は黄色。
     """
     oc = _ass_color(outer)
+    tall = height > width
+    fs = 82 if tall else 86
+    mv = int(height * 0.27) if tall else 46   # 縦型はショートの下部 UI を避けて少し上に
     head = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {width}
@@ -140,8 +149,8 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Outer,{font_family},86,{oc},{oc},{oc},&H64000000,0,0,0,0,100,100,1,0,1,15,4,2,70,70,46,1
-Style: Inner,{font_family},86,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,1,0,1,6,0,2,70,70,46,1
+Style: Outer,{font_family},{fs},{oc},{oc},{oc},&H64000000,0,0,0,0,100,100,1,0,1,15,4,2,70,70,{mv},1
+Style: Inner,{font_family},{fs},&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,1,0,1,6,0,2,70,70,{mv},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text

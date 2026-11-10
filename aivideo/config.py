@@ -10,6 +10,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 WIDTH, HEIGHT, FPS = 1920, 1080, 30
+VERTICAL = False
+
+
+def set_vertical(on: bool) -> None:
+    """ショート動画 (縦 9:16) / 通常 (横 16:9) を切り替える。"""
+    global WIDTH, HEIGHT, VERTICAL
+    VERTICAL = on
+    WIDTH, HEIGHT = (1080, 1920) if on else (1920, 1080)
 SAMPLE_RATE = 48000
 
 

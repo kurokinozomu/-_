@@ -10,7 +10,8 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from .config import FPS, HEIGHT, WIDTH, log
+from . import config
+from .config import FPS, log
 
 ZMAX = 1.16  # ズーム量
 
@@ -54,8 +55,9 @@ def render_scene_clip(image: Path, out: Path, duration: float, camera: str,
                       overlay: Path | None = None) -> None:
     frames = int(round(duration * FPS))
     z, x, y = _camera_expr(camera, frames)
-    cam = (f"scale={WIDTH * 2}:{HEIGHT * 2}:flags=lanczos,"
-           f"zoompan=z='{z}':x='{x}':y='{y}':d=1:s={WIDTH}x{HEIGHT}:fps={FPS}")
+    W, H = config.WIDTH, config.HEIGHT
+    cam = (f"scale={W * 2}:{H * 2}:flags=lanczos,"
+           f"zoompan=z='{z}':x='{x}':y='{y}':d=1:s={W}x{H}:fps={FPS}")
     inputs = ["-loop", "1", "-framerate", str(FPS), "-i", str(image)]
     if overlay:
         # テロップは画面に固定し、左からスライドイン

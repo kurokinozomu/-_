@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import audio, render, subtitles
+from . import config, visuals
 from .config import ROOT, Settings, log
 from .llm import get_llm
 from .planner import all_scenes, make_plan
@@ -21,6 +22,18 @@ LEAD = 0.45        # シーン開始からナレーションまでの間
 TAIL = 0.35        # ナレーション後の余韻
 CHAPTER_PAUSE = 0.4
 END_HOLD = 2.0
+
+
+def use_profile(shorts: bool) -> None:
+    """ショート (縦型・テンポ重視) / 通常 (横型) の編集設定に切り替える。"""
+    global TRANS, LEAD, TAIL, CHAPTER_PAUSE, END_HOLD
+    config.set_vertical(shorts)
+    visuals.set_canvas(config.WIDTH, config.HEIGHT)
+    subtitles.configure(shorts)
+    if shorts:
+        TRANS, LEAD, TAIL, CHAPTER_PAUSE, END_HOLD = 0.3, 0.15, 0.12, 0.0, 1.2
+    else:
+        TRANS, LEAD, TAIL, CHAPTER_PAUSE, END_HOLD = 0.6, 0.45, 0.35, 0.4, 2.0
 
 
 def slugify(s: str) -> str:
@@ -111,7 +124,7 @@ def write_metadata(plan, scenes, tl, total, credits, out_dir: Path) -> None:
 
 
 def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | None = None,
-               plan_path: Path | None = None, workers: int = 3) -> Path:
+               plan_path: Path | None = None, workers: int = 3, shorts: bool = False) -> Path:
     t_start = time.time()
     render.check_ffmpeg()
     out_root = out_root or ROOT / "output"
@@ -124,9 +137,14 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     # 1-3. 企画・台本・シーン分割
     if plan_path:
         plan = json.loads(Path(plan_path).read_text(encoding="utf-8"))
+        shorts = shorts or bool(plan.get("shorts"))
         log(f"既存の台本を使用: {plan_path}")
     else:
-        plan = make_plan(get_llm(settings), theme, seconds)
+        plan = make_plan(get_llm(settings), theme, seconds, shorts=shorts)
+    use_profile(shorts)
+    if shorts:
+        log("ショート動画 (縦 1080x1920) として制作します")
+        settings.tts_speed = max(settings.tts_speed, 1.18)
     (out_dir / "plan.json").write_text(json.dumps(plan, ensure_ascii=False, indent=2), encoding="utf-8")
     scenes = all_scenes(plan)
     log(f"台本完成: {len(plan['chapters'])}章 / {len(scenes)}シーン / "
@@ -186,7 +204,7 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     sub_font = assets.font("subtitle")
     sub_font_path, sub_font_name = sub_font if sub_font else (settings.font_path, settings.font_family)
     outer = vivid(imager.palette[0], 0.2, 0.3, 0.7) if imager.palette else (20, 60, 140)
-    subtitles.write_ass(events, ass, sub_font_name, outer)
+    subtitles.write_ass(events, ass, sub_font_name, outer, config.WIDTH, config.HEIGHT)
     subtitles.write_srt(events, out_dir / "subtitles.srt")
 
     # 8b-9. 結合・書き出し
@@ -195,7 +213,8 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
                     TRANS, wav, ass, sub_font_path, final, total)
 
     # 10. サムネイル・メタデータ
-    imager.thumbnail(out_dir / "thumbnail.png")
+    if not shorts:  # ショートはアプリ上で動画内のフレームを表紙に選ぶ
+        imager.thumbnail(out_dir / "thumbnail.png")
     credits = set(imager.used) | {engine.credit}
     if sub_font or imager.heavy_font:
         credits.add("フォント: M PLUS Rounded 1c / Dela Gothic One (SIL Open Font License)")
