@@ -1,0 +1,6 @@
+numpy>=1.26
+pillow>=10.0
+requests>=2.31
+pyopenjtalk-plus>=0.4
+# 任意: Anthropic API を使う場合のみ
+# anthropic>=1.0
