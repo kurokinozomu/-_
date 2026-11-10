@@ -18,11 +18,11 @@ CHARS_PER_SEC = 6.0
 NARRATION_RATIO = 0.86
 
 CAMERAS = ["zoom_in", "zoom_out", "pan_left", "pan_right", "pan_up", "pan_down"]
-TRANSITIONS = ["fade", "dissolve", "slideleft", "slideright", "circleopen",
+TRANSITIONS = ["fade", "slideleft", "slideright", "circleopen",
                "wipeleft", "smoothleft", "fadeblack", "radial", "zoomin"]
 MOODS = ["calm", "upbeat", "mysterious", "epic", "warm"]
 
-SYSTEM = """あなたは登録者数100万人超の日本の教養・エンタメ系YouTubeチャンネルを手がける
+SYSTEM_TEMPLATE = """あなたは登録者数100万人超の日本の教養・エンタメ系YouTubeチャンネルを手がける
 トップクラスのプロデューサー兼構成作家です。視聴維持率を最大化する台本を書きます。
 
 原則:
@@ -30,11 +30,20 @@ SYSTEM = """あなたは登録者数100万人超の日本の教養・エンタ�
 - 「実は」「ところが」など展開の変化を定期的に入れ、単調さを避ける
 - 各章の終わりに次章への小さな引き（オープンループ）を置く
 - 一文は短く、耳で聞いて分かる日本語。専門用語には一言で説明を添える
+- 語り口は「{tone}」。視聴者に語りかけるように、
+  「〜なんです」「〜ですよね」「〜みましょう」などを自然に混ぜ、硬い断定や命令口調を避ける
 - 事実関係は一般に確立された内容のみ。不確かな数字や断定は避ける
 - 実在の人物・企業・作品の画像やロゴ、著作物を素材として要求しない
 - チャンネル名を勝手に作らない（指定がある場合のみ名乗る）
 - 指定された文字数の目安を ±10% 以内で守る（尺に直結するため）
 - 出力は指定された JSON のみ。前置きや説明文は書かない"""
+
+
+DEFAULT_TONE = "やさしく親しみやすい、柔らかい語り口"
+
+
+def system_prompt() -> str:
+    return SYSTEM_TEMPLATE.replace("{tone}", os.environ.get("AIVIDEO_TONE", "").strip() or DEFAULT_TONE)
 
 
 def _chapter_count(target_sec: float) -> int:
@@ -64,8 +73,14 @@ def _concept_prompt(theme: str, target_sec: float, n_chapters: int) -> str:
   "description": "概要欄の本文（300〜500文字、改行あり、ハッシュタグ3個を末尾に）",
   "tags": ["タグを10〜15個"],
   "thumbnail": {{
-    "text": "サムネイルに載せる強い短文（12文字以内）",
-    "sub_text": "補足の短文（14文字以内、なくても可）",
+    "label": "左上の見出しラベル（6文字以内。例: 歴史IF / 衝撃の事実 / 徹底解説）",
+    "line1": "1行目の大見出し（9文字以内。白文字で最も目立つ一言）",
+    "line2": "2行目の大見出し（9文字以内。黄色文字。疑問や数字で好奇心をあおる）",
+    "emphasis": "line1かline2の中の、赤で強調する語（そのまま含まれる2〜4文字）",
+    "sub_text": "下帯の補足（16文字以内）",
+    "badge": "丸いバッジの語（2〜4文字。例: 必見 / 衝撃 / 新説）",
+    "emoji": ["サムネイルに大きく置くイラストの絵文字を2個（内容に直結する物）"],
+    "image_prompt": "AI画像生成用のサムネイル背景（英語、文字なし、被写体が右側）",
     "ideas": ["サムネイル構図案を3個（日本語）"]
   }},
   "chapters": [
@@ -111,7 +126,9 @@ def _scenes_prompt(theme: str, plan: dict, idx: int, prev_tail: str) -> str:
       "visual_prompt": "English image prompt",
       "camera": "{'|'.join(CAMERAS)} のいずれか（単調にならないよう変化をつける）",
       "transition": "{'|'.join(TRANSITIONS)} のいずれか（このシーンに入るときの転換）",
-      "sfx": "none|whoosh|pop|impact|chime のいずれか（強調したい所だけ）"
+      "sfx": "none|whoosh|pop|impact|chime のいずれか（強調したい所だけ）",
+      "emoji": ["このシーンの内容を表すイラスト用の絵文字を1〜3個（具体的な物・人・場所。例: 🏯🔥⚔️🚢）"],
+      "highlight": ["字幕で黄色く強調する語（narration にそのまま含まれる2〜8文字、0〜2個）"]
     }}
   ]
 }}"""
@@ -124,7 +141,7 @@ def make_plan(llm, theme: str, target_sec: float) -> dict[str, Any]:
 
     n_ch = _chapter_count(target_sec)
     log(f"企画・章立てを生成中 ({llm.name}, {n_ch}章)...")
-    plan = complete_json(llm, SYSTEM, _concept_prompt(theme, target_sec, n_ch))
+    plan = complete_json(llm, system_prompt(), _concept_prompt(theme, target_sec, n_ch))
     plan["theme"] = theme
     plan["target_seconds"] = target_sec
     _rescale_chapters(plan, target_sec)
@@ -132,7 +149,7 @@ def make_plan(llm, theme: str, target_sec: float) -> dict[str, Any]:
     prev_tail = ""
     for i, ch in enumerate(plan["chapters"]):
         log(f"第{i + 1}/{len(plan['chapters'])}章「{ch['title']}」のシーンを生成中...")
-        res = complete_json(llm, SYSTEM, _scenes_prompt(theme, plan, i, prev_tail))
+        res = complete_json(llm, system_prompt(), _scenes_prompt(theme, plan, i, prev_tail))
         scenes = res["scenes"] if isinstance(res, dict) else res
         ch["scenes"] = [s for s in scenes if s.get("narration", "").strip()]
         if ch["scenes"]:
@@ -156,7 +173,15 @@ def normalize_plan(plan: dict) -> dict:
     plan.setdefault("titles", [plan.get("theme", "")])
     plan.setdefault("tags", [])
     plan.setdefault("description", "")
-    plan.setdefault("thumbnail", {"text": plan.get("theme", "")[:12], "ideas": []})
+    th = plan.setdefault("thumbnail", {})
+    th.setdefault("text", plan.get("theme", "")[:12])
+    th.setdefault("line1", th.get("text", "")[:9])
+    th.setdefault("line2", "")
+    th.setdefault("label", "")
+    th.setdefault("badge", "")
+    th.setdefault("emphasis", "")
+    th.setdefault("ideas", [])
+    th["emoji"] = [e for e in (th.get("emoji") or []) if isinstance(e, str)][:2]
     n = 0
     for ci, ch in enumerate(plan["chapters"]):
         for s in ch.get("scenes", []):
@@ -169,6 +194,9 @@ def normalize_plan(plan: dict) -> dict:
             if s.get("sfx") not in ("none", "whoosh", "pop", "impact", "chime"):
                 s["sfx"] = "none"
             s.setdefault("onscreen_text", "")
+            s["emoji"] = [e for e in (s.get("emoji") or []) if isinstance(e, str)][:3]
+            s["highlight"] = [h for h in (s.get("highlight") or [])
+                              if isinstance(h, str) and h and h in s.get("narration", "")][:2]
             s.setdefault("visual_prompt", plan.get("theme", ""))
             n += 1
     # 章の頭は少し強めの演出

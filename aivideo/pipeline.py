@@ -13,7 +13,8 @@ from .config import ROOT, Settings, log
 from .llm import get_llm
 from .planner import all_scenes, make_plan
 from .tts import Narrator, get_tts
-from .visuals import SceneImager, make_thumbnail
+from . import assets
+from .visuals import SceneImager, vivid
 
 TRANS = 0.6        # 場面転換の長さ (秒)
 LEAD = 0.45        # シーン開始からナレーションまでの間
@@ -153,11 +154,11 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     imager = SceneImager(settings, plan, cache / "images")
     log("シーン画像を生成中...")
     img_paths = [work / f"{s['id']}.png" for s in scenes]
-    bases = {}
+    telops = {}
     img_workers = 1 if imager.ai else workers
 
     def mk_img(k):
-        bases[k] = imager.render(scenes[k], img_paths[k])
+        telops[k] = imager.render(scenes[k], img_paths[k])
 
     with ThreadPoolExecutor(max_workers=img_workers) as ex:
         for i, _ in enumerate(ex.map(mk_img, range(len(scenes))), 1):
@@ -167,7 +168,7 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     # 8a. カメラワーク付きシーン映像
     log("シーン映像をレンダリング中 (カメラワーク)...")
     clip_paths = [work / f"{s['id']}.mp4" for s in scenes]
-    render.render_clips([(img_paths[k], clip_paths[k], tl[k]["duration"], scenes[k]["camera"])
+    render.render_clips([(img_paths[k], clip_paths[k], tl[k]["duration"], scenes[k]["camera"], telops[k])
                          for k in range(len(scenes))], workers=workers)
 
     # 6. BGM・効果音・ナレーションのミックス
@@ -178,23 +179,26 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     audio.write_wav(wav, mixed)
 
     # 7. 字幕
-    sents = [(txt, tm["voice_start"] + a, tm["voice_start"] + b)
-             for tm, sp in zip(tl, spoken) for txt, a, b in sp.sentences]
+    sents = [(txt, tm["voice_start"] + a, tm["voice_start"] + b, sc.get("highlight", []))
+             for sc, tm, sp in zip(scenes, tl, spoken) for txt, a, b in sp.sentences]
     events = subtitles.build_events(sents)
     ass = work / "subtitles.ass"
-    subtitles.write_ass(events, ass, settings.font_family)
+    sub_font = assets.font("subtitle")
+    sub_font_path, sub_font_name = sub_font if sub_font else (settings.font_path, settings.font_family)
+    outer = vivid(imager.palette[0], 0.2, 0.3, 0.7) if imager.palette else (20, 60, 140)
+    subtitles.write_ass(events, ass, sub_font_name, outer)
     subtitles.write_srt(events, out_dir / "subtitles.srt")
 
     # 8b-9. 結合・書き出し
     final = out_dir / "video.mp4"
     render.assemble(clip_paths, [tm["duration"] for tm in tl], [s["transition"] for s in scenes],
-                    TRANS, wav, ass, settings.font_path, final, total)
+                    TRANS, wav, ass, sub_font_path, final, total)
 
     # 10. サムネイル・メタデータ
-    th = plan.get("thumbnail", {})
-    make_thumbnail(bases[0], th.get("text", theme), th.get("sub_text", ""), settings.font_path,
-                   out_dir / "thumbnail.png")
+    imager.thumbnail(out_dir / "thumbnail.png")
     credits = set(imager.used) | {engine.credit}
+    if sub_font or imager.heavy_font:
+        credits.add("フォント: M PLUS Rounded 1c / Dela Gothic One (SIL Open Font License)")
     write_metadata(plan, scenes, tl, total, credits, out_dir)
 
     info = render.probe(final)

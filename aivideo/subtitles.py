@@ -8,8 +8,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-LINE_MAX = 22      # 1 行の最大文字数
-EVENT_MAX = 40     # 1 画面 (2 行) の最大文字数
+LINE_MAX = 19      # 1 行の最大文字数 (大きめの文字に合わせる)
+EVENT_MAX = 34     # 1 画面 (2 行) の最大文字数
 PARTICLES = ("は", "が", "を", "に", "で", "と", "も", "へ", "の", "から", "まで", "より", "ので", "けど", "て")
 NO_LINE_START = set("、。！？!?」』）)ぁぃぅぇぉっゃゅょゎァィゥェォッャュョーヶ・…")
 
@@ -72,21 +72,24 @@ def chunk(s: str) -> list[str]:
     return [s[:i].rstrip("　 ")] + chunk(s[i:].lstrip("　 "))
 
 
-def build_events(sentences: list[tuple[str, float, float]]) -> list[tuple[str, float, float]]:
+def build_events(sentences) -> list[tuple[str, float, float, list[str]]]:
+    """sentences: (テキスト, 開始, 終了[, 強調語リスト])"""
     events = []
-    for text, start, end in sentences:
+    for item in sentences:
+        text, start, end = item[:3]
+        hl = list(item[3]) if len(item) > 3 else []
         parts = chunk(clean(text))
         total = sum(len(p) for p in parts) or 1
         t = start
         for p in parts:
             d = (end - start) * len(p) / total
-            events.append((p, t, t + d))
+            events.append((p, t, t + d, hl))
             t += d
     # 隙間が短い字幕はつなげてチラつきを防ぐ
     for k in range(len(events) - 1):
         a, b = events[k], events[k + 1]
         if 0 < b[1] - a[2] < 0.35:
-            events[k] = (a[0], a[1], b[1])
+            events[k] = (a[0], a[1], b[1], a[3])
     return events
 
 
@@ -106,7 +109,28 @@ def _srt_time(t: float) -> str:
     return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
 
-def write_ass(events, path: Path, font_family: str, width=1920, height=1080) -> None:
+def _ass_color(rgb: tuple[int, int, int], alpha: int = 0) -> str:
+    r, g, b = rgb
+    return f"&H{alpha:02X}{b:02X}{g:02X}{r:02X}"
+
+
+HIGHLIGHT = (255, 230, 0)   # 強調語は黄色
+
+
+def _highlight(line: str, words: list[str]) -> str:
+    for w in sorted(set(words), key=len, reverse=True):
+        if w and w in line:
+            line = line.replace(w, "{\\1c" + _ass_color(HIGHLIGHT) + "&}" + w + "{\\1c&H00FFFFFF&}")
+    return line
+
+
+def write_ass(events, path: Path, font_family: str, outer: tuple[int, int, int] = (20, 60, 140),
+              width=1920, height=1080) -> None:
+    """テレビ・YouTube でよく使われる「二重縁取り」の字幕。
+
+    レイヤー0: 太い色付きの外縁 / レイヤー1: 白文字 + 黒の内縁 + 影。強調語は黄色。
+    """
+    oc = _ass_color(outer)
     head = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {width}
@@ -116,19 +140,27 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,{font_family},68,&H00FFFFFF,&H00FFFFFF,&H00141414,&H96000000,-1,0,0,0,100,100,2,0,1,5,2,2,80,80,64,1
+Style: Outer,{font_family},86,{oc},{oc},{oc},&H64000000,0,0,0,0,100,100,1,0,1,15,4,2,70,70,46,1
+Style: Inner,{font_family},86,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,1,0,1,6,0,2,70,70,46,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     lines = [head]
-    for text, s, e in events:
-        lines.append(f"Dialogue: 0,{_ass_time(s)},{_ass_time(e)},Default,,0,0,0,,{{\\fad(90,90)}}{wrap(text)}\n")
+    for ev in events:
+        text, s, e = ev[:3]
+        hl = ev[3] if len(ev) > 3 else []
+        wrapped = wrap(text)
+        inner = "\\N".join(_highlight(ln, hl) for ln in wrapped.split("\\N"))
+        t0, t1 = _ass_time(s), _ass_time(e)
+        lines.append(f"Dialogue: 0,{t0},{t1},Outer,,0,0,0,,{{\\fad(70,70)\\blur1.5}}{wrapped}\n")
+        lines.append(f"Dialogue: 1,{t0},{t1},Inner,,0,0,0,,{{\\fad(70,70)}}{inner}\n")
     path.write_text("".join(lines), encoding="utf-8")
 
 
 def write_srt(events, path: Path) -> None:
     out = []
-    for k, (text, s, e) in enumerate(events, 1):
+    for k, ev in enumerate(events, 1):
+        text, s, e = ev[:3]
         out.append(f"{k}\n{_srt_time(s)} --> {_srt_time(e)}\n{wrap(text).replace(chr(92) + 'N', chr(10))}\n")
     path.write_text("\n".join(out), encoding="utf-8")

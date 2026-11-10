@@ -41,6 +41,12 @@ def check() -> int:
     except ImportError:
         row(False, "Open JTalk 音声合成 (必須)", "未インストール", "pip install -r requirements.txt")
 
+    from . import assets
+    sf, hf = assets.font("subtitle"), assets.font("heavy")
+    row(True if (sf and hf) else None, "字幕・サムネ用フォント", "取得済み" if (sf and hf) else "取得できません (システムのフォントを使用)")
+    row(True if assets.emoji_available() else None, "イラスト素材 (Noto Emoji)",
+        "利用可" if assets.emoji_available() else "利用不可", "pip install resvg-py")
+
     from .tts import VoicevoxTTS
     url = os.environ.get("VOICEVOX_URL", "http://127.0.0.1:50021")
     vv = VoicevoxTTS.available(url)

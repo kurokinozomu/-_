@@ -50,18 +50,26 @@ def _camera_expr(camera: str, frames: int) -> tuple[str, str, str]:
     return "1.0", cx, cy
 
 
-def render_scene_clip(image: Path, out: Path, duration: float, camera: str) -> None:
+def render_scene_clip(image: Path, out: Path, duration: float, camera: str,
+                      overlay: Path | None = None) -> None:
     frames = int(round(duration * FPS))
     z, x, y = _camera_expr(camera, frames)
-    vf = (f"scale={WIDTH * 2}:{HEIGHT * 2}:flags=lanczos,"
-          f"zoompan=z='{z}':x='{x}':y='{y}':d=1:s={WIDTH}x{HEIGHT}:fps={FPS},"
-          f"format=yuv420p,setsar=1")
-    run(["ffmpeg", "-v", "error", "-y", "-loop", "1", "-framerate", str(FPS), "-i", str(image),
-         "-vf", vf, "-frames:v", str(frames), "-c:v", "libx264", "-preset", "veryfast",
-         "-crf", "16", "-r", str(FPS), str(out)])
+    cam = (f"scale={WIDTH * 2}:{HEIGHT * 2}:flags=lanczos,"
+           f"zoompan=z='{z}':x='{x}':y='{y}':d=1:s={WIDTH}x{HEIGHT}:fps={FPS}")
+    inputs = ["-loop", "1", "-framerate", str(FPS), "-i", str(image)]
+    if overlay:
+        # テロップは画面に固定し、左からスライドイン
+        inputs += ["-loop", "1", "-framerate", str(FPS), "-i", str(overlay)]
+        filt = (f"[0:v]{cam}[bg];[bg][1:v]overlay=x='if(lt(t,0.35),-w*(1-t/0.35)*(1-t/0.35),0)':y=0:"
+                f"shortest=1,format=yuv420p,setsar=1[v]")
+        args = ["-filter_complex", filt, "-map", "[v]"]
+    else:
+        args = ["-vf", f"{cam},format=yuv420p,setsar=1"]
+    run(["ffmpeg", "-v", "error", "-y", *inputs, *args, "-frames:v", str(frames),
+         "-c:v", "libx264", "-preset", "veryfast", "-crf", "16", "-r", str(FPS), str(out)])
 
 
-def render_clips(jobs: list[tuple[Path, Path, float, str]], workers: int = 3) -> None:
+def render_clips(jobs: list[tuple], workers: int = 3) -> None:
     done = 0
 
     def one(job):
@@ -108,6 +116,8 @@ def _join_segment(clips, durations, transitions, trans_dur, out: Path) -> None:
 def assemble(clips: list[Path], durations: list[float], transitions: list[str], trans_dur: float,
              audio: Path, ass: Path, font_path: str, out: Path, total: float) -> None:
     """xfade で全クリップをつなぎ、字幕と音声を合わせて書き出す。"""
+    # ffmpeg の dissolve は砂嵐のようなノイズになるため、なめらかなフェードに置き換える
+    transitions = ["fade" if t == "dissolve" else t for t in transitions]
     if len(clips) > SEGMENT + 4:
         log(f"長尺のため {SEGMENT} シーンごとに分けて結合します...")
         groups = [range(i, min(i + SEGMENT, len(clips))) for i in range(0, len(clips), SEGMENT)]

@@ -53,18 +53,54 @@ def _trim(x: np.ndarray, thresh: float = 0.01) -> np.ndarray:
     return x[max(0, idx[0] - pad): idx[-1] + pad]
 
 
+# 声のスタイルごとの話速補正 (素の読み上げ速度の違いをならす)
+MEI_SPEED = {"normal": 1.0, "happy": 1.08, "bashful": 1.4}
+
+
+def soften(x: np.ndarray) -> np.ndarray:
+    """耳ざわりな高域を抑えて柔らかい声質にし、音量をそろえる。"""
+    if len(x) < 64:
+        return x
+    spec = np.fft.rfft(x)
+    f = np.fft.rfftfreq(len(x), 1 / SAMPLE_RATE)
+    gain = np.interp(f, [0, 90, 200, 3500, 7000, 11000, 24000], [0, 0.9, 1.12, 1.0, 0.6, 0.38, 0.3])
+    y = np.fft.irfft(spec * gain, len(x)).astype(np.float32)
+    rms = float(np.sqrt(np.mean(y ** 2))) or 1.0
+    y *= 0.12 / rms
+    peak = float(np.abs(y).max())
+    return y / peak * 0.95 if peak > 0.95 else y
+
+
 class OpenJTalkTTS:
     name = "openjtalk"
-    credit = "音声: Open JTalk (HTS voice)"
 
-    def __init__(self, speed: float):
+    def __init__(self, speed: float, style: str = "happy"):
         import pyopenjtalk
+        from . import assets
         self._pj = pyopenjtalk
+        voice = assets.mei_voice(style)
+        if voice is None:
+            style = "normal"
+            self._engine = None  # pyopenjtalk 内蔵の Mei (normal)
+        else:
+            self._engine = pyopenjtalk.HTSEngine(str(voice).encode())
+        self.style = style
+        self.speaker = f"mei_{style}"
         self.speed = speed
+        self.credit = ('音声: Open JTalk / HTS Voice "Mei" (c) Nagoya Institute of Technology, '
+                       "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)")
 
     def synth(self, text: str) -> np.ndarray:
-        x, sr = self._pj.tts(text, speed=self.speed)
-        return _resample((x / 32768.0).astype(np.float32), sr)
+        sp = self.speed * MEI_SPEED.get(self.style, 1.0)
+        if self._engine is None:
+            x, sr = self._pj.tts(text, speed=sp)
+        else:
+            labels = self._pj.extract_fullcontext(text)
+            self._engine.set_speed(sp)
+            x = self._engine.synthesize(labels)
+            sr = self._engine.get_sampling_frequency()
+            self._engine.refresh()
+        return soften(_resample((np.asarray(x) / 32768.0).astype(np.float32), sr))
 
 
 class VoicevoxTTS:
@@ -113,8 +149,8 @@ def get_tts(settings: Settings):
                            1.0 + (settings.tts_speed - 1.0) * 0.8)
     if settings.tts == "voicevox":
         log("VOICEVOX ENGINE に接続できません。Open JTalk を使用します。")
-    log("音声合成: Open JTalk (オフライン)")
-    return OpenJTalkTTS(settings.tts_speed)
+    log(f"音声合成: Open JTalk (Mei / {settings.voice_style})")
+    return OpenJTalkTTS(settings.tts_speed, settings.voice_style)
 
 
 class Narrator:

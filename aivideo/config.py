@@ -81,6 +81,8 @@ class Settings:
     voicevox_url: str = "http://127.0.0.1:50021"
     voicevox_speaker: int = 13
     tts_speed: float = 1.1
+    voice_style: str = "happy"
+    tone: str = ""
     font_path: str = ""
     font_family: str = ""
     extra: dict = field(default_factory=dict)
@@ -98,6 +100,8 @@ class Settings:
             voicevox_url=env("VOICEVOX_URL", "http://127.0.0.1:50021"),
             voicevox_speaker=int(env("VOICEVOX_SPEAKER", "13") or 13),
             tts_speed=float(env("AIVIDEO_TTS_SPEED", "1.1") or 1.1),
+            voice_style=env("AIVIDEO_VOICE", "happy"),
+            tone=env("AIVIDEO_TONE", ""),
             font_path=fp,
             font_family=ff,
         )

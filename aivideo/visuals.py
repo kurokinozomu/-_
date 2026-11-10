@@ -172,84 +172,280 @@ def _lighten(c, f):
 
 
 # ------------------------------------------------------------------ 合成
+def vivid(c, l_min=0.32, l_max=0.5, s_min=0.7):
+    h, l, s = colorsys.rgb_to_hls(*[v / 255 for v in c])
+    r, g, b = colorsys.hls_to_rgb(h, min(l_max, max(l_min, l)), max(s, s_min))
+    return (int(r * 255), int(g * 255), int(b * 255))
+
+
 def _fit_font(draw, text, font_path, max_w, start, min_size=40):
     size = start
     while size > min_size:
         f = ImageFont.truetype(font_path, size)
         if draw.textlength(text, font=f) <= max_w:
             return f
-        size -= 6
+        size -= 4
     return ImageFont.truetype(font_path, min_size)
 
 
-def compose_scene(base: Image.Image, text: str, font_path: str, accent: tuple, big: bool) -> Image.Image:
-    """背景画像に字幕用の下部グラデーションとキーワードを重ねる。"""
+def sticker(img: Image.Image, border: int = 14, shadow: int = 18) -> Image.Image:
+    """イラストに白フチとドロップシャドウをつける (ステッカー風)。"""
+    pad = border + shadow * 2
+    W, H = img.size
+    canvas = Image.new("RGBA", (W + pad * 2, H + pad * 2), (0, 0, 0, 0))
+    alpha = Image.new("L", canvas.size, 0)
+    alpha.paste(img.split()[3], (pad, pad))
+    edge = alpha.filter(ImageFilter.MaxFilter(border * 2 + 1)).filter(ImageFilter.GaussianBlur(1.5))
+    sh = edge.filter(ImageFilter.GaussianBlur(shadow)).point(lambda v: int(v * 0.55))
+    canvas.paste((0, 0, 0, 255), (shadow // 2, shadow), sh)
+    canvas.paste((255, 255, 255, 255), (0, 0), edge)
+    canvas.alpha_composite(img, (pad, pad))
+    return canvas
+
+
+def sunburst(size, center, c1, c2, rays=22, rot=0.0) -> Image.Image:
+    """バラエティ番組風の集中線 (放射状の背景)。"""
+    W, H = size
+    img = Image.new("RGB", size, c1)
+    d = ImageDraw.Draw(img)
+    R = int(np.hypot(W, H))
+    cx, cy = center
+    step = 2 * np.pi / rays
+    for k in range(rays):
+        if k % 2:
+            continue
+        a0, a1 = rot + k * step, rot + (k + 1) * step
+        d.polygon([(cx, cy), (cx + R * np.cos(a0), cy + R * np.sin(a0)),
+                   (cx + R * np.cos(a1), cy + R * np.sin(a1))], fill=c2)
+    return img
+
+
+def radial_glow(size, center, color, radius, strength=0.8) -> Image.Image:
+    W, H = size
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    dist = np.hypot(xx - center[0], yy - center[1]) / radius
+    a = np.clip(1 - dist, 0, 1) ** 1.6 * strength
+    arr = np.zeros((H, W, 4), dtype=np.uint8)
+    arr[..., :3] = color
+    arr[..., 3] = (a * 255).astype(np.uint8)
+    return Image.fromarray(arr, "RGBA")
+
+
+def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
+                       size=(IMG_W, IMG_H)) -> Image.Image | None:
+    """絵文字イラストを使った、シーン内容に合わせた背景イラスト。"""
+    from . import assets
+    rnd = random.Random(seed)
+    W, H = size
+    main_size = int(H * 0.46)
+    imgs = [assets.emoji_image(e, main_size if i == 0 else int(main_size * 0.55))
+            for i, e in enumerate(emojis[:3])]
+    imgs = [im for im in imgs if im is not None]
+    if not imgs:
+        return None
+    base_c = vivid(palette[rnd.randrange(len(palette))], 0.2, 0.32, 0.55)
+    ray_c = _lighten(base_c, 0.07)
+    layout = rnd.choice(["center", "left", "right"])
+    cx = {"center": W * 0.5, "left": W * 0.36, "right": W * 0.64}[layout]
+    cy = H * 0.49
+    style = rnd.choice(["rays", "rays", "dots", "plain"])
+    if style == "rays":
+        bg = sunburst(size, (cx, cy), base_c, ray_c, rays=rnd.choice([20, 24, 28]), rot=rnd.random())
+    else:
+        bg = Image.new("RGB", size, base_c)
+        if style == "dots":
+            d = ImageDraw.Draw(bg)
+            step = 64
+            for y in range(0, H + step, step):
+                for x in range((y // step % 2) * step // 2, W + step, step):
+                    d.ellipse([x - 7, y - 7, x + 7, y + 7], fill=ray_c)
+    bg = bg.convert("RGBA")
+    bg.alpha_composite(radial_glow(size, (cx, cy), _lighten(base_c, 0.45), H * 0.62, 0.75))
+    # 周辺を少し暗く
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    v = ((xx / W - 0.5) ** 2 + (yy / H - 0.5) ** 2)
+    vig = np.zeros((H, W, 4), dtype=np.uint8)
+    vig[..., 3] = np.clip(v * 1.6 * 255, 0, 200).astype(np.uint8)
+    bg.alpha_composite(Image.fromarray(vig, "RGBA"))
+
+    main = sticker(imgs[0])
+    bg.alpha_composite(main, (int(cx - main.width / 2), int(cy - main.height / 2)))
+    if layout == "center":
+        side = [(W * 0.17, H * 0.4), (W * 0.83, H * 0.4)]
+    else:
+        sx = W * 0.79 if layout == "left" else W * 0.21
+        side = [(sx, H * 0.3), (sx, H * 0.62)] if len(imgs) > 2 else [(sx, H * 0.42)]
+    for im, (sx, sy) in zip(imgs[1:], side):
+        st = sticker(im, 10, 12).rotate(rnd.uniform(-12, 12), resample=Image.BICUBIC, expand=True)
+        bg.alpha_composite(st, (int(sx - st.width / 2), int(sy - st.height / 2)))
+    return bg.convert("RGB")
+
+
+def telop(img: Image.Image, text: str, font_path: str, color: tuple) -> None:
+    """テレビ番組風の見出しテロップ (左上の色帯 + 白文字)。"""
+    if not text:
+        return
+    W, H = img.size
+    d = ImageDraw.Draw(img)
+    f = _fit_font(d, text, font_path, W * 0.62, int(H * 0.085), 36)
+    tw = d.textlength(text, font=f)
+    x, y = int(W * 0.045), int(H * 0.07)
+    px, py = int(f.size * 0.45), int(f.size * 0.28)
+    box = [x - px, y - py, x + tw + px, y + f.size * 1.1 + py]
+    d.polygon([(box[0] + 4, box[1] + 10), (box[2] + 24, box[1] + 10), (box[2] + 4, box[3] + 10),
+               (box[0] - 16, box[3] + 10)], fill=(0, 0, 0, 110))
+    d.polygon([(box[0], box[1]), (box[2] + 20, box[1]), (box[2], box[3]), (box[0] - 20, box[3])],
+              fill=(*color, 255))
+    d.rectangle([box[0] - 20, box[3] - 10, box[2], box[3]], fill=(255, 255, 255, 255))
+    d.text((x, y), text, font=f, fill=(255, 255, 255, 255), stroke_width=max(3, f.size // 16),
+           stroke_fill=(0, 0, 0, 255))
+
+
+def compose_scene(base: Image.Image, text: str, font_path: str, accent: tuple, big: bool,
+                  heavy_font: str | None = None) -> Image.Image:
+    """背景に字幕エリアのグラデーションを重ねる (テロップは telop_overlay で別に作る)。"""
     img = base.resize((IMG_W, IMG_H), Image.LANCZOS).convert("RGBA")
     W, H = img.size
-    # 下部 (字幕エリア) を暗くして可読性を確保
     grad = np.zeros((H, W, 4), dtype=np.uint8)
-    ys = np.clip((np.arange(H) - H * 0.62) / (H * 0.38), 0, 1) ** 1.4
-    grad[..., 3] = (ys * 170).astype(np.uint8)[:, None]
+    ys = np.clip((np.arange(H) - H * 0.7) / (H * 0.3), 0, 1) ** 1.5
+    grad[..., 3] = (ys * 130).astype(np.uint8)[:, None]
     img = Image.alpha_composite(img, Image.fromarray(grad, "RGBA"))
     text = (text or "").strip()
-    if text:
+    if text and big:  # イラストなしのオフライン背景: 中央に大きく
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
-        if big:  # オフライン背景: 画面中央に大きく
-            f = _fit_font(d, text, font_path, W * 0.82, 190)
-            tw = d.textlength(text, font=f)
-            x, y = (W - tw) / 2, H * 0.36
-            bar_w = min(tw, W * 0.5)
-            d.rounded_rectangle([W / 2 - bar_w / 2, y + f.size * 1.25, W / 2 + bar_w / 2,
-                                 y + f.size * 1.25 + 14], 7, fill=(*accent, 255))
-            d.text((x, y), text, font=f, fill=(255, 255, 255, 255),
-                   stroke_width=max(4, f.size // 22), stroke_fill=(0, 0, 0, 200))
-        else:  # AI 画像: 左上にラベル
-            f = _fit_font(d, text, font_path, W * 0.6, 92)
-            tw = d.textlength(text, font=f)
-            x, y, p = W * 0.05, H * 0.07, 34
-            d.rounded_rectangle([x - p, y - p * 0.6, x + tw + p, y + f.size * 1.2 + p * 0.4],
-                                22, fill=(0, 0, 0, 150))
-            d.rectangle([x - p, y - p * 0.6, x - p + 12, y + f.size * 1.2 + p * 0.4], fill=(*accent, 255))
-            d.text((x, y), text, font=f, fill=(255, 255, 255, 255))
+        f = _fit_font(d, text, heavy_font or font_path, W * 0.82, 190)
+        tw = d.textlength(text, font=f)
+        d.text(((W - tw) / 2, H * 0.36), text, font=f, fill=(255, 255, 255, 255),
+               stroke_width=max(5, f.size // 18), stroke_fill=(0, 0, 0, 230))
         img = Image.alpha_composite(img, layer)
     return img.convert("RGB")
 
 
-def make_thumbnail(base: Image.Image, text: str, sub: str, font_path: str, out: Path) -> None:
-    W, H = 1280, 720
-    img = base.resize((W, H), Image.LANCZOS).convert("RGBA")
-    shade = np.zeros((H, W, 4), dtype=np.uint8)
-    shade[..., 3] = (np.clip(1.1 - np.linspace(0, 1, W), 0, 1) * 190).astype(np.uint8)[None, :]
-    img = Image.alpha_composite(img, Image.fromarray(shade, "RGBA"))
-    d = ImageDraw.Draw(img)
+def telop_overlay(text: str, font_path: str, accent: tuple, out: Path) -> bool:
+    """カメラの動きに影響されない、画面固定の見出しテロップ (透過 PNG, 1920x1080)。"""
     text = (text or "").strip()
-    lines = [text] if len(text) <= 7 else [text[: (len(text) + 1) // 2], text[(len(text) + 1) // 2:]]
-    fonts = [_fit_font(d, ln, font_path, W * 0.86, 190, 60) for ln in lines]
-    sf = _fit_font(d, sub, font_path, W * 0.8, 76, 36) if sub else None
-    block = sum(int(f.size * 1.12) for f in fonts) + (int(sf.size * 1.35) + 20 if sf else 0)
-    y = max(30, (H - block) // 2 - 10)
-    for ln, f in zip(lines, fonts):
-        d.text((56, y), ln, font=f, fill=(255, 230, 0), stroke_width=12, stroke_fill=(0, 0, 0))
-        y += int(f.size * 1.12)
+    if not text:
+        return False
+    img = Image.new("RGBA", (1920, 1080), (0, 0, 0, 0))
+    telop(img, text, font_path, vivid(accent, 0.38, 0.48, 0.8))
+    img.save(out)
+    return True
+
+
+def _draw_runs(d, x, y, runs, f, outer_w):
+    """[(文字列, 塗り, 内フチ, 外フチ)] を横に並べて描く (二重フチ文字)。"""
+    cx = x
+    for txt, fill, inner, outer in runs:
+        d.text((cx, y), txt, font=f, fill=outer, stroke_width=outer_w, stroke_fill=outer)
+        cx += d.textlength(txt, font=f)
+    cx = x
+    for txt, fill, inner, outer in runs:
+        d.text((cx, y), txt, font=f, fill=fill, stroke_width=max(4, outer_w // 2), stroke_fill=inner)
+        cx += d.textlength(txt, font=f)
+
+
+def make_thumbnail(base: Image.Image | None, th: dict, font_path: str, heavy_font: str | None,
+                   palette: list[tuple], out: Path) -> None:
+    """情報量が多く目を引くサムネイル: ラベル / 二段の大見出し / 強調語 / バッジ / イラスト / 下帯。"""
+    from . import assets
+    W, H = 1280, 720
+    hf = heavy_font or font_path
+    red, yellow, white, black = (225, 20, 40), (255, 228, 0), (255, 255, 255), (0, 0, 0)
+    main_c = vivid(palette[0] if palette else (200, 30, 40), 0.3, 0.42, 0.75)
+    if base is not None:
+        img = base.resize((W, H), Image.LANCZOS).convert("RGBA")
+    else:
+        img = sunburst((W, H), (W * 0.74, H * 0.45), main_c, _lighten(main_c, 0.1), 26, 0.2).convert("RGBA")
+        img.alpha_composite(radial_glow((W, H), (W * 0.74, H * 0.45), _lighten(main_c, 0.4), 520, 0.85))
+    # イラスト (右側)
+    emojis = th.get("emoji") or []
+    for i, e in enumerate(emojis[:2]):
+        em = assets.emoji_image(e, 400 if i == 0 else 230)
+        if em is None:
+            continue
+        st = sticker(em, 12, 14)
+        if i:
+            st = st.rotate(-10, resample=Image.BICUBIC, expand=True)
+        pos = (W - st.width + 10, H // 2 - st.height // 2 + 70) if i == 0 else (W - 560, H - st.height - 60)
+        img.alpha_composite(st, pos)
+    # 左側を暗くして文字を読みやすく
+    shade = np.zeros((H, W, 4), dtype=np.uint8)
+    shade[..., 3] = (np.clip(1.0 - np.linspace(0, 1.35, W), 0, 1) * 200).astype(np.uint8)[None, :]
+    img.alpha_composite(Image.fromarray(shade, "RGBA"))
+    d = ImageDraw.Draw(img)
+
+    y = 26
+    label = (th.get("label") or "").strip()
+    if label:
+        f = ImageFont.truetype(hf, 50)
+        tw = d.textlength(label, font=f)
+        d.rectangle([28, y, 28 + tw + 44, y + 74], fill=yellow)
+        d.rectangle([22, y - 6, 22 + tw + 44, y + 68], fill=red)
+        d.text((44, y + 2), label, font=f, fill=white)
+        y += 96
+    emph = (th.get("emphasis") or "").strip()
+    lines = [(th.get("line1") or th.get("text") or "").strip(), (th.get("line2") or "").strip()]
+    styles = [(white, black, main_c), (yellow, black, black)]
+    max_w = W * (0.64 if emojis else 0.9)
+    sub_h = 120 if (th.get("sub_text") or "").strip() else 30
+    fonts = [_fit_font(d, ln, hf, max_w, 170, 60) if ln else None for ln in lines]
+    block = sum(int(f.size * 1.18) for f in fonts if f)
+    y = y + max(0, (H - sub_h - y - block) // 2)
+    for ln, f, (fill, inner, outer) in zip(lines, fonts, styles):
+        if not ln:
+            continue
+        runs = []
+        if emph and emph in ln:
+            a, b = ln.split(emph, 1)
+            runs = [(a, fill, inner, outer), (emph, red, white, black), (b, fill, inner, outer)]
+        else:
+            runs = [(ln, fill, inner, outer)]
+        _draw_runs(d, 40, y, [r for r in runs if r[0]], f, 18)
+        y += int(f.size * 1.18)
+    # 下帯
+    sub = (th.get("sub_text") or "").strip()
     if sub:
-        f = sf
+        f = _fit_font(d, sub, hf, W * 0.8, 58, 30)
         tw = d.textlength(sub, font=f)
-        d.rectangle([40, y + 20, 40 + tw + 40, y + 20 + f.size * 1.35], fill=(220, 20, 40))
-        d.text((60, y + 20 + f.size * 0.12), sub, font=f, fill=(255, 255, 255))
+        bh = int(f.size * 1.5)
+        d.rectangle([0, H - bh - 22, tw + 90, H - 22], fill=(0, 0, 0))
+        d.rectangle([0, H - bh - 22, 16, H - 22], fill=red)
+        d.text((48, H - bh - 22 + (bh - f.size) // 2 - 4), sub, font=f, fill=yellow)
+    # バッジ
+    badge = (th.get("badge") or "").strip()[:4]
+    if badge:
+        r = 92
+        bd = Image.new("RGBA", (r * 2 + 20, r * 2 + 20), (0, 0, 0, 0))
+        b = ImageDraw.Draw(bd)
+        b.ellipse([10, 10, 10 + 2 * r, 10 + 2 * r], fill=red, outline=white, width=8)
+        rows = [badge] if len(badge) <= 2 else [badge[:2], badge[2:]]
+        f = ImageFont.truetype(hf, 62 if len(rows) == 1 else 50)
+        ty = 10 + r - len(rows) * f.size * 0.58
+        for row in rows:
+            tw = b.textlength(row, font=f)
+            b.text((10 + r - tw / 2, ty), row, font=f, fill=white)
+            ty += f.size * 1.1
+        bd = bd.rotate(12, resample=Image.BICUBIC, expand=True)
+        img.alpha_composite(bd, (W - bd.width - 18, 8))
     img.convert("RGB").save(out, quality=92)
 
 
 class SceneImager:
     def __init__(self, settings: Settings, plan: dict, cache_dir: Path):
+        from . import assets
         self.settings = settings
         self.plan = plan
         self.cache = cache_dir
         self.cache.mkdir(parents=True, exist_ok=True)
         pal = plan.get("palette") or MOOD_PALETTES.get(plan.get("bgm_mood", "calm"))
         pal = [c for c in pal if isinstance(c, str) and c.startswith("#")] or MOOD_PALETTES["calm"]
+        self.palette = [hex_rgb(c) for c in pal]
         self.accent = _lighten(hex_rgb(pal[-1]), 0.1)
         self.procedural = ProceduralProvider(pal)
+        hv = assets.font("heavy")
+        self.heavy_font = hv[0] if hv else None
+        self.illustrations = settings.visuals in ("auto", "procedural", "illustration") and assets.emoji_available()
         self.ai = None
         if settings.visuals in ("auto", "pollinations"):
             log("AI画像生成 (Pollinations) の接続を確認中...")
@@ -257,31 +453,60 @@ class SceneImager:
                 self.ai = PollinationsProvider()
                 log("映像: Pollinations AI 画像生成")
             else:
-                log("Pollinations に接続できないため、オフライン生成グラフィックを使用します。")
+                log("Pollinations に接続できないため、"
+                    + ("シーン内容に合わせたイラストを使用します。" if self.illustrations
+                       else "オフライン生成グラフィックを使用します。"))
         self.used: set[str] = set()
 
-    def base_image(self, scene: dict) -> tuple[Image.Image, bool]:
-        """(画像, AI生成かどうか) を返す。"""
-        prompt = f"{scene.get('visual_prompt', '')}, {self.plan.get('visual_style', '')}, no text, no watermark"
-        seed = int(hashlib.sha1(scene["id"].encode() + prompt.encode()).hexdigest()[:7], 16)
-        provider = self.ai or self.procedural
-        key = hashlib.sha1(f"{provider.name}|{prompt}|{seed}".encode()).hexdigest()[:20]
+    def _ai_image(self, prompt: str, seed: int) -> Image.Image | None:
+        key = hashlib.sha1(f"pollinations|{prompt}|{seed}".encode()).hexdigest()[:20]
         f = self.cache / f"{key}.png"
         if f.exists():
-            self.used.add(provider.credit)
-            return Image.open(f).convert("RGB"), provider is self.ai
+            return Image.open(f).convert("RGB")
         try:
-            img = provider.generate(prompt, seed)
+            img = self.ai.generate(prompt, seed)
         except Exception as e:
-            log(f"{scene['id']}: AI画像生成に失敗 ({e})。オフライン生成に切り替えます。")
-            provider = self.procedural
-            img = provider.generate(prompt, seed)
-        self.used.add(provider.credit)
+            log(f"AI画像生成に失敗 ({e})。イラストに切り替えます。")
+            return None
         img.save(f)
-        return img, provider is self.ai
+        return img
 
-    def render(self, scene: dict, out: Path) -> Image.Image:
-        base, is_ai = self.base_image(scene)
+    def base_image(self, scene: dict) -> tuple[Image.Image, str]:
+        """(画像, 種類 'ai' | 'illustration' | 'procedural') を返す。"""
+        prompt = f"{scene.get('visual_prompt', '')}, {self.plan.get('visual_style', '')}, no text, no watermark"
+        seed = int(hashlib.sha1(scene["id"].encode() + prompt.encode()).hexdigest()[:7], 16)
+        if self.ai:
+            img = self._ai_image(prompt, seed)
+            if img is not None:
+                self.used.add(self.ai.credit)
+                return img, "ai"
+        if self.illustrations and scene.get("emoji"):
+            img = illustration_scene(scene["emoji"], self.palette, seed)
+            if img is not None:
+                self.used.add(ILLUSTRATION_CREDIT)
+                return img, "illustration"
+        self.used.add(self.procedural.credit)
+        return self.procedural.generate(prompt, seed), "procedural"
+
+    def render(self, scene: dict, out: Path) -> Path | None:
+        """背景画像を out に保存し、テロップがあればその透過 PNG のパスを返す。"""
+        base, kind = self.base_image(scene)
+        big = kind == "procedural"
         compose_scene(base, scene.get("onscreen_text", ""), self.settings.font_path,
-                      self.accent, big=not is_ai).save(out)
-        return base
+                      self.accent, big=big, heavy_font=self.heavy_font).save(out)
+        tel = out.with_name(out.stem + "_telop.png")
+        if not big and telop_overlay(scene.get("onscreen_text", ""), self.heavy_font or self.settings.font_path,
+                                     self.accent, tel):
+            return tel
+        return None
+
+    def thumbnail(self, out: Path) -> None:
+        th = self.plan.get("thumbnail", {})
+        base = None
+        if self.ai and th.get("image_prompt"):
+            base = self._ai_image(f"{th['image_prompt']}, {self.plan.get('visual_style', '')}, "
+                                  "no text, no watermark", 7)
+        make_thumbnail(base, th, self.settings.font_path, self.heavy_font, self.palette, out)
+
+
+ILLUSTRATION_CREDIT = "イラスト: Noto Emoji (Google, Apache License 2.0)"
