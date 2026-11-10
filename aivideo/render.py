@@ -80,32 +80,58 @@ def _escape_filter_path(p: Path) -> str:
     return s.replace(":", r"\:").replace("'", r"\'").replace(",", r"\,")
 
 
-def assemble(clips: list[Path], durations: list[float], transitions: list[str], trans_dur: float,
-             audio: Path, ass: Path, font_path: str, out: Path, total: float) -> None:
-    """xfade で全クリップをつなぎ、字幕と音声を合わせて書き出す。"""
-    inputs: list[str] = []
-    for c in clips:
-        inputs += ["-i", str(c)]
-    inputs += ["-i", str(audio)]
-
-    parts = []
-    last = "[0:v]"
-    offset = 0.0
-    for k in range(1, len(clips)):
+def _xfade_chain(n: int, durations: list[float], transitions: list[str], trans_dur: float) -> tuple[list[str], str]:
+    parts, last, offset = [], "[0:v]", 0.0
+    for k in range(1, n):
         offset += durations[k - 1] - trans_dur
         lbl = f"[v{k}]"
         parts.append(f"{last}[{k}:v]xfade=transition={transitions[k]}:duration={trans_dur}:"
                      f"offset={offset:.3f}{lbl}")
         last = lbl
+    return parts, last
+
+
+SEGMENT = 20  # 長尺ではこのシーン数ごとに中間ファイルを作り、メモリ使用量を抑える
+
+
+def _join_segment(clips, durations, transitions, trans_dur, out: Path) -> None:
+    inputs = [x for c in clips for x in ("-i", str(c))]
+    parts, last = _xfade_chain(len(clips), durations, transitions, trans_dur)
+    filt = ";".join(parts) if parts else "[0:v]null[vout]"
+    if parts:
+        filt += f";{last}null[vout]"
+    run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", filt, "-map", "[vout]",
+         "-c:v", "libx264", "-preset", "veryfast", "-crf", "14", "-pix_fmt", "yuv420p",
+         "-r", str(FPS), str(out)])
+
+
+def assemble(clips: list[Path], durations: list[float], transitions: list[str], trans_dur: float,
+             audio: Path, ass: Path, font_path: str, out: Path, total: float) -> None:
+    """xfade で全クリップをつなぎ、字幕と音声を合わせて書き出す。"""
+    if len(clips) > SEGMENT + 4:
+        log(f"長尺のため {SEGMENT} シーンごとに分けて結合します...")
+        groups = [range(i, min(i + SEGMENT, len(clips))) for i in range(0, len(clips), SEGMENT)]
+        seg_paths, seg_durs, seg_trans = [], [], []
+        jobs = []
+        for gi, g in enumerate(groups):
+            sp = out.parent / "work" / f"segment_{gi:02d}.mp4"
+            jobs.append(([clips[k] for k in g], [durations[k] for k in g],
+                         [transitions[k] for k in g], trans_dur, sp))
+            seg_paths.append(sp)
+            seg_durs.append(sum(durations[k] for k in g) - (len(g) - 1) * trans_dur)
+            seg_trans.append(transitions[g[0]])
+        with ThreadPoolExecutor(max_workers=2) as ex:
+            list(ex.map(lambda j: _join_segment(*j), jobs))
+        clips, durations, transitions = seg_paths, seg_durs, seg_trans
+
+    inputs = [x for c in clips for x in ("-i", str(c))] + ["-i", str(audio)]
+    parts, last = _xfade_chain(len(clips), durations, transitions, trans_dur)
     fontsdir = _escape_filter_path(Path(font_path).parent)
     parts.append(f"{last}ass='{_escape_filter_path(ass)}':fontsdir='{fontsdir}',"
                  f"fade=t=in:st=0:d=0.4,fade=t=out:st={max(0, total - 0.8):.3f}:d=0.8,format=yuv420p[vout]")
     parts.append(f"[{len(clips)}:a]loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[aout]")
-    filt = ";\n".join(parts)
-    script = out.with_suffix(".filter.txt")
-    script.write_text(filt, encoding="utf-8")
     log("最終書き出し中 (場面転換・字幕・音声)...")
-    run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", filt,
+    run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", ";".join(parts),
          "-map", "[vout]", "-map", "[aout]", "-t", f"{total:.3f}",
          "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-profile:v", "high",
          "-pix_fmt", "yuv420p", "-r", str(FPS),

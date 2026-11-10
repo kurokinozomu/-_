@@ -139,7 +139,7 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     est = build_timeline(scenes, spoken)[-1]
     est_total = est["start"] + est["duration"]
     ratio = est_total / seconds
-    if not plan_path and (ratio > 1.12 or ratio < 0.88):
+    if (ratio > 1.12 or ratio < 0.88):
         new_speed = max(0.9, min(1.2, engine.speed * (ratio ** 0.9)))
         log(f"推定 {est_total:.0f}秒 (目標 {seconds:.0f}秒) → 話速を {engine.speed:.2f}→{new_speed:.2f} に調整")
         engine.speed = new_speed

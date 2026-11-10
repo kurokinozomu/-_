@@ -260,7 +260,8 @@ class SceneImager:
                 log("Pollinations に接続できないため、オフライン生成グラフィックを使用します。")
         self.used: set[str] = set()
 
-    def base_image(self, scene: dict) -> Image.Image:
+    def base_image(self, scene: dict) -> tuple[Image.Image, bool]:
+        """(画像, AI生成かどうか) を返す。"""
         prompt = f"{scene.get('visual_prompt', '')}, {self.plan.get('visual_style', '')}, no text, no watermark"
         seed = int(hashlib.sha1(scene["id"].encode() + prompt.encode()).hexdigest()[:7], 16)
         provider = self.ai or self.procedural
@@ -268,7 +269,7 @@ class SceneImager:
         f = self.cache / f"{key}.png"
         if f.exists():
             self.used.add(provider.credit)
-            return Image.open(f).convert("RGB")
+            return Image.open(f).convert("RGB"), provider is self.ai
         try:
             img = provider.generate(prompt, seed)
         except Exception as e:
@@ -277,11 +278,10 @@ class SceneImager:
             img = provider.generate(prompt, seed)
         self.used.add(provider.credit)
         img.save(f)
-        return img
+        return img, provider is self.ai
 
     def render(self, scene: dict, out: Path) -> Image.Image:
-        base = self.base_image(scene)
-        is_ai = self.ai is not None and base.size == (1920, 1080)
+        base, is_ai = self.base_image(scene)
         compose_scene(base, scene.get("onscreen_text", ""), self.settings.font_path,
                       self.accent, big=not is_ai).save(out)
         return base

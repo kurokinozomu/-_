@@ -50,6 +50,8 @@ winget install Gyan.FFmpeg
 
 pip install -r requirements.txt
 cp .env.example .env   # 必要に応じて編集
+
+python -m aivideo --check   # 足りないものとインストール方法を表示
 ```
 
 ### (任意) VOICEVOX で音声を高品質にする

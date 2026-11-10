@@ -41,7 +41,11 @@ def main(argv=None) -> int:
     ap.add_argument("--plan", type=Path, help="既存の plan.json から作り直す (台本を手直ししたい場合)")
     ap.add_argument("--out", type=Path, help="出力先ディレクトリ")
     ap.add_argument("--workers", type=int, default=3, help="並列レンダリング数")
+    ap.add_argument("--check", action="store_true", help="実行環境をチェックして終了")
     a = ap.parse_args(argv)
+    if a.check:
+        from .doctor import check
+        return check()
 
     theme, secs = (parse_request(a.request) if a.request else (None, None))
     theme = a.theme or theme
@@ -52,6 +56,9 @@ def main(argv=None) -> int:
     if not theme and not a.plan:
         ap.print_help()
         return 2
+    if a.plan and not secs:
+        import json
+        secs = float(json.loads(a.plan.read_text(encoding="utf-8")).get("target_seconds") or 60)
     secs = secs or 60.0
     if secs < 15 or secs > 3600:
         log("動画の長さは 15秒〜60分 の範囲で指定してください。")
