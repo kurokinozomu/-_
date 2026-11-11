@@ -87,7 +87,7 @@ class Settings:
     allow_paid: bool = False
     claude_model: str = "claude-opus-5-5"
     voicevox_url: str = "http://127.0.0.1:50021"
-    voicevox_speaker: int = 13
+    voicevox_speaker: int = 8
     tts_speed: float = 1.1
     voice_style: str = "happy"
     tone: str = ""
@@ -106,7 +106,7 @@ class Settings:
             allow_paid=env("AIVIDEO_ALLOW_PAID", "0") in ("1", "true", "yes"),
             claude_model=env("AIVIDEO_CLAUDE_MODEL", "claude-opus-5-5"),
             voicevox_url=env("VOICEVOX_URL", "http://127.0.0.1:50021"),
-            voicevox_speaker=int(env("VOICEVOX_SPEAKER", "13") or 13),
+            voicevox_speaker=int(env("VOICEVOX_SPEAKER", "8") or 8),
             tts_speed=float(env("AIVIDEO_TTS_SPEED", "1.1") or 1.1),
             voice_style=env("AIVIDEO_VOICE", "happy"),
             tone=env("AIVIDEO_TONE", ""),

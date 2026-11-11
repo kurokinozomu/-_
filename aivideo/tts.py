@@ -142,8 +142,33 @@ class VoicevoxTTS:
         return _resample((data / 32768.0).astype(np.float32), sr)
 
 
+def start_voicevox(url: str) -> bool:
+    """VOICEVOX_ENGINE_DIR (エンジンを展開したフォルダ) が設定されていれば、自動で起動する。"""
+    import os
+    import subprocess
+    import time
+    d = os.environ.get("VOICEVOX_ENGINE_DIR", "").strip()
+    if not d:
+        return False
+    exe = next((p for p in (Path(d) / "run", Path(d) / "run.exe") if p.exists()), None)
+    if exe is None:
+        log(f"VOICEVOX_ENGINE_DIR に run が見つかりません: {d}")
+        return False
+    port = url.rstrip("/").rsplit(":", 1)[-1]
+    log("VOICEVOX ENGINE を起動中...")
+    subprocess.Popen([str(exe), "--host", "127.0.0.1", "--port", port],
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    for _ in range(90):
+        time.sleep(2)
+        if VoicevoxTTS.available(url):
+            return True
+    log("VOICEVOX ENGINE が起動しませんでした。")
+    return False
+
+
 def get_tts(settings: Settings):
-    if settings.tts in ("auto", "voicevox") and VoicevoxTTS.available(settings.voicevox_url):
+    if settings.tts in ("auto", "voicevox") and (VoicevoxTTS.available(settings.voicevox_url)
+                                                 or start_voicevox(settings.voicevox_url)):
         log("音声合成: VOICEVOX")
         return VoicevoxTTS(settings.voicevox_url, settings.voicevox_speaker,
                            1.0 + (settings.tts_speed - 1.0) * 0.8)
