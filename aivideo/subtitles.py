@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from pathlib import Path
 
 LINE_MAX = 19      # 1 行の最大文字数 (大きめの文字に合わせる)
@@ -22,6 +23,36 @@ def clean(text: str) -> str:
     return text
 
 
+@lru_cache(maxsize=4096)
+def _boundaries(s: str) -> tuple[frozenset, frozenset]:
+    """(単語の切れ目, 文節の切れ目) の文字位置。形態素解析 (pyopenjtalk) が使えなければ空。"""
+    try:
+        import pyopenjtalk
+        nodes = pyopenjtalk.run_frontend(s)
+    except Exception:
+        return frozenset(), frozenset()
+    words, phrases, pos = set(), set(), 0
+    pending_phrase = False   # 数字など、読みに変換されて元の文字と対応しない部分
+    for n in nodes:
+        w = n.get("string", "")
+        j = s.find(w, pos) if w else -1
+        if j < 0 or j - pos > 6:
+            if n.get("chain_flag") == 0 and pos not in phrases and not pending_phrase:
+                phrases.add(pos)
+                words.add(pos)
+            pending_phrase = True
+            continue
+        if j > pos:  # 対応しなかった部分の終わりも単語の切れ目
+            words.add(j)
+        words.add(j)
+        if n.get("chain_flag") == 0:
+            phrases.add(j)
+        pos = j + len(w)
+        words.add(pos)
+        pending_phrase = False
+    return frozenset(words), frozenset(phrases)
+
+
 def _break_score(s: str, i: int) -> float:
     """位置 i (s[:i] | s[i:]) で改行したときの良さ。"""
     if i <= 0 or i >= len(s) or s[i] in NO_LINE_START:
@@ -31,6 +62,12 @@ def _break_score(s: str, i: int) -> float:
         return -1e9
     prev = s[:i]
     score = 0.0
+    words, phrases = _boundaries(s)
+    if words:
+        if i in phrases:
+            score += 5      # 文節の頭 (「便利 | アプリ」より「入れるべき | 便利アプリ」)
+        elif i not in words:
+            score -= 6      # 単語の途中は避ける
     if prev.endswith(("、", "　", " ", "」", "』", "！", "？")):
         score += 10
     elif prev.endswith(PARTICLES):
@@ -56,7 +93,7 @@ def best_split(s: str, target: int, lo: int, hi: int) -> int:
         v = _break_score(s, i) - abs(i - target) * 0.8
         if v > best_v:
             best, best_v = i, v
-    if best_v < -1e8:  # 範囲内に良い位置がなければ、少しはみ出しても数字の途中は避ける
+    if best_v < -2:  # 範囲内に良い位置がなければ、少しはみ出しても単語や数字の途中は避ける
         for i in range(max(1, lo - 4), min(len(s) - 1, hi + 4) + 1):
             v = _break_score(s, i) - abs(i - target) * 0.8
             if v > best_v:
@@ -171,8 +208,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         wrapped = wrap(text)
         inner = "\\N".join(_highlight(ln, hl) for ln in wrapped.split("\\N"))
         t0, t1 = _ass_time(s), _ass_time(e)
-        lines.append(f"Dialogue: 0,{t0},{t1},Outer,,0,0,0,,{{\\fad(70,70)\\blur1.5}}{wrapped}\n")
-        lines.append(f"Dialogue: 1,{t0},{t1},Inner,,0,0,0,,{{\\fad(70,70)}}{inner}\n")
+        longest = max(len(ln) for ln in wrapped.split("\\N"))
+        fit = f"\\fs{int(fs * (LINE_MAX + 0.5) / longest)}" if longest > LINE_MAX else ""  # はみ出す行は少し小さく
+        lines.append(f"Dialogue: 0,{t0},{t1},Outer,,0,0,0,,{{\\fad(70,70)\\blur1.5{fit}}}{wrapped}\n")
+        lines.append(f"Dialogue: 1,{t0},{t1},Inner,,0,0,0,,{{\\fad(70,70){fit}}}{inner}\n")
     path.write_text("".join(lines), encoding="utf-8")
 
 

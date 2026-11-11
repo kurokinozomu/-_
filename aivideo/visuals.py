@@ -10,6 +10,7 @@ from __future__ import annotations
 import colorsys
 import hashlib
 import io
+import math
 import os
 import random
 import re
@@ -477,6 +478,121 @@ def make_thumbnail(base: Image.Image | None, th: dict, font_path: str, heavy_fon
     img.convert("RGB").save(out, quality=92)
 
 
+# ------------------------------------------------------------------ ランキング (〇〇10選)
+RANK_YELLOW, RANK_YELLOW2, RANK_RED = (255, 232, 70), (255, 214, 30), (225, 25, 40)
+
+
+def _wrap_px(d, text: str, font, max_w: float) -> list[str]:
+    """表示幅で折り返す。読点や助詞の後など、自然な位置で改行する。"""
+    from .subtitles import best_split
+    cap = max(4, int(max_w / font.size))
+    lines = []
+    while len(text) > cap:
+        i = best_split(text, cap, max(2, cap - 6), cap)
+        lines.append(text[:i])
+        text = text[i:].lstrip("　 ")
+    if text:
+        lines.append(text)
+    return lines
+
+
+def _phrase_lines(text: str, per: int) -> list[str]:
+    from .subtitles import best_split
+    out = []
+    while len(text) > per:
+        i = best_split(text, per, max(2, per - 3), per)
+        out.append(text[:i])
+        text = text[i:]
+    return out + ([text] if text else [])
+
+
+def _outlined(d, xy, text, font, fill, inner=(0, 0, 0), outer=None, w=10, anchor="mm"):
+    if outer:
+        d.text(xy, text, font=font, fill=outer, stroke_width=w * 2, stroke_fill=outer, anchor=anchor)
+    d.text(xy, text, font=font, fill=fill, stroke_width=w, stroke_fill=inner, anchor=anchor)
+
+
+def ranking_scene(scene: dict, plan: dict, heavy: str, rounded: str, all_emoji: list[str]) -> Image.Image:
+    """掲示板まとめ風ランキングの 1 画面 (黄色の集中線 / 第N位 / 品名 / 書き込み / イラスト)。"""
+    from . import assets
+    W, H = IMG_W, IMG_H
+    tall = H > W
+    img = sunburst((W, H), (W / 2, H * 0.5), RANK_YELLOW, RANK_YELLOW2, rays=30).convert("RGBA")
+    img.alpha_composite(radial_glow((W, H), (W / 2, H * 0.5), (255, 250, 210), H * 0.45, 0.6))
+    d = ImageDraw.Draw(img)
+    rk = plan.get("ranking", {})
+    rank = scene.get("rank")
+    if rank in (None, "", 0):  # タイトル画面
+        title = (rk.get("title") or plan.get("theme", ""))[:20]
+        per = 6 if tall else 10
+        lines = _phrase_lines(title, per)
+        y = H * (0.12 if tall else 0.14)
+        for ln in lines + ([rk["sub"]] if rk.get("sub") else []):
+            is_sub = ln == rk.get("sub")
+            f = _fit_font(d, ln, heavy, W * 0.9, int(W * (0.15 if tall else 0.08)), 40)
+            _outlined(d, (W / 2, y + f.size / 2), ln, f, (20, 20, 20) if is_sub else RANK_RED,
+                      inner=(255, 255, 255), outer=(0, 0, 0) if not is_sub else None, w=max(6, f.size // 14))
+            y += f.size * 1.15
+        # イラストを寄せ集めて置く
+        rnd = random.Random(len(title))
+        picks = [e for e in dict.fromkeys(all_emoji) if e][:7]
+        top, bottom = y + H * 0.02, H * (0.62 if tall else 0.85)
+        cx0, cy0 = W / 2, (top + bottom) / 2
+        span = max(80.0, bottom - top)
+        isz = int(min(W * (0.24 if tall else 0.12), span * 0.36))
+        for i, e in enumerate(picks):
+            em = assets.emoji_image(e, isz)
+            if em is None:
+                continue
+            ang = (i - 1) / max(1, len(picks) - 1) * 2 * math.pi
+            rad = (span * 0.32) * (0 if i == 0 else 1)
+            st = sticker(em, 8, 10).rotate(rnd.uniform(-15, 15), resample=Image.BICUBIC, expand=True)
+            img.alpha_composite(st, (int(cx0 + rad * 1.5 * math.cos(ang) - st.width / 2),
+                                     int(cy0 + rad * math.sin(ang) - st.height / 2)))
+        return img.convert("RGB")
+
+    # 第N位
+    f = ImageFont.truetype(heavy, int(W * (0.16 if tall else 0.085)))
+    y_rank = H * (0.12 if tall else 0.13)
+    _outlined(d, (W / 2, y_rank), f"第{rank}位", f, (255, 255, 255), inner=(0, 0, 0), w=max(8, f.size // 16))
+    # 品名
+    item = str(scene.get("item") or "")
+    fi = _fit_font(d, item, heavy, W * 0.9, int(W * (0.11 if tall else 0.06)), 40)
+    y_item = y_rank + f.size * 0.62 + fi.size * 0.75
+    _outlined(d, (W / 2, y_item), item, fi, RANK_RED, inner=(255, 255, 255), outer=(0, 0, 0),
+              w=max(6, fi.size // 14))
+    # 書き込み風コメント (白い箱・赤枠)
+    comment = str(scene.get("comment") or "")
+    y = y_item + fi.size * 0.85
+    if comment:
+        fc = ImageFont.truetype(rounded, int(W * (0.055 if tall else 0.03)))
+        bw = W * (0.8 if tall else 0.5)
+        lines = _wrap_px(d, comment, fc, bw - fc.size * 1.2)[:3]
+        bh = len(lines) * fc.size * 1.35 + fc.size * 0.9
+        x0 = (W - bw) / 2
+        d.rectangle([x0 + 10, y + 10, x0 + bw + 10, y + bh + 10], fill=(0, 0, 0, 90))
+        d.rectangle([x0, y, x0 + bw, y + bh], fill=(255, 255, 255), outline=RANK_RED, width=max(6, W // 160))
+        ty = y + fc.size * 0.45
+        for ln in lines:
+            d.text((x0 + fc.size * 0.6, ty), ln, font=fc, fill=(20, 20, 20))
+            ty += fc.size * 1.35
+        y += bh
+    # イラスト: コメント箱の下から字幕の上までの空きに収まる大きさで置く
+    bottom_limit = H * (0.62 if tall else 0.8)
+    space = bottom_limit - y - H * 0.03
+    size = int(min(W * (0.5 if tall else 0.24), space - 60))
+    em = None
+    for e in scene.get("emoji") or []:
+        em = assets.emoji_image(e, max(120, size))
+        if em is not None:
+            break
+    if em is not None:
+        st = sticker(em, 14, 18)
+        cy = y + H * 0.02 + (bottom_limit - y - H * 0.02) / 2
+        img.alpha_composite(st, (int(W / 2 - st.width / 2), int(cy - st.height / 2)))
+    return img.convert("RGB")
+
+
 class SceneImager:
     def __init__(self, settings: Settings, plan: dict, cache_dir: Path):
         from . import assets
@@ -504,6 +620,9 @@ class SceneImager:
                        else "オフライン生成グラフィックを使用します。"))
         self.used: set[str] = set()
         self.first_ai: Image.Image | None = None
+
+    def plan_scenes(self) -> list[dict]:
+        return [sc for ch in self.plan.get("chapters", []) for sc in ch.get("scenes", [])]
 
     def _use_ai(self, scene: dict) -> bool:
         """無料枠は 45 秒に 1 枚なので、AI 画像は章の頭と 2 シーンに 1 回にして、
@@ -548,6 +667,14 @@ class SceneImager:
 
     def render(self, scene: dict, out: Path) -> Path | None:
         """背景画像を out に保存し、テロップがあればその透過 PNG のパスを返す。"""
+        if self.plan.get("ranking"):
+            from . import assets
+            rb = assets.font("rounded_black") or assets.font("subtitle")
+            all_emoji = [e for sc in self.plan_scenes() for e in (sc.get("emoji") or [])[:1]]
+            ranking_scene(scene, self.plan, self.heavy_font or self.settings.font_path,
+                          rb[0] if rb else self.settings.font_path, all_emoji).save(out)
+            self.used.add(ILLUSTRATION_CREDIT)
+            return None
         base, kind = self.base_image(scene)
         big = kind == "procedural"
         compose_scene(base, scene.get("onscreen_text", ""), self.settings.font_path,

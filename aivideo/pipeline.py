@@ -172,6 +172,10 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     log(f"動画の長さ: {total:.1f}秒")
 
     # 4. シーン画像
+    if plan.get("ranking"):  # ランキング: 文字が多いので、カメラは少し寄るだけ
+        for sc in scenes:
+            sc["camera"] = "push"
+            sc["onscreen_text"] = ""
     if plan.get("hud"):
         for sc in scenes:
             sc["onscreen_text"] = ""

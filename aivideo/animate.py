@@ -104,7 +104,10 @@ def character_sprite(size: int, mouth: int, blink: bool, shout: bool) -> Image.I
 # ------------------------------------------------------------------ 1 シーンの描画
 def _camera(camera: str, p: float, iw: int, ih: int, ow: int, oh: int, zmax: float = 1.16):
     p = 0.7 * p + 0.3 * (1 - math.cos(math.pi * p)) / 2
-    if camera == "zoom_in":
+    if camera == "push":
+        z = 1 + 0.04 * p
+        fx, fy = 0.5, 0.5
+    elif camera == "zoom_in":
         z = 1 + (zmax - 1) * p
         fx, fy = 0.5, 0.5
     elif camera == "zoom_out":

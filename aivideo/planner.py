@@ -59,7 +59,7 @@ def _concept_prompt(theme: str, target_sec: float, n_chapters: int) -> str:
 ナレーション総文字数の目安は約{total_chars}文字です（合成音声で毎秒約{CHARS_PER_SEC:.0f}文字）。
 章の数は{n_chapters}個にしてください（1個目は導入フック、最後はまとめ。1個だけなら全体で1章）。
 
-{escalation_guide(theme)}
+{escalation_guide(theme)}{ranking_guide(theme)}
 次の JSON を出力:
 {{
   "concept": {{
@@ -93,6 +93,37 @@ chapters の seconds の合計は約{target_sec:.0f}にしてください。"""
 
 
 ESCALATION_RE = re.compile(r"倍|毎秒|毎日|ごとに|ずつ|増え続け|大きくなり続け")
+
+
+RANKING_RE = re.compile(r"\d+\s*選|ランキング|TOP\s*\d+|ベスト\s*\d+|トップ\s*\d+", re.I)
+
+
+def ranking_count(theme: str) -> int:
+    m = re.search(r"(\d+)\s*選|TOP\s*(\d+)|ベスト\s*(\d+)|トップ\s*(\d+)", theme, re.I)
+    return int(next(g for g in m.groups() if g)) if m else 10
+
+
+def ranking_guide(theme: str) -> str:
+    """「〇〇10選」「ランキング」系 (掲示板まとめ風のカウントダウン) の演出指示。"""
+    if not RANKING_RE.search(theme):
+        return ""
+    n = ranking_count(theme)
+    return f"""
+【この動画は「〇〇{n}選」のランキング動画です（掲示板まとめ風）】
+- 最初のシーンはタイトル（rank は null）。例:「絶対に買うべき防災グッズ、挙げてけ」とノリよく掴む
+- その後は第{n}位から第1位へのカウントダウン。1 つの順位につき 1 シーン
+- 各シーンのナレーションは「第{n}位、〇〇。」で始め、理由を 1〜2 文で短く
+- 各シーンに次のキーを追加:
+  "rank": 順位の数字（タイトルは null）,
+  "item": 品名・項目名（12文字以内）,
+  "comment": 掲示板の書き込み風の一言（30文字以内。例:「停電の夜、これが無かったら詰んでた」）
+- onscreen_text は空文字、emoji はその項目そのものを表す絵文字を1個（例: 🔦 💧 🔋）
+- 実在の商品名・ブランド名・価格は出さない。事実や安全に関わる内容は公的機関の推奨と矛盾しないこと
+- 最後の第1位は納得感のあるものにし、締めの一言を添える
+- bgm_mood は upbeat
+- JSON に "ranking": {{"title": "タイトル画面の大見出し（15文字以内。例: 絶対に買うべき防災グッズ）",
+  "sub": "サブ見出し（10文字以内。例: 挙げてけ）"}} を追加
+"""
 
 
 def escalation_guide(theme: str) -> str:
@@ -147,7 +178,7 @@ def _scenes_prompt(theme: str, plan: dict, idx: int, prev_tail: str) -> str:
 章の狙い: {ch.get('goal', '')}
 {position}{cont}
 
-{escalation_guide(theme)}
+{escalation_guide(theme)}{ranking_guide(theme)}
 これを約{n_scenes}個のシーンに分割してください。1シーンは4〜10秒（ナレーション25〜60文字、1〜3文）。
 画像はシーンごとにAIで生成します。visual_prompt は英語で、具体的な被写体・構図・光・雰囲気を書き、
 文字・ロゴ・実在の人物や作品は含めないでください（画面に文字を入れたい場合は onscreen_text を使う）。
@@ -179,7 +210,7 @@ def _shorts_prompt(theme: str, target_sec: float) -> str:
     return f"""テーマ「{theme}」で、YouTubeショート（縦型・約{target_sec:.0f}秒）の台本を書いてください。
 ナレーションは合計約{chars}文字（±10%）、約{n}シーン。1シーンは2〜4秒（ナレーション10〜25文字、1文）。
 
-{escalation_guide(theme)}
+{escalation_guide(theme)}{ranking_guide(theme)}
 ショートの鉄則:
 - 最初の1文（1〜2秒）で結論か強烈な問いを出す。挨拶・前置きは入れない
 - 1シーン1情報。テンポよく畳みかけ、途中で「実は」「しかも」で展開を変える

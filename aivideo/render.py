@@ -48,6 +48,8 @@ def _camera_expr(camera: str, frames: int) -> tuple[str, str, str]:
         return f"{ZMAX}", cx, f"(ih-ih/zoom)*(1-{p})"
     if camera == "pan_down":
         return f"{ZMAX}", cx, f"(ih-ih/zoom)*{p}"
+    if camera == "push":  # 文字の多い画面用: ほんの少しだけ寄る
+        return f"1+0.04*{p}", cx, cy
     return "1.0", cx, cy
 
 
