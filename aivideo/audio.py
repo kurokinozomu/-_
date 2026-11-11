@@ -198,7 +198,9 @@ def mix(total_sec: float, narration: list[tuple[float, np.ndarray]],
     duck = 1.0 - 0.55 * active
 
     bgm = make_bgm(mood, n / SR)
-    bgm = bgm[:n] * (0.17 * duck)[: len(bgm), None]
+    if len(bgm) < n:  # 秒数の丸めで 1 サンプル足りないことがあるので、長さをぴったり合わせる
+        bgm = np.concatenate([bgm, np.zeros((n - len(bgm), 2), dtype=bgm.dtype)])
+    bgm = bgm[:n] * (0.17 * duck)[:n, None]
 
     fx = np.zeros(n, dtype=np.float32)
     for t, kind in effects:
