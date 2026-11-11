@@ -56,6 +56,8 @@ def main(argv=None) -> int:
     ap.add_argument("--workers", type=int, default=3, help="並列レンダリング数")
     ap.add_argument("--check", action="store_true", help="実行環境をチェックして終了")
     ap.add_argument("--shorts", action="store_true", help="縦型ショート動画 (1080x1920) を作る")
+    ap.add_argument("--animate", action="store_true",
+                    help="口パクするキャラクターと声のエフェクトでアニメーションにする (無料)")
     ap.add_argument("--related", action="store_true", help="ショートの最後を「詳しくは関連動画で」にする (長尺がある場合)")
     a = ap.parse_args(argv)
     if a.check:
@@ -102,7 +104,9 @@ def main(argv=None) -> int:
         theme = json.loads(a.plan.read_text(encoding="utf-8")).get("theme", "video")
     log(f"テーマ: {theme} / 目標の長さ: {secs:.0f}秒")
     from .pipeline import make_video
-    make_video(theme, secs, settings, out_root=a.out, plan_path=a.plan, workers=a.workers, shorts=shorts)
+    make_video(theme, secs, settings, out_root=a.out, plan_path=a.plan, workers=a.workers, shorts=shorts,
+               animate=a.animate or bool(a.request and re.search(r"アニメ", a.request))
+               or os.environ.get("AIVIDEO_ANIMATE", "") in ("1", "true", "yes"))
     return 0
 
 

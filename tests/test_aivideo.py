@@ -75,6 +75,23 @@ class AudioTest(unittest.TestCase):
         self.assertLessEqual(float(abs(out).max()), 1.0)
 
 
+class AnimateTest(unittest.TestCase):
+    def test_envelope_follows_voice(self):
+        import numpy as np
+        from aivideo import animate
+        voice = (np.sin(np.linspace(0, 3000, 48000)) * 0.5).astype("float32")
+        env = animate.voice_envelope(3.0, [(1.0, voice)])
+        self.assertLess(env[10], 0.05)          # 0.33 秒: 無音 → 口は閉じる
+        self.assertGreater(env[45], 0.5)        # 1.5 秒: 発声中 → 口が開く
+
+    def test_character_sprite_states(self):
+        from aivideo import animate
+        a = animate.character_sprite(200, 0, False, False)
+        b = animate.character_sprite(200, animate.MOUTH_LEVELS - 1, False, True)
+        self.assertEqual(a.size, b.size)
+        self.assertNotEqual(a.tobytes(), b.tobytes())
+
+
 @unittest.skipUnless(os.environ.get("AIVIDEO_E2E"), "set AIVIDEO_E2E=1 to run the end-to-end render")
 class EndToEndTest(unittest.TestCase):
     def test_offline_render(self):

@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import audio, render, subtitles
+from . import animate as anim_mod
 from . import config, visuals
 from .config import ROOT, Settings, log
 from .llm import get_llm
@@ -125,7 +126,8 @@ def write_metadata(plan, scenes, tl, total, credits, out_dir: Path) -> None:
 
 
 def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | None = None,
-               plan_path: Path | None = None, workers: int = 3, shorts: bool = False) -> Path:
+               plan_path: Path | None = None, workers: int = 3, shorts: bool = False,
+               animate: bool = False) -> Path:
     t_start = time.time()
     render.check_ffmpeg()
     out_root = out_root or ROOT / "output"
@@ -191,8 +193,38 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     # 8a. カメラワーク付きシーン映像
     log("シーン映像をレンダリング中 (カメラワーク)...")
     clip_paths = [work / f"{s['id']}.mp4" for s in scenes]
-    render.render_clips([(img_paths[k], clip_paths[k], tl[k]["duration"], scenes[k]["camera"], telops[k])
-                         for k in range(len(scenes))], workers=workers)
+    if animate:
+        log("アニメーション演出 (口パクするキャラクター・声のエフェクト) で描画します")
+        env = anim_mod.voice_envelope(total, [(tm["voice_start"], sp.audio) for tm, sp in zip(tl, spoken)])
+        hud = plan.get("hud") or {}
+        end_sec = float(hud.get("end_sec") or 0) or max(
+            [float(sc.get("at_sec", 0) or 0) for sc in scenes] + [1.0])
+
+        def intensity(k):
+            if not hud:
+                return 0.0
+            return max(0.0, min(1.0, float(scenes[k].get("at_sec", 0) or 0) / end_sec))
+
+        jobs = []
+        for k, sc in enumerate(scenes):
+            i0 = intensity(k)
+            i1 = intensity(k + 1) if k + 1 < len(scenes) else i0
+            debris = [assets.emoji_image(e, int(config.WIDTH * 0.11)) for e in sc.get("emoji", [])]
+            jobs.append((img_paths[k], clip_paths[k], tl[k]["duration"], sc["camera"], telops[k],
+                         tl[k]["start"], env, {"intensity": (i0, max(i0, i1)), "debris": debris, "seed": k, "hud": bool(hud)}))
+        done = [0]
+
+        def one(job):
+            anim_mod.render_animated_clip(*job)
+            done[0] += 1
+            if done[0] % 5 == 0 or done[0] == len(jobs):
+                log(f"  シーン映像 {done[0]}/{len(jobs)}")
+
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            list(ex.map(one, jobs))
+    else:
+        render.render_clips([(img_paths[k], clip_paths[k], tl[k]["duration"], scenes[k]["camera"], telops[k])
+                             for k in range(len(scenes))], workers=workers)
 
     # 6. BGM・効果音・ナレーションのミックス
     log("BGM・効果音を合成してミックス中...")
