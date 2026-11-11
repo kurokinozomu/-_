@@ -11,6 +11,7 @@ from pathlib import Path
 
 from . import audio, render, subtitles
 from . import animate as anim_mod
+from . import registry
 from . import config, visuals
 from .config import ROOT, Settings, log
 from .llm import get_llm
@@ -143,7 +144,8 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
         shorts = shorts or bool(plan.get("shorts"))
         log(f"既存の台本を使用: {plan_path}")
     else:
-        plan = make_plan(get_llm(settings), theme, seconds, shorts=shorts)
+        plan = make_plan(get_llm(settings), theme, seconds, shorts=shorts,
+                         avoid=registry.used_items(limit=int(os.environ.get("AIVIDEO_AVOID_LIMIT", "400"))))
     use_profile(shorts)
     if shorts:
         log("ショート動画 (縦 1080x1920) として制作します")
@@ -272,6 +274,10 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
         credits.add("フォント: M PLUS Rounded 1c / Dela Gothic One (SIL Open Font License)")
     write_metadata(plan, scenes, tl, total, credits, out_dir)
 
+    try:
+        registry.register(plan, out_dir)  # ネタかぶり防止・投稿管理のために記録
+    except Exception as e:
+        log(f"記録の保存に失敗: {e}")
     info = render.probe(final)
     log(f"完成: {final}  ({float(info['format']['duration']):.1f}秒, "
         f"処理時間 {time.time() - t_start:.0f}秒)")

@@ -59,7 +59,7 @@ def _concept_prompt(theme: str, target_sec: float, n_chapters: int) -> str:
 ナレーション総文字数の目安は約{total_chars}文字です（合成音声で毎秒約{CHARS_PER_SEC:.0f}文字）。
 章の数は{n_chapters}個にしてください（1個目は導入フック、最後はまとめ。1個だけなら全体で1章）。
 
-{escalation_guide(theme)}{ranking_guide(theme)}
+{escalation_guide(theme)}{ranking_guide(theme)}{avoid_block()}
 次の JSON を出力:
 {{
   "concept": {{
@@ -103,6 +103,17 @@ def ranking_count(theme: str) -> int:
     return int(next(g for g in m.groups() if g)) if m else 10
 
 
+_AVOID: list[str] = []
+
+
+def avoid_block() -> str:
+    """使用済みのネタ (ネタかぶり防止)。"""
+    if not _AVOID:
+        return ""
+    return ("\n【これまでの動画で使用済みの項目。同じ内容・同じ雑学は使わず、別のネタにすること】\n"
+            + "、".join(_AVOID) + "\n")
+
+
 def ranking_guide(theme: str) -> str:
     """「〇〇10選」「ランキング」系 (掲示板まとめ風のカウントダウン) の演出指示。"""
     if not RANKING_RE.search(theme):
@@ -118,7 +129,10 @@ def ranking_guide(theme: str) -> str:
   "item": 品名・項目名（12文字以内）,
   "comment": 掲示板の書き込み風の一言（30文字以内。例:「停電の夜、これが無かったら詰んでた」）
 - onscreen_text は空文字、emoji はその項目そのものを表す絵文字を1個（例: 🔦 💧 🔋）
-- 実在の商品名・ブランド名・価格は出さない。事実や安全に関わる内容は公的機関の推奨と矛盾しないこと
+- テーマ自体が特定の企業・商品についてでない限り、実在の商品名・ブランド名・価格は出さない。
+  テーマが特定の企業の話なら、公式発表や広く報道された確かな事実だけを使い、悪く言わない
+- 事実や安全に関わる内容は公的機関の推奨と矛盾しないこと。「怖い」「危険」系でも誇張や都市伝説は使わず、
+  確かな事実だけで驚かせる（不確かなら「〜という説も」と断るか、別の項目にする）
 - 最後の第1位は納得感のあるものにし、締めの一言を添える
 - bgm_mood は upbeat
 - JSON に "ranking": {{"title": "タイトル画面の大見出し（15文字以内。例: 絶対に買うべき防災グッズ）",
@@ -178,7 +192,7 @@ def _scenes_prompt(theme: str, plan: dict, idx: int, prev_tail: str) -> str:
 章の狙い: {ch.get('goal', '')}
 {position}{cont}
 
-{escalation_guide(theme)}{ranking_guide(theme)}
+{escalation_guide(theme)}{ranking_guide(theme)}{avoid_block()}
 これを約{n_scenes}個のシーンに分割してください。1シーンは4〜10秒（ナレーション25〜60文字、1〜3文）。
 画像はシーンごとにAIで生成します。visual_prompt は英語で、具体的な被写体・構図・光・雰囲気を書き、
 文字・ロゴ・実在の人物や作品は含めないでください（画面に文字を入れたい場合は onscreen_text を使う）。
@@ -210,7 +224,7 @@ def _shorts_prompt(theme: str, target_sec: float) -> str:
     return f"""テーマ「{theme}」で、YouTubeショート（縦型・約{target_sec:.0f}秒）の台本を書いてください。
 ナレーションは合計約{chars}文字（±10%）、約{n}シーン。1シーンは2〜4秒（ナレーション10〜25文字、1文）。
 
-{escalation_guide(theme)}{ranking_guide(theme)}
+{escalation_guide(theme)}{ranking_guide(theme)}{avoid_block()}
 ショートの鉄則:
 - 最初の1文（1〜2秒）で結論か強烈な問いを出す。挨拶・前置きは入れない
 - 1シーン1情報。テンポよく畳みかけ、途中で「実は」「しかも」で展開を変える
@@ -242,7 +256,10 @@ def _shorts_prompt(theme: str, target_sec: float) -> str:
 }}"""
 
 
-def make_plan(llm, theme: str, target_sec: float, shorts: bool = False) -> dict[str, Any]:
+def make_plan(llm, theme: str, target_sec: float, shorts: bool = False,
+              avoid: list[str] | None = None) -> dict[str, Any]:
+    global _AVOID
+    _AVOID = list(avoid or [])
     if llm is None:
         log("LLM が利用できないため、オフラインテンプレートで台本を作成します（品質は限定的）。")
         plan = offline_plan(theme, target_sec)

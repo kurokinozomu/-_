@@ -59,7 +59,29 @@ def main(argv=None) -> int:
     ap.add_argument("--animate", action="store_true",
                     help="口パクするキャラクターと声のエフェクトでアニメーションにする (無料)")
     ap.add_argument("--related", action="store_true", help="ショートの最後を「詳しくは関連動画で」にする (長尺がある場合)")
+    ap.add_argument("--batch", type=Path, help="タイトル一覧 (1行1本) をまとめて制作し、事実チェックと投稿管理表を作る")
+    ap.add_argument("--no-factcheck", action="store_true", help="--batch で事実チェックを省く")
+    ap.add_argument("--suggest", metavar="ジャンル", help="まだ作っていないタイトル案を提案する")
+    ap.add_argument("--count", type=int, default=30, help="--suggest の提案数")
+    ap.add_argument("--sheet", type=Path, help="まとめて制作したフォルダの投稿管理表を作り直す")
     a = ap.parse_args(argv)
+    if a.suggest:
+        from .batch import suggest_titles
+        for i, t in enumerate(suggest_titles(a.suggest, a.count), 1):
+            print(f"{i}. {t}")
+        return 0
+    if a.sheet:
+        from .batch import write_sheet
+        write_sheet(a.sheet)
+        return 0
+    if a.batch:
+        from datetime import datetime
+        from .batch import run_batch
+        out = a.out or Path("output") / f"batch_{datetime.now():%Y%m%d_%H%M}"
+        extra = (["--animate"] if a.animate else []) + (["--related"] if a.related else [])
+        run_batch(a.batch, out, a.seconds or (a.minutes * 60 if a.minutes else None), a.shorts,
+                  extra, check=not a.no_factcheck)
+        return 0
     if a.check:
         from .doctor import check
         return check()

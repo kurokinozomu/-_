@@ -75,6 +75,33 @@ class AudioTest(unittest.TestCase):
         self.assertLessEqual(float(abs(out).max()), 1.0)
 
 
+class BatchTest(unittest.TestCase):
+    def test_read_titles_strips_numbers(self):
+        from aivideo.batch import read_titles
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "t.txt"
+            p.write_text("1. 99%の人が知らない衝撃の雑学5選\n\n12．世界の奇妙すぎる法律5選\n", encoding="utf-8")
+            self.assertEqual(read_titles(p), ["99%の人が知らない衝撃の雑学5選", "世界の奇妙すぎる法律5選"])
+
+    def test_duplicate_detection(self):
+        from aivideo import registry
+        with tempfile.TemporaryDirectory() as tmp:
+            old = registry.PATH
+            registry.PATH = Path(tmp) / "registry.json"
+            try:
+                plan = {"theme": "A", "ranking": {}, "chapters": [{"scenes": [
+                    {"rank": 1, "item": "タコの心臓", "narration": "3つ"}]}]}
+                registry.register(plan, Path(tmp) / "a")
+                new = {"theme": "B", "ranking": {}, "chapters": [{"scenes": [
+                    {"rank": 1, "item": "タコの心臓は3つ", "narration": ""},
+                    {"rank": 2, "item": "キリンの首", "narration": ""}]}]}
+                d = registry.duplicates(new)
+                self.assertEqual([x[0] for x in d], ["タコの心臓は3つ"])
+                self.assertIn("タコの心臓", registry.used_items())
+            finally:
+                registry.PATH = old
+
+
 class AnimateTest(unittest.TestCase):
     def test_envelope_follows_voice(self):
         import numpy as np
