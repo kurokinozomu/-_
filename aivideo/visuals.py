@@ -268,13 +268,13 @@ def radial_glow(size, center, color, radius, strength=0.8) -> Image.Image:
 
 
 def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
-                       size=None) -> Image.Image | None:
+                       size=None, char_space: bool = False) -> Image.Image | None:
     """絵文字イラストを使った、シーン内容に合わせた背景イラスト。"""
     from . import assets
     rnd = random.Random(seed)
     W, H = size = size or (IMG_W, IMG_H)
     tall = H > W
-    main_size = int(W * 0.52) if tall else int(H * 0.46)
+    main_size = int(W * (0.44 if char_space else 0.52)) if tall else int(H * 0.46)
     side_ratio = 0.45 if H > W else 0.55
     imgs = [assets.emoji_image(e, main_size if i == 0 else int(main_size * side_ratio))
             for i, e in enumerate(emojis[:3])]
@@ -283,8 +283,10 @@ def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
         return None
     base_c = vivid(palette[rnd.randrange(len(palette))], 0.2, 0.32, 0.55)
     ray_c = _lighten(base_c, 0.07)
-    layout = "center" if tall else rnd.choice(["center", "left", "right"])
+    layout = "center" if tall else ("left" if char_space else rnd.choice(["center", "left", "right"]))
     cx = {"center": W * 0.5, "left": W * 0.36, "right": W * 0.64}[layout]
+    if tall and char_space:  # 左下にしゃべるキャラクターが入るので、イラストは右へ
+        cx = W * 0.64
     cy = H * (0.47 if tall else 0.49)
     style = rnd.choice(["rays", "rays", "dots", "plain"])
     if style == "rays":
@@ -308,7 +310,9 @@ def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
 
     main = sticker(imgs[0])
     bg.alpha_composite(main, (int(cx - main.width / 2), int(cy - main.height / 2)))
-    if tall:  # 縦長: 上下に散らす (中央は字幕、右下はショートのボタン類)
+    if tall and char_space:
+        side = [(W * 0.22, H * 0.27), (W * 0.84, H * 0.25)]
+    elif tall:  # 縦長: 上下に散らす (中央は字幕、右下はショートのボタン類)
         side = [(W * 0.2, H * 0.29), (W * 0.8, H * 0.29)]
     elif layout == "center":
         side = [(W * 0.17, H * 0.4), (W * 0.83, H * 0.4)]
@@ -658,7 +662,8 @@ class SceneImager:
                     self.first_ai = img
                 return img, "ai"
         if self.illustrations and scene.get("emoji"):
-            img = illustration_scene(scene["emoji"], self.palette, seed)
+            img = illustration_scene(scene["emoji"], self.palette, seed,
+                                     char_space=bool(self.plan.get("_animate")))
             if img is not None:
                 self.used.add(ILLUSTRATION_CREDIT)
                 return img, "illustration"

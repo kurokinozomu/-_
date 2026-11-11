@@ -182,6 +182,7 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
         for sc in scenes:
             sc["onscreen_text"] = ""
         os.environ.setdefault("AIVIDEO_AI_EVERY", "1")
+    plan["_animate"] = animate  # キャラクターの居場所を空けたレイアウトにする
     imager = SceneImager(settings, plan, cache / "images")
     log("シーン画像を生成中...")
     img_paths = [work / f"{s['id']}.png" for s in scenes]
