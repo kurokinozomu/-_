@@ -109,7 +109,8 @@ def write_sheet(out_root: Path, titles: list[str] | None = None) -> Path:
     report_p = out_root / "check_report.json"
     results = json.loads(report_p.read_text(encoding="utf-8")) if report_p.exists() else {}
     if titles is None:
-        titles = list(results)
+        tf = out_root / "titles.txt"
+        titles = read_titles(tf) if tf.exists() else list(results)
     rows, md = [], [f"# 投稿管理表 ({datetime.now():%Y-%m-%d})", ""]
     for i, title in enumerate(titles, 1):
         d = _video_dir(out_root, title)
@@ -123,11 +124,11 @@ def write_sheet(out_root: Path, titles: list[str] | None = None) -> Path:
         note = " / ".join(f"[{x.get('severity')}] {x.get('item')}: {x.get('problem')}" for x in issues)
         if dups:
             note += (" / " if note else "") + "重複候補: " + "、".join(f"{a}≒{b}({t})" for a, b, t in dups[:5])
-        rows.append([i, (meta.get("titles") or [title])[0], title, str((d / "video.mp4").relative_to(ROOT)),
+        rows.append([i, (meta.get("titles") or [title])[0], title, str((d / "video.mp4").resolve().relative_to(ROOT)),
                      meta.get("duration_sec", ""), meta.get("description", ""), ", ".join(meta.get("tags", [])),
                      "要確認" if any(x.get("severity") == "high" for x in issues) or dups else "OK", note])
         md.append(f"## {i}. {title}")
-        md.append(f"- 動画: `{(d / 'video.mp4').relative_to(ROOT)}` ({meta.get('duration_sec', '')}秒)")
+        md.append(f"- 動画: `{(d / 'video.mp4').resolve().relative_to(ROOT)}` ({meta.get('duration_sec', '')}秒)")
         md.append(f"- タイトル案: {(meta.get('titles') or [''])[0]}")
         for x in issues:
             md.append(f"- **[{x.get('severity')}] {x.get('item')}**: {x.get('problem')} → {x.get('suggestion')}")
