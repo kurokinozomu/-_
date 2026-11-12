@@ -16,6 +16,8 @@ var photo: PhotoView
 var shop: ShopUI
 var menu: GameMenu
 var sell_fx: SellFx
+var sorting: SortingGame
+var tint: CanvasModulate
 var top_root: Control
 var fade: ColorRect
 var title: TitleScreen
@@ -50,6 +52,9 @@ func _build_scene() -> void:
 	add_child(world)
 	world.warp_triggered.connect(_on_warp)
 	world.target_changed.connect(_on_target_changed)
+	# 時間帯による色味 (ワールドだけに掛かる)
+	tint = CanvasModulate.new()
+	add_child(tint)
 
 	fx_layer = CanvasLayer.new()
 	fx_layer.layer = 2
@@ -96,6 +101,8 @@ func _build_scene() -> void:
 		touch_mode = m
 		touch.enabled_mode = m
 		_on_target_changed(world.current_target))
+	sorting = SortingGame.new()
+	ui_root.add_child(sorting)
 	sell_fx = SellFx.new()
 	ui_root.add_child(sell_fx)
 	sell_fx.glitch_level.connect(func(v): _glitch_hold = v)
@@ -174,6 +181,7 @@ func _back_to_title() -> void:
 	runner.aborted = true
 	dialogue.close()
 	shop.visible = false
+	sorting.visible = false
 	paper.visible = false
 	photo.visible = false
 	_show_title()
@@ -274,6 +282,22 @@ func _publish_state() -> void:
 		"money": GameState.money, "sold": GameState.sold, "flags": GameState.flags.keys(),
 	}
 	JavaScriptBridge.eval("window.__ob=" + JSON.stringify(st) + ";", true)
+	# 自動テスト用コマンド (?autotest のときだけ): window.__obcmd = "money:50000" など
+	var cmd: Variant = JavaScriptBridge.eval("(function(){var c=window.__obcmd||'';window.__obcmd='';return c;})()", true)
+	if typeof(cmd) == TYPE_STRING and str(cmd) != "":
+		_debug_command(str(cmd))
+
+
+func _debug_command(cmd: String) -> void:
+	var p := cmd.split(":")
+	match p[0]:
+		"money": GameState.money = int(p[1]); GameState.changed.emit()
+		"time": GameState.time_slot = int(p[1]); GameState.changed.emit()
+		"flag": GameState.set_flag(p[1])
+		"sell": GameState.sold.append(p[1]); GameState.changed.emit()
+		"map": world.load_map(p[1], p[2] if p.size() > 2 else "")
+		"event": run_event(p[1])
+		"sort_time": sorting.time_left = float(p[1])
 
 
 func _try_interact() -> void:
@@ -312,6 +336,12 @@ func _on_target_changed(obj: WorldObject) -> void:
 func _on_state_changed() -> void:
 	if noise_mat:
 		noise_mat.set_shader_parameter("intensity", GameState.noise_level())
+	if tint:
+		var tints: Array = GameData.cfg("time_tints", [])
+		var c := Color.WHITE
+		if GameState.time_slot < tints.size():
+			c = Color(str(tints[GameState.time_slot]))
+		tint.color = c
 
 
 # ================================================================== menu
@@ -338,7 +368,22 @@ func do_action(action: String, arg: Variant) -> void:
 		"save":
 			GameState.save_game()
 		"photo":
-			await photo.show_photo()
+			await photo.show_photo(str(arg) if arg != null else "mother")
+		"work_sort":
+			await _action_work_sort()
+		"work_carry":
+			await _action_work_carry()
+		"repay":
+			var paid := GameState.repay(int(arg) if arg != null else -1)
+			if paid > 0:
+				GameState.notify.emit("%s円を返済しました" % GameState.format_yen(paid), false)
+				GameState.save_game(true)
+		"warp":
+			var parts := str(arg).split(":")
+			dialogue.close()
+			await _enter_map(parts[0], parts[1] if parts.size() > 1 else "")
+			mode = "busy"
+			_set_explore(false)
 		"paper":
 			await paper.show_paper(str(arg))
 		"glitch":
@@ -374,6 +419,28 @@ func _action_shop() -> void:
 	var after := str(mem.get("after_script", ""))
 	if after != "":
 		await runner.run(after)
+
+
+func _action_work_sort() -> void:
+	dialogue.close()
+	var res: Dictionary = await sorting.play()
+	GameState.last_pay = int(res.get("pay", 0))
+	GameState.add_money(GameState.last_pay)
+	GameState.advance_time(int(GameState.work_cfg().get("time_cost", 2)))
+	GameState.save_game(true)
+	await runner.run("work_done")
+
+
+func _action_work_carry() -> void:
+	dialogue.close()
+	await _fade_to(1.0, 0.6)
+	GameState.last_pay = int(GameState.work_cfg().get("carry_pay", 3500))
+	GameState.add_money(GameState.last_pay)
+	GameState.advance_time(int(GameState.work_cfg().get("time_cost", 2)))
+	await get_tree().create_timer(0.5).timeout
+	await _fade_to(0.0, 0.6)
+	GameState.save_game(true)
+	await runner.run("work_carry_done")
 
 
 func _action_sleep() -> void:

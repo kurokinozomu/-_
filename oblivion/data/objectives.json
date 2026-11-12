@@ -1,8 +1,34 @@
 [
-  {"if": "!flag:read_notice", "text": "机の上の封筒を確認する"},
-  {"if": "!flag:visited_town", "text": "部屋を出て、街へ行く"},
-  {"if": "!flag:visited_shop", "text": "街の東にある記憶買取店へ行く"},
-  {"if": "map:shop !flag:karasuma_met", "text": "カウンターの店主に話しかける"},
-  {"if": "flag:call_pending", "text": "家に帰る"},
-  {"if": "", "text": "ベッドで休んで一日を終える"}
+ {
+  "if": "!flag:read_notice",
+  "text": "机の上の封筒を確認する"
+ },
+ {
+  "if": "!flag:visited_town",
+  "text": "部屋を出て、街へ行く"
+ },
+ {
+  "if": "!flag:visited_shop",
+  "text": "街の東にある記憶買取店へ行く"
+ },
+ {
+  "if": "map:shop !flag:karasuma_met",
+  "text": "カウンターの店主に話しかける"
+ },
+ {
+  "if": "flag:call_pending",
+  "text": "家に帰る"
+ },
+ {
+  "if": "time>=2",
+  "text": "{time}になった。家に帰って休む"
+ },
+ {
+  "if": "!flag:worked_once",
+  "text": "倉庫（{work_name}）で働いて金を稼ぐ"
+ },
+ {
+  "if": "",
+  "text": "期限までに借金を返す（ATM：湾岸通り）"
+ }
 ]

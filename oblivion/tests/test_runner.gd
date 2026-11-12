@@ -30,6 +30,7 @@ func _run_all() -> void:
 	await _test_phase1_playthrough()
 	await _test_save_load()
 	await _test_no_sale_branch()
+	await _test_phase2()
 	_finish()
 
 
@@ -85,6 +86,8 @@ func _advance_until_explore(choices: Array = [], max_frames: int = 6000) -> int:
 			await _press("interact")
 		elif main.shop.visible:
 			return lines
+		elif main.sorting.visible:
+			await _drive_sorting()
 		else:
 			await _frames(1)
 	return lines
@@ -139,6 +142,207 @@ func _wait_map(id: String, max_frames: int = 600) -> bool:
 	return false
 
 
+var sort_policy: Array = [true]   ## 仕分けで正解するかどうかを順に繰り返す
+var sort_log: Dictionary = {}
+
+
+func _drive_sorting() -> void:
+	var sg: SortingGame = main.sorting
+	match sg.state:
+		"intro":
+			sort_log = {"aid": sg.aid, "newbie": sg.newbie, "bins": sg.bins.duplicate(true), "answers": 0}
+			sg.start_button.pressed.emit()
+			await _frames(2)
+			sg.time_left = minf(sg.time_left, 9.0)   # テストを速くする
+		"play":
+			if not sg.pkg.is_empty() and float(sg.pkg["t"]) > 0.1:
+				var right: bool = sort_policy[int(sort_log["answers"]) % sort_policy.size()]
+				sg.debug_answer(right)
+				sort_log["answers"] = int(sort_log["answers"]) + 1
+			await _frames(1)
+		"result":
+			sort_log["correct"] = sg.correct
+			sort_log["wrong"] = sg.wrong
+			sort_log["missed"] = sg.missed
+			sort_log["pay"] = sg.current_pay()
+			await _frames(2)
+			sg.done_button.pressed.emit()
+			await _frames(2)
+		_:
+			await _frames(1)
+
+
+## 買取店で記憶を売る (UI を実際に操作する)
+func _sell(id: String) -> void:
+	main.run_event("karasuma")
+	await _frames(3)
+	await _advance_until_explore()
+	main.shop._select(id)
+	main.shop._on_sell_pressed()
+	main.shop.confirm_yes.pressed.emit()
+	await _frames(2)
+	if main.shop.visible and main.shop.confirm_layer.visible:
+		main.shop.confirm_yes.pressed.emit()
+	await _frames(3)
+	await _advance_until_explore()
+
+
+# ------------------------------------------------------------------ 6. phase 2
+func _test_phase2() -> void:
+	print("[6] Phase 2 生活システム")
+	GameState.delete_save()
+	main._back_to_title()
+	await _frames(3)
+	main.title.new_game_requested.emit()
+	await _frames(10)
+	await _advance_until_explore()
+	for f in ["read_notice", "visited_town", "visited_shop", "karasuma_met", "call1_done"]:
+		GameState.set_flag(f)
+	check(GameState.time_name() == "朝", "1日は朝から始まる")
+	check(main.hud.status_label.text.contains("朝"), "HUD に時間帯が出る")
+
+	# --- 倉庫まで歩いて働く
+	await _walk_path([Vector2(72, 150), Vector2(128, 150), Vector2(128, 172)])
+	check(await _wait_map("town"), "街へ出る")
+	await _advance_until_explore()
+	check(await _walk_path([Vector2(88, 90), Vector2(320, 90)]), "倉庫の前まで歩ける")
+	await _walk_path([Vector2(320, 60)])
+	check(await _wait_map("work"), "倉庫に入れる (休業が解除された)")
+	await _advance_until_explore()
+	check(await _walk_path([Vector2(184, 140), Vector2(184, 134)]), "主任の前まで歩ける")
+	await _face_and_interact("up")
+	var m0 := GameState.money
+	sort_policy = [true, true, true, false]
+	await _advance_until_explore([0, 0])
+	check(sort_log.get("aid", false) and not sort_log.get("newbie", true), "仕事の記憶があれば補助あり・通常日給")
+	check(sort_log.get("bins", []) == [[0, 1], [2, 3], [4, 5]], "いつもの棚割り (北・港=左 …)")
+	var exp_pay: int = maxi(0, 1500 + int(sort_log.get("correct", 0)) * 300 - (int(sort_log.get("wrong", 0)) + int(sort_log.get("missed", 0))) * 200)
+	check(int(sort_log.get("correct", 0)) > 0 and int(sort_log.get("wrong", 0)) > 0, "正解とミスが記録される (正解%d ミス%d 見逃し%d)" % [sort_log.get("correct", 0), sort_log.get("wrong", 0), sort_log.get("missed", 0)])
+	check(GameState.money == m0 + exp_pay and GameState.last_pay == exp_pay, "報酬 = 日給 + 出来高 − ミス (%d円)" % exp_pay)
+	check(GameState.time_slot == 2, "働くと時間が2つ進む (朝→夕方)")
+	check(GameState.has_flag("worked_once"), "勤務記録")
+	check(main.tint.color != Color.WHITE, "夕方は画面の色味が変わる")
+	# 夕方はもう働けない
+	main.run_event("makabe")
+	await _frames(3)
+	var before := log_lines.size()
+	await _advance_until_explore()
+	check("\n".join(log_lines.slice(before)).contains("受付は終わり"), "夕方以降は仕事の受付が終わっている")
+
+	# --- 返済
+	GameState.money = 45000
+	GameState.changed.emit()
+	main.run_event("atm")
+	await _frames(3)
+	await _advance_until_explore([0])
+	check(GameState.debt == 90000 and GameState.money == 35000, "ATMで1万円返済できる")
+	check(GameState.has_save(), "返済後に自動セーブ")
+
+	# --- 生活費の不足 → 自動融資
+	GameState.money = 500
+	var d0 := GameState.debt
+	main.run_event("home_bed")
+	await _frames(3)
+	await _advance_until_explore([0])
+	check(GameState.money == 0 and GameState.debt == d0 + 1650 and GameState.last_loan == 1650, "生活費不足分×1.1が借金に上乗せされる")
+	check(GameState.time_slot == 0 and GameState.day == 2, "翌朝に時間がリセットされる")
+
+	# --- 近道 (街の記憶があるうち)
+	main.world.load_map("town", "home_door")
+	await _frames(2)
+	main.run_event("alley_west")
+	await _frames(3)
+	await _advance_until_explore([0])
+	check(main.world.map_id == "town" and main.world.player.position.x > 700.0, "近道の路地で街の東へ抜けられる")
+	# --- 街の記憶
+	check(GameState.plain_read("{shop_name}") == "メモリア", "売る前は店名が読める")
+	await _sell("city")
+	check(GameState.is_sold("city") and GameState.money == 12000, "街の記憶を売れる (+12,000)")
+	check(GameState.plain_read("記憶買取 {shop_name}").contains("？"), "看板の店名が読めなくなる")
+	main.world.load_map("town", "home_door")
+	await _frames(2)
+	check(not main.world.objects.any(func(o): return o.data["id"] == "guide"), "道案内の看板が消える")
+	main.run_event("alley_west")
+	await _frames(3)
+	before = log_lines.size()
+	await _advance_until_explore()
+	check(main.world.map_id == "town" and main.world.player.position.x < 300.0, "近道の路地が使えなくなる")
+
+	# --- 仕事の記憶 → 新人扱い・別の働き方
+	await _sell("work")
+	GameState.time_slot = 0
+	main.world.load_map("work", "entrance")
+	main.run_event("makabe")
+	await _frames(3)
+	sort_policy = [true]
+	await _advance_until_explore([0])
+	check(sort_log.get("newbie", false) and not sort_log.get("aid", true), "仕事の記憶を売ると補助が消え新人扱い")
+	check(GameState.last_pay == maxi(0, 800 + int(sort_log.get("correct", 0)) * 300 - (int(sort_log.get("wrong", 0)) + int(sort_log.get("missed", 0))) * 200), "新人日給で計算される")
+	GameState.advance_day()
+	main.run_event("makabe")
+	await _frames(3)
+	var m1 := GameState.money
+	await _advance_until_explore([1])
+	check(GameState.money == m1 + 3500 and GameState.has_flag("found_carry_job"), "別の働き方 (荷運び) を見つけられる")
+
+	# --- 文字の記憶
+	await _sell("letters")
+	var notice := GameState.read_text("ご返済金額　{debt}円")
+	check(notice.contains("[g]") and notice.contains(GameState.format_yen(GameState.debt)), "文字が崩れるが数字は読める")
+	check(GameState.plain_read("北区").contains("？"), "仕分けの区画名が読めなくなる (図形は残る)")
+	main.world.load_map("home", "start")
+	main.run_event("home_letter")
+	await _frames(3)
+	await _advance_until_explore()
+
+	# --- 大切な人の記憶 (二重確認)
+	main.run_event("karasuma")
+	await _frames(3)
+	await _advance_until_explore()
+	main.shop._select("beloved")
+	main.shop._on_sell_pressed()
+	main.shop.confirm_yes.pressed.emit()
+	await _frames(2)
+	check(main.shop.visible and main.shop.confirm_layer.visible and main.shop._confirm_stage == 1, "大切な人の記憶は二度確認される")
+	main.shop.confirm_yes.pressed.emit()
+	await _frames(3)
+	await _advance_until_explore()
+	check(GameState.is_sold("beloved"), "大切な人の記憶を売れる")
+	main.run_event("nagi")
+	await _frames(3)
+	await _advance_until_explore()
+	check(GameState.has_flag("nagi_gone"), "フードの女が去る")
+	main.world.load_map("town", "home_door")
+	await _frames(2)
+	check(not main.world.objects.any(func(o): return o.data["id"] == "nagi"), "以後、街に現れない")
+	main.world.load_map("home", "start")
+	main.run_event("home_photo2")
+	await _frames(4)
+	check(main.photo.visible and main.photo.kind == "beloved" and main.photo.lost, "写真の人物が分からなくなる")
+	await _advance_until_explore()
+	check(GameState.noise_level() >= 0.8, "4つ売ると画面ノイズがかなり強くなる (%.2f)" % GameState.noise_level())
+
+	# --- セーブに時間帯が残る / 全額返済でエンディング
+	GameState.time_slot = 1
+	GameState.save_game(true)
+	GameState.new_game()
+	GameState.load_game()
+	check(GameState.time_slot == 1 and GameState.sold.size() == 4, "時間帯と売却状態がセーブされる")
+	GameState.money = GameState.debt + 10
+	main.run_event("atm")
+	await _frames(3)
+	await _advance_until_explore([2], 1500)
+	check(GameState.debt == 0, "全額返済できる")
+	var f := 0
+	while not main.ending.visible and f < 600:
+		f += 1
+		await _frames(1)
+	check(main.ending.visible, "完済でエンディングになる")
+	main.ending.closed.emit()
+	await _frames(3)
+	check(main.title.visible, "エンディング後タイトルへ戻る")
+
+
 # ------------------------------------------------------------------ 1. data
 func _test_data_integrity() -> void:
 	print("[1] データ整合性")
@@ -186,7 +390,7 @@ func _test_data_integrity() -> void:
 		refs["cond"].append(o.get("if", ""))
 	# 条件式が全部解釈できるか (未知の条件は警告→ここで検出)
 	var re := RegEx.new()
-	re.compile("^!?(sold:[a-z_]+|flag:[a-z_0-9]+|map:[a-z_]+|(day|money|debt|days_left|sold_count|rel:[a-z_]+)(>=|<=|==|!=|>|<)-?\\d+)$")
+	re.compile("^!?(money>=debt|sold:[a-z_]+|flag:[a-z_0-9]+|map:[a-z_]+|(day|time|money|debt|days_left|sold_count|last_loan|last_pay|rel:[a-z_]+)(>=|<=|==|!=|>|<)-?\\d+)$")
 	var bad := []
 	for c in refs["cond"]:
 		for term in str(c).split(" ", false):
@@ -288,7 +492,7 @@ func _test_phase1_playthrough() -> void:
 	await _advance_until_explore()
 	check(main.shop.visible, "査定画面が開く")
 	main.shop._select("city")
-	check(main.shop.sell_button.disabled, "Phase 1 では他の記憶は査定準備中")
+	check(not main.shop.sell_button.disabled, "Phase 2: 他の記憶も売却可能")
 	main.shop._select("mother")
 	check(not main.shop.sell_button.disabled, "母親の記憶は売却可能")
 	main.shop._on_sell_pressed()

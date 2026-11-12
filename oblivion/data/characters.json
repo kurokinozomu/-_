@@ -1,9 +1,69 @@
 {
-  "minato":   {"name": "湊",   "skin": "#e8c4a8", "hair": "#262838", "coat": "#34466e", "pants": "#1e2236", "accent": "#7ad0ff", "style": "short"},
-  "saeki":    {"name": "佐伯", "skin": "#e0b89c", "hair": "#b8b8c8", "coat": "#6a4a6a", "pants": "#3a2a3a", "accent": "#d08aa0", "style": "bun"},
-  "gen":      {"name": "源",   "skin": "#d09a78", "hair": "#18181c", "coat": "#e4e4dc", "pants": "#2a2a3a", "accent": "#d03838", "style": "headband"},
-  "nagi":     {"name": "フードの女", "skin": "#f0d0c0", "hair": "#8a6ad0", "coat": "#2a2040", "pants": "#1a1828", "accent": "#ff6ad0", "style": "hood"},
-  "karasuma": {"name": "烏間", "skin": "#e8d0c0", "hair": "#0e0e16", "coat": "#1a1a26", "pants": "#101018", "accent": "#40ffd0", "style": "slick", "glasses": true},
-  "mother":   {"name": "{mom}", "portrait": "phone"},
-  "voice":    {"name": "？？？", "portrait": "phone_noise"}
+ "minato": {
+  "name": "湊",
+  "skin": "#e8c4a8",
+  "hair": "#262838",
+  "coat": "#34466e",
+  "pants": "#1e2236",
+  "accent": "#7ad0ff",
+  "style": "short"
+ },
+ "saeki": {
+  "name": "佐伯",
+  "skin": "#e0b89c",
+  "hair": "#b8b8c8",
+  "coat": "#6a4a6a",
+  "pants": "#3a2a3a",
+  "accent": "#d08aa0",
+  "style": "bun"
+ },
+ "gen": {
+  "name": "源",
+  "skin": "#d09a78",
+  "hair": "#18181c",
+  "coat": "#e4e4dc",
+  "pants": "#2a2a3a",
+  "accent": "#d03838",
+  "style": "headband"
+ },
+ "nagi": {
+  "name": "フードの女",
+  "skin": "#f0d0c0",
+  "hair": "#8a6ad0",
+  "coat": "#2a2040",
+  "pants": "#1a1828",
+  "accent": "#ff6ad0",
+  "style": "hood"
+ },
+ "karasuma": {
+  "name": "烏間",
+  "skin": "#e8d0c0",
+  "hair": "#0e0e16",
+  "coat": "#1a1a26",
+  "pants": "#101018",
+  "accent": "#40ffd0",
+  "style": "slick",
+  "glasses": true
+ },
+ "mother": {
+  "name": "{mom}",
+  "portrait": "phone"
+ },
+ "voice": {
+  "name": "？？？",
+  "portrait": "phone_noise"
+ },
+ "makabe": {
+  "name": "真壁主任",
+  "skin": "#d8a888",
+  "hair": "#4a4a52",
+  "coat": "#3a6a4a",
+  "pants": "#2a2a30",
+  "accent": "#ffd25a",
+  "style": "headband"
+ },
+ "atm": {
+  "name": "ATM",
+  "portrait": "atm"
+ }
 }

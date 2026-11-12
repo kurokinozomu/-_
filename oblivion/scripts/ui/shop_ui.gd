@@ -21,6 +21,7 @@ var confirm_yes: Button
 var confirm_no: Button
 
 var _selected: String = ""
+var _confirm_stage: int = 0
 var _buttons: Dictionary = {}
 var _seed := 0
 var _t := 0.0
@@ -140,9 +141,7 @@ func _build_confirm() -> void:
 	confirm_no.pressed.connect(func():
 		confirm_layer.visible = false
 		sell_button.grab_focus())
-	confirm_yes.pressed.connect(func():
-		confirm_layer.visible = false
-		_done.emit(_selected))
+	confirm_yes.pressed.connect(_on_confirm_yes)
 
 
 func _layout() -> void:
@@ -251,9 +250,25 @@ func _render_detail() -> void:
 		sell_button.text = "査定準備中"
 
 
+func _on_confirm_yes() -> void:
+	var m := GameData.get_memory(_selected)
+	# 大切な記憶は二度確認する
+	if bool(m.get("double_confirm", false)) and _confirm_stage == 0:
+		_confirm_stage = 1
+		confirm_text.text = "[center][color=#b48aff]%s[/color][/center]" % GameState.plain_text(str(m.get("confirm_whisper", "")))
+		confirm_yes.text = "それでも売る"
+		_layout()
+		confirm_no.grab_focus()
+		return
+	confirm_layer.visible = false
+	_done.emit(_selected)
+
+
 func _on_sell_pressed() -> void:
 	if not GameState.can_sell(_selected):
 		return
+	_confirm_stage = 0
+	confirm_yes.text = "売る"
 	var m := GameData.get_memory(_selected)
 	confirm_text.text = "[center]本当に [color=#%s]%s[/color] を売りますか？\n\n買取価格：%s円\n\n[color=#ff6a7a]売った記憶は、二度と戻りません。[/color][/center]" % [
 		Color(str(m.get("color", "#ffffff"))).to_html(false), str(m["name"]), GameState.format_yen(int(m["price"]))]

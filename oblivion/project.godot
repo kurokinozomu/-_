@@ -33,6 +33,10 @@ window/handheld/orientation=4
 
 theme/custom_font="res://assets/fonts/DotGothic16-Regular.ttf"
 
+[internationalization]
+
+locale/include_text_server_data=true
+
 [input_devices]
 
 pointing/emulate_mouse_from_touch=true

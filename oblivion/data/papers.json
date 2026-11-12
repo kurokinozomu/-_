@@ -1,22 +1,32 @@
 {
-  "notice": {
-    "style": "notice",
-    "title": "督 促 状",
-    "body": "水瀬 {player} 様\n下記金額のご返済が確認できておりません。\n\n　ご返済金額　　{debt}円\n　お支払期限　　{deadline_days}日以内\n\n期限までにご返済いただけない場合、\n当社提携先において『資産の差押え』を実施いたします。\n\n　　　　　　　株式会社ミナカミ・ファイナンス"
-  },
-  "memo_mother": {
-    "style": "memo",
-    "title": "",
-    "body": "四月十二日\n{mom}の誕生日。\n\n今年こそ、花を贈ること。\nカーネーションじゃなくて、\nスイートピー。\n\n（{mother_name}は、あれが好きだから）"
-  },
-  "guide": {
-    "style": "sign",
-    "title": "湾岸通り　案内板",
-    "body": "←　霧野ハイツ\n\n　　{work_name}　↑\n\n　　{ramen_name}\n\n　　記憶買取 {shop_name}　→"
-  },
-  "poster": {
-    "style": "poster",
-    "title": "あなたの過去、高く買います。",
-    "body": "即日現金　／　秘密厳守　／　痛みなし\n\n思い出は、いつか色あせる。\nだったら、輝いているうちに。\n\n記憶買取 {shop_name}\n\n　　　　　　提携：ミナカミ・ファイナンス"
-  }
+ "notice": {
+  "style": "notice",
+  "title": "督 促 状",
+  "body": "水瀬 {player} 様\n下記金額のご返済が確認できておりません。\n\n　ご返済金額　　{debt}円\n　お支払期限　　{deadline_days}日以内\n\n期限までにご返済いただけない場合、\n当社提携先において『資産の差押え』を実施いたします。\n\n　　　　　　　株式会社ミナカミ・ファイナンス"
+ },
+ "memo_mother": {
+  "style": "memo",
+  "title": "",
+  "body": "四月十二日\n{mom}の誕生日。\n\n今年こそ、花を贈ること。\nカーネーションじゃなくて、\nスイートピー。\n\n（{mother_name}は、あれが好きだから）"
+ },
+ "guide": {
+  "style": "sign",
+  "title": "湾岸通り　案内板",
+  "body": "←　霧野ハイツ\n\n　　{work_name}　↑\n\n　　{ramen_name}\n\n　　記憶買取 {shop_name}　→"
+ },
+ "poster": {
+  "style": "poster",
+  "title": "あなたの過去、高く買います。",
+  "body": "即日現金　／　秘密厳守　／　痛みなし\n\n思い出は、いつか色あせる。\nだったら、輝いているうちに。\n\n記憶買取 {shop_name}\n\n　　　　　　提携：ミナカミ・ファイナンス"
+ },
+ "timecard": {
+  "style": "memo",
+  "title": "タイムカード",
+  "body": "氏名：水瀬 {player}\n所属：仕分けライン\n勤続：3年2か月\n\n先月の出勤：22日\n\n（裏に鉛筆で：北・港＝左　霧野・東町＝中　旧市街・埋立地＝右）"
+ },
+ "receipt": {
+  "style": "notice",
+  "title": "領 収 書",
+  "body": "水瀬 {player} 様\n\n買取品目：文字の記憶\n買取金額：{last_price}円\n\n上記の通り領収いたしました。\n\n記憶買取 メモリア"
+ }
 }

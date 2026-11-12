@@ -85,8 +85,8 @@ func refresh() -> void:
 	var left := GameState.days_left()
 	var money_col := "#ff6a7a" if GameState.money < 0 else "#ffffff"
 	var left_col := "#ff6a7a" if left <= 2 else "#e4e2f4"
-	status_label.text = "[color=#8a88aa]%d日目[/color]　所持金 [color=%s]%s円[/color]　[color=#8a88aa]借金[/color] %s円　[color=%s]期限まで%d日[/color]" % [
-		GameState.day, money_col, GameState.format_yen(GameState.money), GameState.format_yen(GameState.debt), left_col, left]
+	status_label.text = "[color=#8a88aa]%d日目 %s[/color]　所持金 [color=%s]%s円[/color]　[color=#8a88aa]借金[/color] %s円　[color=%s]期限まで%d日[/color]" % [
+		GameState.day, GameState.time_name(), money_col, GameState.format_yen(GameState.money), GameState.format_yen(GameState.debt), left_col, left]
 	objective_label.text = "◇ " + current_objective()
 	status_panel.reset_size()
 
@@ -94,7 +94,7 @@ func refresh() -> void:
 func current_objective() -> String:
 	for o in GameData.objectives:
 		if GameState.eval_cond(o.get("if", "")):
-			return GameState.plain_text(str(o.get("text", "")))
+			return GameState.plain_read(str(o.get("text", "")))
 	return ""
 
 

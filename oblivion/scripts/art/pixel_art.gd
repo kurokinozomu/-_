@@ -209,6 +209,31 @@ static func _wall_face(ci: CanvasItem, x: int, y: int, tx: int, ty: int, grid: P
 		px(ci, x + 7, y + 3, 1, 10, C_OUTLINE)
 
 
+## 区画アイコン (図形)。文字が読めなくても判別できる情報。
+static func draw_shape(ci: CanvasItem, shape: String, c: Vector2, r: float, col: Color) -> void:
+	match shape:
+		"triangle":
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, r * 0.8), c + Vector2(-r, r * 0.8)]), col)
+		"circle":
+			ci.draw_circle(c, r, col)
+		"diamond":
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), col)
+		"square":
+			ci.draw_rect(Rect2(c - Vector2(r, r) * 0.85, Vector2(r, r) * 1.7), col)
+		"star":
+			var pts := PackedVector2Array()
+			for i in 10:
+				var rr := r if i % 2 == 0 else r * 0.45
+				var a := -PI / 2.0 + i * PI / 5.0
+				pts.append(c + Vector2(cos(a), sin(a)) * rr)
+			ci.draw_colored_polygon(pts, col)
+		"cross":
+			ci.draw_rect(Rect2(c.x - r * 0.3, c.y - r, r * 0.6, r * 2.0), col)
+			ci.draw_rect(Rect2(c.x - r, c.y - r * 0.3, r * 2.0, r * 0.6), col)
+		_:
+			ci.draw_circle(c, r * 0.5, col)
+
+
 ## 同心円を重ねて、中心ほど明るい光を描く
 static func glow(ci: CanvasItem, c: Vector2, radius: float, col: Color, alpha: float) -> void:
 	for i in 4:
@@ -442,6 +467,22 @@ static func draw_portrait(ci: CanvasItem, origin: Vector2, s: float, pal: Dictio
 	P.call(16, 16, 1, 1, skin.darkened(0.2))
 
 
+## ATM の画面
+static func draw_atm_portrait(ci: CanvasItem, origin: Vector2, s: float, t: float) -> void:
+	var o := origin
+	var P := func(x: float, y: float, w: float, h: float, c: Color) -> void:
+		ci.draw_rect(Rect2(o.x + x * s, o.y + y * s, w * s, h * s), c)
+	P.call(0, 0, 32, 32, Color("#0e1a28"))
+	P.call(3, 3, 26, 17, Color("#1a3a5a"))
+	P.call(5, 5, 22, 3, Color(0.4, 0.85, 1.0, 0.8))
+	P.call(5, 10, 14, 2, Color(0.7, 0.9, 1.0, 0.6))
+	P.call(5, 14, 10, 2, Color(0.7, 0.9, 1.0, 0.6 if int(t * 2.0) % 2 == 0 else 0.2))
+	for i in 3:
+		for j in 3:
+			P.call(5 + i * 5, 22 + j * 3, 4, 2, Color("#3a4a5a"))
+	P.call(22, 23, 6, 7, Color("#2a3a4a"))
+
+
 ## 電話の向こうの相手 (顔が見えない)。noise=true で砂嵐。
 static func draw_phone_portrait(ci: CanvasItem, origin: Vector2, s: float, t: float, noise: bool) -> void:
 	var o := origin
@@ -649,6 +690,58 @@ static func draw_prop(ci: CanvasItem, sprite: String, r: Rect2, t: float, state:
 					px(ci, jx + 2, jy2 + 1, 6, 1, Color("#7a7a90"))
 				px(ci, x + i * 16, y + 13, 16, 1, Color("#3a2a50"))
 				px(ci, x + i * 16, y + 27, 16, 1, Color("#3a2a50"))
+		"photo_b":
+			px(ci, x + 2, y + 2, 12, 11, Color("#3a3a4a"))
+			px(ci, x + 3, y + 3, 10, 9, Color("#4a5a7a"))
+			px(ci, x + 3, y + 9, 10, 3, Color("#2a3048"))
+			px(ci, x + 4, y + 4, 8, 2, Color("#8090b0"))
+			px(ci, x + 5, y + 7, 2, 4, Color("#34466e"))
+			if not state.get("lost", false):
+				px(ci, x + 9, y + 7, 2, 4, Color("#6a4a8a"))
+			else:
+				px(ci, x + 9, y + 7, 2, 4, Color(0.6, 0.6, 0.7, 0.3 + 0.2 * sin(t * 6.0)))
+		"atm":
+			px(ci, x + 1, y + 1, 14, 15, Color("#1a2a3a"))
+			px(ci, x + 2, y + 2, 12, 6, Color(0.35, 0.8, 1.0, 0.6 + 0.2 * sin(t * 2.0)))
+			px(ci, x + 3, y + 3, 6, 1, Color.WHITE)
+			px(ci, x + 3, y + 10, 10, 3, Color("#2a3a4a"))
+			px(ci, x + 4, y + 11, 2, 1, Color("#8aa0b8"))
+			px(ci, x + 7, y + 11, 2, 1, Color("#8aa0b8"))
+			px(ci, x + 10, y + 11, 2, 1, Color("#8aa0b8"))
+			glow(ci, Vector2(x + 8, y + 6), 14.0, Color(0.35, 0.8, 1.0), 0.04)
+		"rack":
+			px(ci, x, y - 14, w, h + 14, Color("#2a2c38"))
+			for j in range(0, int(h) + 14, 14):
+				px(ci, x, y - 14 + j, w, 2, Color("#5a5e70"))
+				for i in range(2, int(w) - 8, 11):
+					var bc := Color("#a07848") if hash2(int(x) + i, j) % 3 != 0 else Color("#8a6a40")
+					px(ci, x + i, y - 14 + j + 4, 9, 9, bc)
+			px(ci, x, y - 14, 2, h + 14, Color("#6a6e80"))
+			px(ci, x + w - 2, y - 14, 2, h + 14, Color("#6a6e80"))
+		"conveyor":
+			px(ci, x, y + 2, w, h - 4, Color("#30323e"))
+			var off2 := int(t * 20.0) % 8
+			for i in range(-8, int(w), 8):
+				px(ci, x + maxf(0, i + off2), y + 4, 2, h - 8, Color("#3e4050"))
+			px(ci, x, y + 2, w, 2, Color("#5a5e70"))
+			px(ci, x, y + h - 4, w, 2, Color("#5a5e70"))
+			px(ci, x + 30, y + 3, 14, 10, Color("#a07848"))
+			px(ci, x + 33, y + 5, 8, 4, Color("#ece6d6"))
+		"bins":
+			for i in 3:
+				var bx := x + i * (w / 3.0)
+				var cc2: Color = [Color("#ff6a7a"), Color("#b48aff"), Color("#9dff7a")][i]
+				px(ci, bx + 2, y + 1, w / 3.0 - 4, h - 2, Color("#3a3e4c"))
+				px(ci, bx + 2, y + 1, w / 3.0 - 4, 3, cc2.darkened(0.3))
+		"timecard":
+			px(ci, x + 3, y + 2, 10, 12, Color("#5a5e70"))
+			px(ci, x + 4, y + 3, 8, 3, Color("#2a2c38"))
+			px(ci, x + 5, y + 8, 6, 5, Color("#e8e4d8"))
+		"boxes":
+			px(ci, x, y - 6, 14, 14, Color("#a07848"))
+			px(ci, x + 14, y - 2, 16, 12, Color("#8a6a40"))
+			px(ci, x + 4, y - 14, 12, 9, Color("#b88a58"))
+			px(ci, x + 6, y - 6, 2, 14, Color("#c8a070", 0.5))
 		"chair":
 			px(ci, x + 3, y - 6, 10, 8, Color("#4a2a5a"))
 			px(ci, x + 3, y + 2, 10, 4, Color("#5a3a6a"))

@@ -8,7 +8,7 @@ signal target_changed(obj: WorldObject)
 
 const TILE := PixelArt.TILE
 const ZOOM := 2.0
-const FLOOR_CHARS := {"wood": ".", "shop": ",", "street": "S"}
+const FLOOR_CHARS := {"wood": ".", "shop": ",", "street": "S", "warehouse": "_"}
 
 var map_id: String = ""
 var map: Dictionary = {}
@@ -52,7 +52,7 @@ func is_outdoor() -> bool:
 
 
 func map_name() -> String:
-	return GameState.plain_text(str(map.get("name", "")))
+	return GameState.plain_read(str(map.get("name", "")))
 
 
 func pixel_size() -> Vector2:

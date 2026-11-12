@@ -7,7 +7,13 @@
     "enabled": true,
     "color": "#ff7ab8",
     "appraisal": "幼少期から現在までの、ある女性に関する記憶の束。名前、声、手料理の味、叱られた日のこと。保存状態は良好です。",
-    "fragments": ["「{player}、傘持った？」", "台所の味噌汁の匂い", "霧野公園の桜", "名前を呼ぶ声", "春子"],
+    "fragments": [
+      "「{player}、傘持った？」",
+      "台所の味噌汁の匂い",
+      "霧野公園の桜",
+      "名前を呼ぶ声",
+      "春子"
+    ],
     "effects_hint": "※売却後、関連する人物・会話の認識に影響が出る場合があります。",
     "after_script": "after_sell_mother"
   },
@@ -16,47 +22,67 @@
     "name": "街の記憶",
     "lost_name": "どこかの記憶",
     "price": 12000,
-    "enabled": false,
+    "enabled": true,
     "color": "#45e0ff",
     "appraisal": "霧野町の地理、店の名前、通い慣れた道順。生活に根ざした実用的な記憶です。",
-    "fragments": ["角のらーめん屋", "東の外れのネオン", "近道の路地"],
+    "fragments": [
+      "角のらーめん屋",
+      "東の外れのネオン",
+      "近道の路地",
+      "{town_name}"
+    ],
     "effects_hint": "※売却後、施設名や道案内が認識できなくなる場合があります。",
-    "after_script": "after_sell_generic"
+    "after_script": "after_sell_city"
   },
   {
     "id": "work",
     "name": "仕事の記憶",
     "lost_name": "何かの手順の記憶",
     "price": 15000,
-    "enabled": false,
+    "enabled": true,
     "color": "#ffd25a",
     "appraisal": "倉庫作業の手順、伝票の読み方、身体が覚えたコツ。三年分の経験です。",
-    "fragments": ["伝票の色分け", "棚番号の規則", "主任の口癖"],
+    "fragments": [
+      "伝票の色分け",
+      "棚の並び順",
+      "主任の口癖",
+      "「北と港は左、霧野と東町は真ん中」"
+    ],
     "effects_hint": "※売却後、仕事の操作方法を忘れる場合があります。",
-    "after_script": "after_sell_generic"
+    "after_script": "after_sell_work"
   },
   {
     "id": "letters",
     "name": "文字の記憶",
     "lost_name": "■■の記憶",
     "price": 30000,
-    "enabled": false,
+    "enabled": true,
     "color": "#9dff7a",
     "appraisal": "読み書きの能力そのもの。極めて高価ですが、日常生活への影響は甚大です。",
-    "fragments": ["ひらがな", "画数の多い漢字", "母への手紙"],
+    "fragments": [
+      "ひらがな",
+      "画数の多い漢字",
+      "母への手紙"
+    ],
     "effects_hint": "※売却後、文章の判読が困難になります。絵や記号は理解できます。",
-    "after_script": "after_sell_generic"
+    "after_script": "after_sell_letters"
   },
   {
     "id": "beloved",
     "name": "大切な人の記憶",
     "lost_name": "誰かの記憶",
     "price": 50000,
-    "enabled": false,
+    "enabled": true,
     "color": "#b48aff",
     "appraisal": "顔も名前も思い出せない、誰かとの約束の記憶。雨の橋の下。……これだけ、なぜか強く保護されています。",
-    "fragments": ["雨の橋の下", "繋いだ手の温度", "「ここで待ってる」"],
+    "fragments": [
+      "雨の橋の下",
+      "繋いだ手の温度",
+      "「ここで待ってる」"
+    ],
     "effects_hint": "※当店で最も高値のつく記憶です。売却後の影響は保証いたしかねます。",
-    "after_script": "after_sell_generic"
+    "after_script": "after_sell_beloved",
+    "double_confirm": true,
+    "confirm_whisper": "胸の奥で、誰かの声がした気がする。\n「――ここで待ってる」\n\nそれでも、売りますか？"
   }
 ]

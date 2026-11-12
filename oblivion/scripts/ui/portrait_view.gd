@@ -20,7 +20,7 @@ func set_face(id: String, e: String) -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
-	if visible and (char_id == "mother" or char_id == "voice"):
+	if visible and (char_id == "mother" or char_id == "voice" or char_id == "atm"):
 		queue_redraw()
 
 
@@ -34,6 +34,8 @@ func _draw() -> void:
 	var kind := str(cd.get("portrait", ""))
 	if kind == "phone":
 		PixelArt.draw_phone_portrait(self, origin, s, _t, false)
+	elif kind == "atm":
+		PixelArt.draw_atm_portrait(self, origin, s, _t)
 	elif kind == "phone_noise":
 		PixelArt.draw_phone_portrait(self, origin, s, _t, true)
 	else:

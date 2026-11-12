@@ -119,6 +119,19 @@
     "prompt": "見る"
    },
    {
+    "id": "photo2",
+    "kind": "prop",
+    "sprite": "photo_b",
+    "rect": [
+     10,
+     2,
+     1,
+     1
+    ],
+    "script": "home_photo2",
+    "prompt": "見る"
+   },
+   {
     "id": "window1",
     "kind": "prop",
     "sprite": "none",
@@ -246,7 +259,7 @@
    "TTTTTTTTTTTTaaTTTTTTTTTTTTaaTTTTTTTTTTTTTTTTTTTTaaTTTTTTTTTTTTTT",
    "TTTTTTTTTTTTaaTTTTTTTTTTTTaaTTTTTTTTTTTTTTTTTTTTaaTTTTTTTTTTTTTT",
    "bgbgbbbgbgbbaahhhhhhhhhhhhaakkkkkkkkbgbggbbgbgbbaapppppppppppppp",
-   "bbbbbdbbbbbbaahhhhDDDDhhhhaakkknnkkkbbgbbbgbbbgbaappppppddpppppp",
+   "bbbbbdbbbbbbaahhhhDddDhhhhaakkknnkkkbbgbbbgbbbgbaappppppddpppppp",
    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
    "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
@@ -266,6 +279,21 @@
    ],
    "shop_door": [
     57.0,
+    4.7,
+    "down"
+   ],
+   "alley_w": [
+    12.5,
+    4.7,
+    "down"
+   ],
+   "alley_e": [
+    49.0,
+    4.7,
+    "down"
+   ],
+   "work_door": [
+    20.0,
     4.7,
     "down"
    ]
@@ -315,7 +343,8 @@
     ],
     "facing": "down",
     "script": "saeki",
-    "prompt": "話す"
+    "prompt": "話す",
+    "if": "time<=2"
    },
    {
     "id": "guide",
@@ -329,7 +358,8 @@
     ],
     "solid": true,
     "script": "guide_sign",
-    "prompt": "見る"
+    "prompt": "見る",
+    "if": "!sold:city"
    },
    {
     "id": "lamp1",
@@ -345,15 +375,29 @@
    },
    {
     "id": "work_door",
+    "kind": "warp",
+    "rect": [
+     19,
+     3,
+     2,
+     1
+    ],
+    "to": "work",
+    "spawn": "entrance",
+    "auto": true,
+    "prompt": "倉庫に入る"
+   },
+   {
+    "id": "shutter",
     "kind": "prop",
     "sprite": "none",
     "rect": [
      18,
      3,
-     4,
+     1,
      1
     ],
-    "script": "work_door",
+    "script": "work_shutter",
     "prompt": "調べる"
    },
    {
@@ -460,7 +504,8 @@
     ],
     "facing": "left",
     "script": "nagi",
-    "prompt": "話す"
+    "prompt": "話す",
+    "if": "!flag:nagi_gone"
    },
    {
     "id": "poster",
@@ -526,6 +571,45 @@
     ],
     "script": "canal",
     "prompt": "眺める"
+   },
+   {
+    "id": "atm",
+    "kind": "prop",
+    "sprite": "atm",
+    "rect": [
+     44,
+     3,
+     1,
+     1
+    ],
+    "script": "atm",
+    "prompt": "ATM"
+   },
+   {
+    "id": "alley_w",
+    "kind": "prop",
+    "sprite": "none",
+    "rect": [
+     12,
+     3,
+     2,
+     1
+    ],
+    "script": "alley_west",
+    "prompt": "路地"
+   },
+   {
+    "id": "alley_e",
+    "kind": "prop",
+    "sprite": "none",
+    "rect": [
+     48,
+     3,
+     2,
+     1
+    ],
+    "script": "alley_east",
+    "prompt": "路地"
    }
   ]
  },
@@ -665,6 +749,144 @@
     ],
     "to": "town",
     "spawn": "shop_door",
+    "auto": true,
+    "prompt": "外へ出る"
+   }
+  ]
+ },
+ "work": {
+  "name": "{work_name} — 霧野倉庫",
+  "outdoor": false,
+  "floor": "warehouse",
+  "tiles": [
+   "##################",
+   "#wwwwwwwwwwwwwwww#",
+   "#wwwwwwwwwwwwwwww#",
+   "#________________#",
+   "#________________#",
+   "#________________#",
+   "#________________#",
+   "#________________#",
+   "#________________#",
+   "#________________#",
+   "########ee########"
+  ],
+  "spawns": {
+   "entrance": [
+    9.0,
+    9.2,
+    "up"
+   ]
+  },
+  "on_enter": [
+   {
+    "if": "",
+    "script": "work_enter"
+   }
+  ],
+  "objects": [
+   {
+    "id": "shelves_l",
+    "kind": "prop",
+    "sprite": "rack",
+    "rect": [
+     1,
+     3,
+     3,
+     5
+    ],
+    "solid": true,
+    "script": "work_rack",
+    "prompt": "調べる"
+   },
+   {
+    "id": "shelves_r",
+    "kind": "prop",
+    "sprite": "rack",
+    "rect": [
+     14,
+     3,
+     3,
+     5
+    ],
+    "solid": true,
+    "script": "work_rack",
+    "prompt": "調べる"
+   },
+   {
+    "id": "conveyor",
+    "kind": "prop",
+    "sprite": "conveyor",
+    "rect": [
+     5,
+     3,
+     8,
+     1
+    ],
+    "solid": true,
+    "script": "work_conveyor",
+    "prompt": "調べる"
+   },
+   {
+    "id": "bins",
+    "kind": "prop",
+    "sprite": "bins",
+    "rect": [
+     6,
+     5,
+     6,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "makabe",
+    "kind": "npc",
+    "char": "makabe",
+    "pos": [
+     11.5,
+     7.4
+    ],
+    "facing": "down",
+    "script": "makabe",
+    "prompt": "話す"
+   },
+   {
+    "id": "timecard",
+    "kind": "prop",
+    "sprite": "timecard",
+    "rect": [
+     13,
+     2,
+     1,
+     1
+    ],
+    "script": "timecard",
+    "prompt": "調べる"
+   },
+   {
+    "id": "boxes",
+    "kind": "prop",
+    "sprite": "boxes",
+    "rect": [
+     4,
+     8,
+     2,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "exit",
+    "kind": "warp",
+    "rect": [
+     8,
+     10,
+     2,
+     1
+    ],
+    "to": "town",
+    "spawn": "work_door",
     "auto": true,
     "prompt": "外へ出る"
    }

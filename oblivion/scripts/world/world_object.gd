@@ -86,7 +86,7 @@ func _process(delta: float) -> void:
 
 func _is_animated_prop() -> bool:
 	var s := str(data.get("sprite", ""))
-	return s in ["phone", "letter", "memo", "lamp", "vending", "yatai", "jars", "jarwall", "counter", "photo"]
+	return s in ["phone", "letter", "memo", "lamp", "vending", "yatai", "jars", "jarwall", "counter", "photo", "photo_b", "atm", "conveyor"]
 
 
 func _draw() -> void:
@@ -99,7 +99,7 @@ func _draw() -> void:
 			pass
 		"sign":
 			var local := Rect2(Vector2(0, -rect.size.y), rect.size)
-			var label := GameState.plain_text(str(data.get("label", "")))
+			var label := GameState.plain_read(str(data.get("label", "")))
 			var broken := label.contains("？")
 			PixelArt.draw_neon_sign(self, local, label, Color(str(data.get("color", "#ff5ad0"))), _t, font, broken)
 		_:
@@ -118,4 +118,6 @@ func _prop_state() -> Dictionary:
 			return {"new": not GameState.has_flag("read_memo_mother")}
 		"photo":
 			return {"lost": GameState.is_sold("mother")}
+		"photo_b":
+			return {"lost": GameState.is_sold("beloved")}
 	return {}

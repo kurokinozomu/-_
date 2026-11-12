@@ -24,12 +24,15 @@ var facing: String = "down"
 var playtime: float = 0.0
 var last_price: int = 0
 var debt_paid: int = 0
+var time_slot: int = 0          ## 0=朝 1=昼 2=夕方 3=夜
+var last_loan: int = 0          ## 直近の朝に自動融資された額
+var last_pay: int = 0           ## 直近の仕事の報酬
 
 var _re_cmp := RegEx.new()
 
 
 func _ready() -> void:
-	_re_cmp.compile("^(day|money|debt|days_left|sold_count|rel:[a-z_]+)(>=|<=|==|!=|>|<)(-?\\d+)$")
+	_re_cmp.compile("^(day|time|money|debt|days_left|sold_count|last_loan|last_pay|rel:[a-z_]+)(>=|<=|==|!=|>|<)(-?\\d+)$")
 	new_game()
 
 
@@ -53,6 +56,9 @@ func new_game() -> void:
 	playtime = 0.0
 	last_price = 0
 	debt_paid = 0
+	time_slot = 0
+	last_loan = 0
+	last_pay = 0
 	changed.emit()
 
 
@@ -116,9 +122,18 @@ func days_left() -> int:
 
 
 ## 1日を終える。期限を迎えたら "deadline" を返す。
+## 生活費が払えない分は、ミナカミ・ファイナンスの「自動融資」として借金に上乗せされる。
 func advance_day() -> String:
 	day += 1
+	time_slot = 0
 	money -= int(GameData.cfg("daily_cost", 2000))
+	last_loan = 0
+	if money < 0:
+		var shortfall := -money
+		# 浮動小数の誤差で 1円ずれないよう、四捨五入してから切り上げ相当にする
+		last_loan = shortfall + int(ceil(snappedf(shortfall * float(GameData.cfg("loan_penalty_rate", 0.1)), 0.001)))
+		debt += last_loan
+		money = 0
 	has_player_pos = false
 	map_id = "home"
 	spawn_name = "start"
@@ -126,6 +141,33 @@ func advance_day() -> String:
 	if day >= deadline_day:
 		return "deadline"
 	return "ok"
+
+
+## 時間を進める (夜より先には進まない)。
+func advance_time(slots: int) -> void:
+	time_slot = clampi(time_slot + slots, 0, 3)
+	changed.emit()
+
+
+func work_cfg() -> Dictionary:
+	return GameData.cfg("work", {})
+
+
+func time_name() -> String:
+	var names: Array = GameData.cfg("time_slots", ["朝", "昼", "夕方", "夜"])
+	return str(names[clampi(time_slot, 0, names.size() - 1)])
+
+
+## ATM での返済。amount<0 なら返せるだけ全部。実際に返した額を返す。
+func repay(amount: int) -> int:
+	var a := mini(money, debt) if amount < 0 else mini(amount, mini(money, debt))
+	if a <= 0:
+		return 0
+	money -= a
+	debt -= a
+	debt_paid += a
+	changed.emit()
+	return a
 
 
 ## 期限日に返済を試みる。払えたら true。
@@ -169,6 +211,8 @@ func _eval_term(term: String) -> bool:
 			"!=": result = lhs != rhs
 			">": result = lhs > rhs
 			"<": result = lhs < rhs
+	elif term == "money>=debt":
+		result = money >= debt
 	elif term.begins_with("sold:"):
 		result = is_sold(term.substr(5))
 	elif term.begins_with("flag:"):
@@ -188,6 +232,9 @@ func _value_of(key: String) -> int:
 		"money": return money
 		"debt": return debt
 		"days_left": return days_left()
+		"time": return time_slot
+		"last_loan": return last_loan
+		"last_pay": return last_pay
 		"sold_count": return sold.size()
 	return 0
 
@@ -221,7 +268,61 @@ func resolve_text(text: String) -> String:
 	out = out.replace("{daily_cost}", format_yen(int(GameData.cfg("daily_cost", 2000))))
 	out = out.replace("{last_price}", format_yen(last_price))
 	out = out.replace("{debt_paid}", format_yen(debt_paid))
+	out = out.replace("{last_loan}", format_yen(last_loan))
+	out = out.replace("{last_pay}", format_yen(last_pay))
+	out = out.replace("{time}", time_name())
+	if out.contains("{carry_pay}"):
+		out = out.replace("{carry_pay}", format_yen(int(work_cfg().get("carry_pay", 3500))))
 	return out
+
+
+## 「書かれた文字」用の置換。文字の記憶を売っていると、漢字・かなの一部が読めなくなる。
+## 数字・記号・図形はそのまま (アイコンや絵からは情報を得られる)。
+func read_text(text: String) -> String:
+	var out := resolve_text(text)
+	if not is_sold("letters"):
+		return out
+	return garble_letters(out, float(GameData.cfg("letters_garble_rate", 0.6)))
+
+
+static func garble_letters(text: String, rate: float) -> String:
+	var out := ""
+	var i := 0
+	var open := false
+	var threshold := int(rate * 100.0)
+	while i < text.length():
+		if text.substr(i, 3) == GLITCH_OPEN:
+			# 既に文字化けしている部分はそのまま写す
+			if open:
+				out += GLITCH_CLOSE
+				open = false
+			var b := text.find(GLITCH_CLOSE, i)
+			if b == -1:
+				b = text.length() - GLITCH_CLOSE.length()
+			out += text.substr(i, b + GLITCH_CLOSE.length() - i)
+			i = b + GLITCH_CLOSE.length()
+			continue
+		var ch := text[i]
+		var cp := ch.unicode_at(0)
+		var is_word := (cp >= 0x3041 and cp <= 0x30FA) or (cp >= 0x4E00 and cp <= 0x9FFF)
+		# 位置と文字で決まるので、同じ文章はいつも同じ箇所が読めない
+		var hit := is_word and (absi(cp * 31 + i * 17) % 100) < threshold
+		if hit and not open:
+			out += GLITCH_OPEN
+			open = true
+		elif not hit and open:
+			out += GLITCH_CLOSE
+			open = false
+		out += ch
+		i += 1
+	if open:
+		out += GLITCH_CLOSE
+	return out
+
+
+## HUD・看板用: 書かれた文字として読み、読めない部分は「？」にする。
+func plain_read(text: String) -> String:
+	return strip_glitch(read_text(text), "？")
 
 
 ## [g]…[/g] を伏せ字にした、装飾なしの文字列 (HUD・看板用)。
@@ -274,6 +375,7 @@ func to_dict() -> Dictionary:
 		"player_pos": [player_pos.x, player_pos.y], "has_player_pos": has_player_pos,
 		"facing": facing, "playtime": playtime,
 		"last_price": last_price, "debt_paid": debt_paid,
+		"time_slot": time_slot, "last_loan": last_loan, "last_pay": last_pay,
 		"saved_at": Time.get_datetime_string_from_system(),
 	}
 
@@ -295,6 +397,9 @@ func from_dict(d: Dictionary) -> void:
 	playtime = float(d.get("playtime", 0.0))
 	last_price = int(d.get("last_price", 0))
 	debt_paid = int(d.get("debt_paid", 0))
+	time_slot = int(d.get("time_slot", 0))
+	last_loan = int(d.get("last_loan", 0))
+	last_pay = int(d.get("last_pay", 0))
 	# JSON は数値を float で返すので、関係値を int に正規化する
 	for k in relations.keys():
 		relations[k] = int(relations[k])

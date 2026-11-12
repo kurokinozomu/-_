@@ -4,6 +4,8 @@
   "start_debt": 100000,
   "daily_cost": 2000,
   "deadline_days": 7,
+  "loan_penalty_rate": 0.1,
+  "_comment_loan": "生活費が払えない日は不足分×(1+loan_penalty_rate)が借金に上乗せされる",
   "start_day": 1,
   "start_map": "home",
   "start_spawn": "start",
@@ -12,14 +14,113 @@
   "save_path": "user://oblivion_save_v1.json",
   "noise_base": 0.18,
   "noise_per_memory": 0.16,
+  "time_slots": [
+    "朝",
+    "昼",
+    "夕方",
+    "夜"
+  ],
+  "time_tints": [
+    "#e6e8ff",
+    "#ffffff",
+    "#e8c8e0",
+    "#8a8ac8"
+  ],
+  "work": {
+    "_comment": "倉庫の仕分けミニゲーム。受付は朝・昼のみ (dialogue.json の makabe)。newbie_* は仕事の記憶を売った後の値",
+    "time_cost": 2,
+    "duration": 40.0,
+    "travel_time": 2.6,
+    "spawn_interval": 1.6,
+    "base_pay": 1500,
+    "newbie_base_pay": 800,
+    "per_correct": 300,
+    "per_wrong": 200,
+    "aid_delay": 0.35,
+    "torn_icon_rate": 0.25,
+    "carry_pay": 3500,
+    "districts": [
+      {
+        "name": "北区",
+        "shape": "triangle",
+        "color": "#ff6a7a"
+      },
+      {
+        "name": "港区",
+        "shape": "circle",
+        "color": "#45e0ff"
+      },
+      {
+        "name": "霧野",
+        "shape": "diamond",
+        "color": "#b48aff"
+      },
+      {
+        "name": "東町",
+        "shape": "square",
+        "color": "#ffd25a"
+      },
+      {
+        "name": "旧市街",
+        "shape": "star",
+        "color": "#9dff7a"
+      },
+      {
+        "name": "埋立地",
+        "shape": "cross",
+        "color": "#ff9a40"
+      }
+    ],
+    "veteran_bins": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "_balance": "荷物は spawn_interval 秒ごとに1個 → 40秒で最大25個 約 1日最大9,000円。7日働いても約6.3万円で、借金10万円には記憶の売却が必要になる"
+  },
+  "letters_garble_rate": 0.6,
+  "repay_options": [
+    10000,
+    30000
+  ],
   "tokens": {
     "_comment": "{token} を本文中で使うと置換される。memory が売却済みなら文字化け表示になる。",
-    "mom": {"text": "母さん", "memory": "mother"},
-    "mother_name": {"text": "春子", "memory": "mother"},
-    "mother_full": {"text": "水瀬春子", "memory": "mother"},
-    "shop_name": {"text": "メモリア", "memory": "city"},
-    "work_name": {"text": "ハコブネ物流", "memory": "city"},
-    "ramen_name": {"text": "らーめん源", "memory": "city"},
-    "town_name": {"text": "霧野町", "memory": "city"}
+    "mom": {
+      "text": "母さん",
+      "memory": "mother"
+    },
+    "mother_name": {
+      "text": "春子",
+      "memory": "mother"
+    },
+    "mother_full": {
+      "text": "水瀬春子",
+      "memory": "mother"
+    },
+    "shop_name": {
+      "text": "メモリア",
+      "memory": "city"
+    },
+    "work_name": {
+      "text": "ハコブネ物流",
+      "memory": "city"
+    },
+    "ramen_name": {
+      "text": "らーめん源",
+      "memory": "city"
+    },
+    "town_name": {
+      "text": "霧野町",
+      "memory": "city"
+    }
   }
 }

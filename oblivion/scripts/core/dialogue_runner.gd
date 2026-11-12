@@ -40,7 +40,10 @@ func run_steps(steps: Array) -> void:
 
 func run_step(s: Dictionary) -> void:
 	if s.has("say"):
-		await box.say(str(s.get("who", "")), str(s.get("face", "normal")), str(s["say"]))
+		var text := str(s["say"])
+		if bool(s.get("written", false)):
+			text = GameState.read_text(text)
+		await box.say(str(s.get("who", "")), str(s.get("face", "normal")), text)
 	elif s.has("choice"):
 		var opts: Array = []
 		for o in s["choice"]:
@@ -50,7 +53,8 @@ func run_step(s: Dictionary) -> void:
 			return
 		var labels: Array = []
 		for o in opts:
-			labels.append(str(o.get("text", "")))
+			var label := str(o.get("text", ""))
+			labels.append(GameState.plain_read(label) if bool(o.get("written", false)) else GameState.plain_text(label))
 		var idx: int = await box.choose(labels)
 		await run_steps(opts[idx].get("do", []))
 	elif s.has("if"):
@@ -82,7 +86,8 @@ func run_step(s: Dictionary) -> void:
 	elif s.has("money"):
 		GameState.add_money(int(s["money"]))
 	elif s.has("action"):
-		box.visible = false if str(s["action"]) in ["open_shop", "photo", "paper", "sleep", "ending"] else box.visible
+		if str(s["action"]) in ["open_shop", "photo", "paper", "sleep", "ending", "work_sort", "work_carry", "warp"]:
+			box.visible = false
 		await host.do_action(str(s["action"]), s.get("arg", null))
 	elif s.has("run"):
 		await run(str(s["run"]))

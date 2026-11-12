@@ -63,8 +63,8 @@ func show_paper(id: String) -> void:
 	card.add_theme_stylebox_override("panel", UITheme.box(Color(st["bg"]), Color(st["border"]), 3, 22, 16))
 	title_label.add_theme_color_override("default_color", Color(st["title"]))
 	body_label.add_theme_color_override("default_color", Color(st["fg"]))
-	_raw_title = GameState.resolve_text(str(p.get("title", "")))
-	_raw_body = GameState.resolve_text(str(p.get("body", "")))
+	_raw_title = GameState.read_text(str(p.get("title", "")))
+	_raw_body = GameState.read_text(str(p.get("body", "")))
 	title_label.visible = _raw_title != ""
 	_render()
 	visible = true

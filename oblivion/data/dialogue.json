@@ -1,393 +1,1739 @@
 {
-  "_format": "say/who/face=台詞, if/then/else=分岐, choice=選択肢, set/unset=フラグ, rel=好感度, money=所持金増減, action=演出/機能呼び出し, run=別スクリプト実行。条件式は 'sold:mother !flag:x day>=2 rel:saeki>=1 money>=100' をスペース区切りANDで書く。",
-
-  "intro": [
-    {"action": "fade_in_slow"},
-    {"say": "……雨の音で、目が覚めた。"},
-    {"say": "霧野ハイツ203号室。天井の染みが、昨日より少し広がっている気がする。"},
-    {"say": "机の上に、封筒がひとつ。赤い文字が透けて見えた。"},
-    {"set": "intro_done"}
-  ],
-
-  "home_letter": [
-    {"if": "!flag:read_notice", "then": [
-      {"action": "paper", "arg": "notice"},
-      {"say": "財布の中身は{money}円。生活費だけで、一日{daily_cost}円は消えていく。"},
-      {"say": "どう考えても、{deadline_days}日で{debt}円は無理だ。", "who": "minato", "face": "sad"},
-      {"say": "……差し押さえ、か。差し押さえられるようなもの、何も持ってないのに。", "who": "minato", "face": "blank"},
-      {"set": "read_notice"}
-    ], "else": [
-      {"say": "督促状だ。返済期限まで、あと{days_left}日。残りの借金は{debt}円。"}
-    ]}
-  ],
-
-  "home_drawer": [
-    {"say": "机の引き出し。一番下の段だけ、鍵がかかっている。"},
-    {"say": "鍵がどこにあるのか、思い出せない。……そもそも、鍵なんてかけた覚えがない。", "who": "minato", "face": "normal"}
-  ],
-
-  "home_memo": [
-    {"say": "机の上に、メモが一枚。……さっきまで、こんなものあっただろうか。"},
-    {"say": "見覚えのある字だ。――自分の字だ。"},
-    {"action": "paper", "arg": "memo_mother"},
-    {"say": "……誕生日？ 誰の？", "who": "minato", "face": "surprised"},
-    {"say": "読めるはずの一文字が、目の上を滑っていく。意味だけが、頭に入ってこない。"},
-    {"set": "read_memo_mother"}
-  ],
-
-  "home_photo": [
-    {"if": "sold:mother", "then": [
-      {"action": "photo"},
-      {"say": "写真立て。幼い自分と、知らない女性が写っている。"},
-      {"say": "女性はこちらに向かって笑っている。……誰だ？", "who": "minato", "face": "surprised"},
-      {"say": "裏に自分の字で何か書いてある。『{mother_name}と。霧野公園にて』"},
-      {"say": "知らない。知らないはずなのに、胸の奥がざわつく。", "who": "minato", "face": "sad"},
-      {"set": "saw_photo_after"}
-    ], "else": [
-      {"action": "photo"},
-      {"say": "写真立て。五歳の自分と、{mom}が写っている。"},
-      {"say": "霧野公園の桜の下。{mom}――{mother_name}は、いつも少し困ったように笑う人だった。"},
-      {"set": "saw_photo_before"}
-    ]}
-  ],
-
-  "home_window": [
-    {"say": "窓の外は雨。向かいのビルのネオンが、滲んで揺れている。"},
-    {"if": "sold:mother", "then": [
-      {"say": "ガラスに映った自分の顔が、一瞬だけ知らない誰かに見えた。"}
-    ]}
-  ],
-
-  "home_kitchen": [
-    {"say": "シンクに、洗っていないマグカップが二つ。"},
-    {"if": "sold:mother", "then": [
-      {"say": "……二つ？ この部屋に住んでいるのは、自分だけのはずだ。", "who": "minato", "face": "surprised"}
-    ], "else": [
-      {"say": "一つは{mom}が置いていったものだ。この前、様子を見に来たときに。"}
-    ]}
-  ],
-
-  "home_fridge": [
-    {"if": "sold:mother", "then": [
-      {"say": "冷蔵庫に、タッパーがひとつ。マスキングテープに『ちゃんと食べなさい』と書いてある。"},
-      {"say": "……誰が、これを？", "who": "minato", "face": "blank"}
-    ], "else": [
-      {"say": "冷蔵庫に、タッパーがひとつ。{mom}の煮物だ。マスキングテープに『ちゃんと食べなさい』。"}
-    ]}
-  ],
-
-  "home_plant": [
-    {"say": "枯れかけた観葉植物。水をやった記憶がない。"}
-  ],
-
-  "home_bed": [
-    {"say": "ベッドだ。"},
-    {"choice": [
-      {"text": "眠って一日を終える", "do": [{"action": "sleep"}]},
-      {"text": "セーブする", "do": [{"action": "save"}]},
-      {"text": "やめる", "do": []}
-    ]}
-  ],
-
-  "home_phone": [
-    {"if": "flag:call_pending", "then": [
-      {"if": "sold:mother !flag:strange_call_done", "then": [{"run": "call_strange"}], "else": [{"run": "call_normal"}]}
-    ], "else": [
-      {"if": "sold:mother", "then": [
-        {"say": "スマホの連絡先。一番上に、読めない名前がひとつ。『{mom}』"},
-        {"say": "着信履歴にも、同じ名前が並んでいる。"}
-      ], "else": [
-        {"say": "スマホ。連絡先の一番上は『{mom}』。"}
-      ]}
-    ]}
-  ],
-
-  "phone_ringing": [
-    {"action": "ring"},
-    {"say": "――スマホが鳴っている。"}
-  ],
-
-  "call_normal": [
-    {"action": "ring_stop"},
-    {"say": "画面には『{mom}』の文字。"},
-    {"say": "もしもし、{player}？ 元気にしてる？", "who": "mother"},
-    {"say": "雨、そっちもひどいでしょう。傘、ちゃんと持って出なさいね。", "who": "mother"},
-    {"choice": [
-      {"text": "借金のことを話す", "do": [
-        {"say": "……そう。ごめんね、お母さんも今は余裕がなくて。", "who": "mother"},
-        {"say": "でもね、{player}。お金はいつか、どうにかなる。", "who": "mother"},
-        {"say": "思い出だけは、手放しちゃだめよ。", "who": "mother"},
-        {"set": "told_mom_debt"}, {"rel": {"mother": 1}}
-      ]},
-      {"text": "「大丈夫、元気だよ」", "do": [
-        {"say": "そう？ ならいいけど……声が、少し疲れてるわよ。", "who": "mother"},
-        {"say": "何かあったら、いつでも帰ってきなさい。", "who": "mother"}
-      ]}
-    ]},
-    {"say": "じゃあね。……あ、そうだ。来月の十二日、覚えてる？ ふふ、なんでもない。", "who": "mother"},
-    {"say": "通話が切れた。画面に残る『{mom}』の文字を、しばらく眺めていた。"},
-    {"set": "call1_done"}, {"unset": "call_pending"}
-  ],
-
-  "call_strange": [
-    {"action": "ring_stop"},
-    {"say": "画面に名前が表示されている。"},
-    {"say": "『{mom}』"},
-    {"say": "……読めない。文字は見えているのに、意味が頭に入ってこない。", "who": "minato", "face": "surprised"},
-    {"action": "glitch", "arg": 0.6},
-    {"say": "もしもし、{player}？ {mom}よ。", "who": "voice"},
-    {"say": "……え？", "who": "minato", "face": "surprised"},
-    {"say": "元気にしてる？ 雨、そっちもひどいでしょう。傘、ちゃんと――", "who": "voice"},
-    {"say": "知らない女の声だ。なのに、彼女は自分の名前を知っている。"},
-    {"choice": [
-      {"text": "「……どちら様ですか？」", "do": [
-        {"say": "…………", "who": "voice"},
-        {"say": "……そう。また、なのね。", "who": "voice"},
-        {"say": "前にも同じことを聞かれたわ。去年の、ちょうど今ごろ。", "who": "voice"},
-        {"say": "前にも……？", "who": "minato", "face": "surprised"},
-        {"say": "通話は、もう切れていた。"},
-        {"set": "asked_who"}, {"rel": {"mother": -1}}
-      ]},
-      {"text": "（話を合わせる）「うん、元気だよ」", "do": [
-        {"say": "……そう。よかった。", "who": "voice"},
-        {"say": "ねえ、{player}。あなた、今、わたしの名前を言える？", "who": "voice"},
-        {"choice": [
-          {"text": "「……言えない」", "do": [
-            {"say": "いいのよ。……いいの。", "who": "voice"}
-          ]},
-          {"text": "（黙っている）", "do": [
-            {"say": "…………", "who": "voice"}
-          ]}
-        ]},
-        {"say": "あなたが生きていてくれるなら、それで。", "who": "voice"},
-        {"say": "通話が切れた。なぜか、頬が濡れていた。"},
-        {"set": "played_along"}
-      ]},
-      {"text": "（電話を切る）", "do": [
-        {"say": "反射的に通話を切った。"},
-        {"say": "着信履歴に、同じ名前が何十件も並んでいる。……一度も、折り返した記録はない。"},
-        {"set": "hung_up"}, {"rel": {"mother": -2}}
-      ]}
-    ]},
-    {"action": "glitch", "arg": 0.3},
-    {"set": "strange_call_done"}, {"unset": "call_pending"}
-  ],
-
-  "town_first": [
-    {"say": "外は相変わらずの雨だった。"},
-    {"say": "湾岸通りのネオンが、濡れたアスファルトに滲んでいる。"},
-    {"say": "東（右）の外れに、ひときわ派手な看板が光っているのが見えた。"},
-    {"set": "visited_town"}
-  ],
-
-  "home_plate": [
-    {"say": "郵便受けのプレート。『霧野ハイツ　203　水瀬』"}
-  ],
-
-  "guide_sign": [
-    {"action": "paper", "arg": "guide"}
-  ],
-
-  "canal": [
-    {"say": "黒い運河。雨粒が無数の輪を描いては、すぐに消えていく。"}
-  ],
-
-  "work_door": [
-    {"say": "『{work_name}　霧野倉庫』"},
-    {"say": "シャッターに貼り紙がある。『設備点検のため臨時休業中。再開日未定』"},
-    {"say": "……日雇いの仕事も、今日はないらしい。", "who": "minato", "face": "sad"}
-  ],
-
-  "vending": [
-    {"say": "自販機。ホットの缶コーヒーが150円。"},
-    {"choice": [
-      {"text": "買う（150円）", "if": "money>=150", "do": [
-        {"money": -150},
-        {"say": "温かい。指先に、少しだけ感覚が戻ってきた。"}
-      ]},
-      {"text": "やめておく", "do": []}
-    ]}
-  ],
-
-  "poster": [
-    {"action": "paper", "arg": "poster"},
-    {"say": "ポスターの隅に、小さな文字で何か書いてある。『提携：ミナカミ・ファイナンス』"},
-    {"say": "……ミナカミ？ 督促状の、あの会社と同じ名前だ。", "who": "minato", "face": "surprised"},
-    {"set": "clue_poster"}
-  ],
-
-  "saeki": [
-    {"if": "sold:mother", "then": [
-      {"if": "!flag:saeki_after", "then": [
-        {"say": "あら、{player}ちゃん。{mother_name}さんは元気？", "who": "saeki", "face": "smile"},
-        {"say": "え……？ すみません、今なんて？", "who": "minato", "face": "surprised"},
-        {"say": "{mother_name}さんよ。あなたの{mom}。昔はよく二人で、この道を歩いてたじゃない。", "who": "saeki", "face": "surprised"},
-        {"say": "老婆の言葉の一部だけが、雨音に溶けるように聞き取れない。"},
-        {"choice": [
-          {"text": "「……元気です、たぶん」", "do": [
-            {"say": "そう……そうよね。ごめんなさいね、変なこと聞いて。", "who": "saeki", "face": "sad"}
-          ]},
-          {"text": "「誰のことですか？」", "do": [
-            {"say": "…………", "who": "saeki", "face": "sad"},
-            {"say": "そう。あなたも行ったのね。東の外れの、あのお店に。", "who": "saeki", "face": "sad"},
-            {"say": "この町の若い人は、みんなそう。少しずつ、知らない顔になっていくの。", "who": "saeki", "face": "sad"},
-            {"set": "saeki_knows_sale"}, {"rel": {"saeki": -1}}
-          ]}
-        ]},
-        {"set": "saeki_after"}
-      ], "else": [
-        {"say": "傘はある？ ……そう。風邪ひかないようにね。", "who": "saeki", "face": "sad"}
-      ]}
-    ], "else": [
-      {"if": "!flag:saeki_met", "then": [
-        {"say": "あら、{player}ちゃん。おはよう。", "who": "saeki", "face": "smile"},
-        {"say": "この雨、もう三日も止まないわねえ。", "who": "saeki", "face": "normal"},
-        {"say": "{mother_name}さんは元気？ 昔はよく、煮物のお裾分けをいただいてねえ。", "who": "saeki", "face": "smile"},
-        {"choice": [
-          {"text": "「元気ですよ」", "do": [
-            {"say": "そう、よかった。たまには顔を見せてあげなさいね。", "who": "saeki", "face": "smile"},
-            {"rel": {"saeki": 1}}
-          ]},
-          {"text": "「最近、連絡してなくて」", "do": [
-            {"say": "あらあら。親なんてね、声が聞けるだけで嬉しいものよ。", "who": "saeki", "face": "normal"}
-          ]}
-        ]},
-        {"set": "saeki_met"}
-      ], "else": [
-        {"say": "東の外れの『{shop_name}』……あそこには、あんまり近づかない方がいいわよ。", "who": "saeki", "face": "sad"},
-        {"say": "あそこから出てきた人はね、みんな少しだけ、笑い方が変わるの。", "who": "saeki", "face": "normal"},
-        {"set": "knows_shop"}
-      ]}
-    ]}
-  ],
-
-  "gen": [
-    {"if": "sold:mother", "then": [
-      {"if": "!flag:gen_after", "then": [
-        {"say": "……おい、{player}。顔色が悪いぞ。", "who": "gen", "face": "surprised"},
-        {"say": "売ったんだな。……何を売ったかは聞かねえよ。どうせ、もう覚えてねえだろ。", "who": "gen", "face": "sad"},
-        {"say": "一杯食ってけ。……金はいい。", "who": "gen", "face": "normal"},
-        {"say": "湯気の向こうで、店主は目を合わせようとしなかった。"},
-        {"set": "gen_after"}, {"rel": {"gen": 1}}
-      ], "else": [
-        {"say": "無理すんなよ。売ったもんは、もう戻らねえんだ。", "who": "gen", "face": "sad"}
-      ]}
-    ], "else": [
-      {"if": "!flag:gen_met", "then": [
-        {"say": "よう、{player}。今日もよく降るなあ。", "who": "gen", "face": "smile"},
-        {"say": "源さん。……この辺で、まとまった金を作る方法ってないですかね。", "who": "minato", "face": "normal"},
-        {"say": "……借金か。", "who": "gen", "face": "normal"},
-        {"say": "まっとうな方法なら、{work_name}で荷運びだな。日払いで出る。今は休業中らしいが。", "who": "gen", "face": "normal"},
-        {"say": "まっとうじゃねえ方法なら――", "who": "gen", "face": "sad"},
-        {"say": "東の外れに、記憶買取店がある。『{shop_name}』だ。", "who": "gen", "face": "sad"},
-        {"say": "思い出を売って、金に替える。……この町じゃ、珍しくもねえ話さ。", "who": "gen", "face": "normal"},
-        {"choice": [
-          {"text": "「記憶を売ると、どうなるんですか」", "do": [
-            {"say": "さあな。売った奴はみんな『何も変わらない』って言う。", "who": "gen", "face": "normal"},
-            {"say": "……売ったことごと、忘れてるんだから当たり前だがな。", "who": "gen", "face": "sad"}
-          ]},
-          {"text": "「……考えておきます」", "do": [
-            {"say": "考えるのはタダだ。", "who": "gen", "face": "smile"}
-          ]}
-        ]},
-        {"set": ["gen_met", "knows_shop"]}
-      ], "else": [
-        {"say": "腹が減ってちゃ、ろくな考えも浮かばねえぞ。", "who": "gen", "face": "smile"}
-      ]}
-    ]}
-  ],
-
-  "nagi": [
-    {"if": "!flag:nagi_met", "then": [
-      {"say": "――{player}！ やっと見つけた。", "who": "nagi", "face": "smile"},
-      {"say": "……え？", "who": "minato", "face": "surprised"},
-      {"say": "なに、その顔。……ああ、そっか。", "who": "nagi", "face": "sad"},
-      {"say": "ごめん、人違いだったかも。", "who": "nagi", "face": "sad"},
-      {"say": "――でも、もし思い出したら。あの橋の下で待ってるから。", "who": "nagi", "face": "normal"},
-      {"say": "知らない人だ。そのはずだ。なのに、どうして名前を知っているんだろう。"},
-      {"set": "nagi_met"}
-    ], "else": [
-      {"if": "sold:mother", "then": [
-        {"say": "……売ったんだね。", "who": "nagi", "face": "sad"},
-        {"say": "大丈夫。最初はみんな、何を失くしたのかも分からないから。", "who": "nagi", "face": "normal"},
-        {"say": "でも、これだけは覚えておいて。――全部売ったら、あなたは『帰れなく』なる。", "who": "nagi", "face": "sad"},
-        {"set": "nagi_warned"}
-      ], "else": [
-        {"say": "雨、止まないね。……この町の雨はね、ずっと前から降ってるんだよ。", "who": "nagi", "face": "normal"},
-        {"say": "あなたが、最初にあのお店に行った日から。", "who": "nagi", "face": "sad"}
-      ]}
-    ]}
-  ],
-
-  "shop_enter": [
-    {"set": "visited_shop"},
-    {"if": "!flag:call1_done !flag:strange_call_done", "then": [{"set": "call_pending"}]}
-  ],
-
-  "karasuma": [
-    {"if": "!flag:karasuma_met", "then": [
-      {"say": "いらっしゃいませ。記憶買取の『メモリア』へようこそ。", "who": "karasuma", "face": "smile"},
-      {"say": "お客様は初めて……ではありませんね。", "who": "karasuma", "face": "normal"},
-      {"say": "――いえ、失礼。初めてのお客様ですね。", "who": "karasuma", "face": "smile"},
-      {"say": "当店では、お客様の記憶を査定し、その場で現金にて買い取らせていただきます。", "who": "karasuma", "face": "normal"},
-      {"say": "痛みはございません。手続きは五分ほど。売却された記憶は二度と戻りませんが――", "who": "karasuma", "face": "normal"},
-      {"say": "ご安心ください。皆さま『何も変わらない』とおっしゃいますよ。", "who": "karasuma", "face": "smile"},
-      {"set": "karasuma_met"}
-    ], "else": [
-      {"say": "またのお越しを。……本日は、何をお売りになります？", "who": "karasuma", "face": "smile"}
-    ]},
-    {"action": "open_shop"}
-  ],
-
-  "jars": [
-    {"say": "棚に並んだ小瓶の中で、淡い光が揺れている。"},
-    {"say": "ラベルには手書きの文字。『初恋（十七歳）』『祖父の葬儀』『卒業式の朝』――"},
-    {"if": "sold:mother", "then": [
-      {"say": "一番手前の瓶だけ、まだラベルが新しい。『{player}／母』"},
-      {"say": "中の光は、どこか見覚えのある色をしていた。", "who": "minato", "face": "blank"}
-    ]}
-  ],
-
-  "shop_chair": [
-    {"say": "客用の椅子。座面が、まだほんのりと温かい。"}
-  ],
-
-  "after_sell_mother": [
-    {"say": "――はい、お疲れさまでした。こちら、代金の{last_price}円です。", "who": "karasuma", "face": "smile"},
-    {"say": "…………", "who": "minato", "face": "blank"},
-    {"say": "あれ。僕、今……何を売ったんだっけ。", "who": "minato", "face": "surprised"},
-    {"say": "皆さま、そうおっしゃいます。", "who": "karasuma", "face": "smile"},
-    {"say": "お帰りの際は、足元にお気をつけて。……ご自宅の場所は、まだ覚えていらっしゃいますよね？", "who": "karasuma", "face": "normal"},
-    {"set": "call_pending"}
-  ],
-
-  "after_sell_generic": [
-    {"say": "――お疲れさまでした。こちら、代金の{last_price}円です。", "who": "karasuma", "face": "smile"},
-    {"say": "…………", "who": "minato", "face": "blank"}
-  ],
-
-  "sleep_morning": [
-    {"say": "{day}日目の朝。雨はまだ止まない。"},
-    {"say": "生活費として{daily_cost}円を使った。所持金は{money}円。返済期限まで、あと{days_left}日。"}
-  ],
-
-  "deadline_paid": [
-    {"say": "返済期限の朝。ドアの隙間から、新しい封筒が差し込まれていた。"},
-    {"say": "口座から{debt_paid}円が引き落とされ、借金は完済された――と書いてある。"},
-    {"say": "これで、終わったんだろうか。", "who": "minato", "face": "normal"},
-    {"if": "sold:mother", "then": [
-      {"say": "スマホが一度だけ震えて、すぐに止まった。画面には、読めない名前。"}
-    ], "else": [
-      {"say": "スマホが鳴った。『{mom}』からだ。……今度の十二日には、花を持って帰ろう。"}
-    ]},
-    {"action": "ending", "arg": "prototype_paid"}
-  ],
-
-  "deadline_failed": [
-    {"say": "返済期限の朝。ドアを叩く音で目が覚めた。"},
-    {"say": "ミナカミ・ファイナンスの者です。水瀬{player}さん、ご返済の件で。", "who": "voice"},
-    {"say": "お支払いいただけない場合、当社提携の『メモリア』にて、資産の差押えを――"},
-    {"say": "差し押さえられる資産。……それが何を指すのか、ようやく分かった。", "who": "minato", "face": "blank"},
-    {"action": "ending", "arg": "prototype_failed"}
-  ]
+ "_format": "say/who/face=台詞, if/then/else=分岐, choice=選択肢, set/unset=フラグ, rel=好感度, money=所持金増減, action=演出/機能呼び出し, run=別スクリプト実行。条件式は 'sold:mother !flag:x day>=2 rel:saeki>=1 money>=100' をスペース区切りANDで書く。 say/choice に \"written\": true を付けると「書かれた文字」扱いになり、文字の記憶を売ると崩れる。",
+ "intro": [
+  {
+   "action": "fade_in_slow"
+  },
+  {
+   "say": "……雨の音で、目が覚めた。"
+  },
+  {
+   "say": "霧野ハイツ203号室。天井の染みが、昨日より少し広がっている気がする。"
+  },
+  {
+   "say": "机の上に、封筒がひとつ。赤い文字が透けて見えた。"
+  },
+  {
+   "set": "intro_done"
+  }
+ ],
+ "home_letter": [
+  {
+   "if": "!flag:read_notice",
+   "then": [
+    {
+     "action": "paper",
+     "arg": "notice"
+    },
+    {
+     "say": "財布の中身は{money}円。生活費だけで、一日{daily_cost}円は消えていく。"
+    },
+    {
+     "say": "どう考えても、{deadline_days}日で{debt}円は無理だ。",
+     "who": "minato",
+     "face": "sad"
+    },
+    {
+     "say": "……差し押さえ、か。差し押さえられるようなもの、何も持ってないのに。",
+     "who": "minato",
+     "face": "blank"
+    },
+    {
+     "set": "read_notice"
+    }
+   ],
+   "else": [
+    {
+     "say": "督促状だ。返済期限まで、あと{days_left}日。残りの借金は{debt}円。"
+    }
+   ]
+  }
+ ],
+ "home_drawer": [
+  {
+   "say": "机の引き出し。一番下の段だけ、鍵がかかっている。"
+  },
+  {
+   "say": "鍵がどこにあるのか、思い出せない。……そもそも、鍵なんてかけた覚えがない。",
+   "who": "minato",
+   "face": "normal"
+  }
+ ],
+ "home_memo": [
+  {
+   "say": "机の上に、メモが一枚。……さっきまで、こんなものあっただろうか。"
+  },
+  {
+   "say": "見覚えのある字だ。――自分の字だ。"
+  },
+  {
+   "action": "paper",
+   "arg": "memo_mother"
+  },
+  {
+   "say": "……誕生日？ 誰の？",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "読めるはずの一文字が、目の上を滑っていく。意味だけが、頭に入ってこない。"
+  },
+  {
+   "set": "read_memo_mother"
+  }
+ ],
+ "home_photo": [
+  {
+   "if": "sold:mother",
+   "then": [
+    {
+     "action": "photo"
+    },
+    {
+     "say": "写真立て。幼い自分と、知らない女性が写っている。"
+    },
+    {
+     "say": "女性はこちらに向かって笑っている。……誰だ？",
+     "who": "minato",
+     "face": "surprised"
+    },
+    {
+     "say": "裏に自分の字で何か書いてある。『{mother_name}と。霧野公園にて』"
+    },
+    {
+     "say": "知らない。知らないはずなのに、胸の奥がざわつく。",
+     "who": "minato",
+     "face": "sad"
+    },
+    {
+     "set": "saw_photo_after"
+    }
+   ],
+   "else": [
+    {
+     "action": "photo"
+    },
+    {
+     "say": "写真立て。五歳の自分と、{mom}が写っている。"
+    },
+    {
+     "say": "霧野公園の桜の下。{mom}――{mother_name}は、いつも少し困ったように笑う人だった。"
+    },
+    {
+     "set": "saw_photo_before"
+    }
+   ]
+  }
+ ],
+ "home_window": [
+  {
+   "say": "窓の外は雨。向かいのビルのネオンが、滲んで揺れている。"
+  },
+  {
+   "if": "sold:mother",
+   "then": [
+    {
+     "say": "ガラスに映った自分の顔が、一瞬だけ知らない誰かに見えた。"
+    }
+   ]
+  }
+ ],
+ "home_kitchen": [
+  {
+   "say": "シンクに、洗っていないマグカップが二つ。"
+  },
+  {
+   "if": "sold:mother",
+   "then": [
+    {
+     "say": "……二つ？ この部屋に住んでいるのは、自分だけのはずだ。",
+     "who": "minato",
+     "face": "surprised"
+    }
+   ],
+   "else": [
+    {
+     "say": "一つは{mom}が置いていったものだ。この前、様子を見に来たときに。"
+    }
+   ]
+  }
+ ],
+ "home_fridge": [
+  {
+   "if": "sold:mother",
+   "then": [
+    {
+     "say": "冷蔵庫に、タッパーがひとつ。マスキングテープに『ちゃんと食べなさい』と書いてある。"
+    },
+    {
+     "say": "……誰が、これを？",
+     "who": "minato",
+     "face": "blank"
+    }
+   ],
+   "else": [
+    {
+     "say": "冷蔵庫に、タッパーがひとつ。{mom}の煮物だ。マスキングテープに『ちゃんと食べなさい』。"
+    }
+   ]
+  }
+ ],
+ "home_plant": [
+  {
+   "say": "枯れかけた観葉植物。水をやった記憶がない。"
+  }
+ ],
+ "home_bed": [
+  {
+   "say": "ベッドだ。"
+  },
+  {
+   "choice": [
+    {
+     "text": "眠って一日を終える",
+     "do": [
+      {
+       "action": "sleep"
+      }
+     ]
+    },
+    {
+     "text": "セーブする",
+     "do": [
+      {
+       "action": "save"
+      }
+     ]
+    },
+    {
+     "text": "やめる",
+     "do": []
+    }
+   ]
+  }
+ ],
+ "home_phone": [
+  {
+   "if": "flag:call_pending",
+   "then": [
+    {
+     "if": "sold:mother !flag:strange_call_done",
+     "then": [
+      {
+       "run": "call_strange"
+      }
+     ],
+     "else": [
+      {
+       "run": "call_normal"
+      }
+     ]
+    }
+   ],
+   "else": [
+    {
+     "if": "sold:mother",
+     "then": [
+      {
+       "say": "スマホの連絡先。一番上に、読めない名前がひとつ。『{mom}』"
+      },
+      {
+       "say": "着信履歴にも、同じ名前が並んでいる。"
+      }
+     ],
+     "else": [
+      {
+       "say": "スマホ。連絡先の一番上は『{mom}』。"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "phone_ringing": [
+  {
+   "action": "ring"
+  },
+  {
+   "say": "――スマホが鳴っている。"
+  }
+ ],
+ "call_normal": [
+  {
+   "action": "ring_stop"
+  },
+  {
+   "say": "画面には『{mom}』の文字。"
+  },
+  {
+   "say": "もしもし、{player}？ 元気にしてる？",
+   "who": "mother"
+  },
+  {
+   "say": "雨、そっちもひどいでしょう。傘、ちゃんと持って出なさいね。",
+   "who": "mother"
+  },
+  {
+   "choice": [
+    {
+     "text": "借金のことを話す",
+     "do": [
+      {
+       "say": "……そう。ごめんね、お母さんも今は余裕がなくて。",
+       "who": "mother"
+      },
+      {
+       "say": "でもね、{player}。お金はいつか、どうにかなる。",
+       "who": "mother"
+      },
+      {
+       "say": "思い出だけは、手放しちゃだめよ。",
+       "who": "mother"
+      },
+      {
+       "set": "told_mom_debt"
+      },
+      {
+       "rel": {
+        "mother": 1
+       }
+      }
+     ]
+    },
+    {
+     "text": "「大丈夫、元気だよ」",
+     "do": [
+      {
+       "say": "そう？ ならいいけど……声が、少し疲れてるわよ。",
+       "who": "mother"
+      },
+      {
+       "say": "何かあったら、いつでも帰ってきなさい。",
+       "who": "mother"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "say": "じゃあね。……あ、そうだ。来月の十二日、覚えてる？ ふふ、なんでもない。",
+   "who": "mother"
+  },
+  {
+   "say": "通話が切れた。画面に残る『{mom}』の文字を、しばらく眺めていた。"
+  },
+  {
+   "set": "call1_done"
+  },
+  {
+   "unset": "call_pending"
+  }
+ ],
+ "call_strange": [
+  {
+   "action": "ring_stop"
+  },
+  {
+   "say": "画面に名前が表示されている。"
+  },
+  {
+   "say": "『{mom}』"
+  },
+  {
+   "say": "……読めない。文字は見えているのに、意味が頭に入ってこない。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "action": "glitch",
+   "arg": 0.6
+  },
+  {
+   "say": "もしもし、{player}？ {mom}よ。",
+   "who": "voice"
+  },
+  {
+   "say": "……え？",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "元気にしてる？ 雨、そっちもひどいでしょう。傘、ちゃんと――",
+   "who": "voice"
+  },
+  {
+   "say": "知らない女の声だ。なのに、彼女は自分の名前を知っている。"
+  },
+  {
+   "choice": [
+    {
+     "text": "「……どちら様ですか？」",
+     "do": [
+      {
+       "say": "…………",
+       "who": "voice"
+      },
+      {
+       "say": "……そう。また、なのね。",
+       "who": "voice"
+      },
+      {
+       "say": "前にも同じことを聞かれたわ。去年の、ちょうど今ごろ。",
+       "who": "voice"
+      },
+      {
+       "say": "前にも……？",
+       "who": "minato",
+       "face": "surprised"
+      },
+      {
+       "say": "通話は、もう切れていた。"
+      },
+      {
+       "set": "asked_who"
+      },
+      {
+       "rel": {
+        "mother": -1
+       }
+      }
+     ]
+    },
+    {
+     "text": "（話を合わせる）「うん、元気だよ」",
+     "do": [
+      {
+       "say": "……そう。よかった。",
+       "who": "voice"
+      },
+      {
+       "say": "ねえ、{player}。あなた、今、わたしの名前を言える？",
+       "who": "voice"
+      },
+      {
+       "choice": [
+        {
+         "text": "「……言えない」",
+         "do": [
+          {
+           "say": "いいのよ。……いいの。",
+           "who": "voice"
+          }
+         ]
+        },
+        {
+         "text": "（黙っている）",
+         "do": [
+          {
+           "say": "…………",
+           "who": "voice"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "say": "あなたが生きていてくれるなら、それで。",
+       "who": "voice"
+      },
+      {
+       "say": "通話が切れた。なぜか、頬が濡れていた。"
+      },
+      {
+       "set": "played_along"
+      }
+     ]
+    },
+    {
+     "text": "（電話を切る）",
+     "do": [
+      {
+       "say": "反射的に通話を切った。"
+      },
+      {
+       "say": "着信履歴に、同じ名前が何十件も並んでいる。……一度も、折り返した記録はない。"
+      },
+      {
+       "set": "hung_up"
+      },
+      {
+       "rel": {
+        "mother": -2
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "action": "glitch",
+   "arg": 0.3
+  },
+  {
+   "set": "strange_call_done"
+  },
+  {
+   "unset": "call_pending"
+  }
+ ],
+ "town_first": [
+  {
+   "say": "外は相変わらずの雨だった。"
+  },
+  {
+   "say": "湾岸通りのネオンが、濡れたアスファルトに滲んでいる。"
+  },
+  {
+   "say": "東（右）の外れに、ひときわ派手な看板が光っているのが見えた。"
+  },
+  {
+   "set": "visited_town"
+  }
+ ],
+ "home_plate": [
+  {
+   "say": "郵便受けのプレート。『霧野ハイツ　203　水瀬』"
+  }
+ ],
+ "guide_sign": [
+  {
+   "action": "paper",
+   "arg": "guide"
+  }
+ ],
+ "canal": [
+  {
+   "say": "黒い運河。雨粒が無数の輪を描いては、すぐに消えていく。"
+  }
+ ],
+ "vending": [
+  {
+   "say": "自販機。ホットの缶コーヒーが150円。"
+  },
+  {
+   "choice": [
+    {
+     "text": "買う（150円）",
+     "if": "money>=150",
+     "do": [
+      {
+       "money": -150
+      },
+      {
+       "say": "温かい。指先に、少しだけ感覚が戻ってきた。"
+      }
+     ]
+    },
+    {
+     "text": "やめておく",
+     "do": []
+    }
+   ]
+  }
+ ],
+ "poster": [
+  {
+   "action": "paper",
+   "arg": "poster"
+  },
+  {
+   "say": "ポスターの隅に、小さな文字で何か書いてある。『提携：ミナカミ・ファイナンス』"
+  },
+  {
+   "say": "……ミナカミ？ 督促状の、あの会社と同じ名前だ。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "set": "clue_poster"
+  }
+ ],
+ "saeki": [
+  {
+   "if": "sold:mother",
+   "then": [
+    {
+     "if": "!flag:saeki_after",
+     "then": [
+      {
+       "say": "あら、{player}ちゃん。{mother_name}さんは元気？",
+       "who": "saeki",
+       "face": "smile"
+      },
+      {
+       "say": "え……？ すみません、今なんて？",
+       "who": "minato",
+       "face": "surprised"
+      },
+      {
+       "say": "{mother_name}さんよ。あなたの{mom}。昔はよく二人で、この道を歩いてたじゃない。",
+       "who": "saeki",
+       "face": "surprised"
+      },
+      {
+       "say": "老婆の言葉の一部だけが、雨音に溶けるように聞き取れない。"
+      },
+      {
+       "choice": [
+        {
+         "text": "「……元気です、たぶん」",
+         "do": [
+          {
+           "say": "そう……そうよね。ごめんなさいね、変なこと聞いて。",
+           "who": "saeki",
+           "face": "sad"
+          }
+         ]
+        },
+        {
+         "text": "「誰のことですか？」",
+         "do": [
+          {
+           "say": "…………",
+           "who": "saeki",
+           "face": "sad"
+          },
+          {
+           "say": "そう。あなたも行ったのね。東の外れの、あのお店に。",
+           "who": "saeki",
+           "face": "sad"
+          },
+          {
+           "say": "この町の若い人は、みんなそう。少しずつ、知らない顔になっていくの。",
+           "who": "saeki",
+           "face": "sad"
+          },
+          {
+           "set": "saeki_knows_sale"
+          },
+          {
+           "rel": {
+            "saeki": -1
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "set": "saeki_after"
+      }
+     ],
+     "else": [
+      {
+       "say": "傘はある？ ……そう。風邪ひかないようにね。",
+       "who": "saeki",
+       "face": "sad"
+      }
+     ]
+    }
+   ],
+   "else": [
+    {
+     "if": "!flag:saeki_met",
+     "then": [
+      {
+       "say": "あら、{player}ちゃん。おはよう。",
+       "who": "saeki",
+       "face": "smile"
+      },
+      {
+       "say": "この雨、もう三日も止まないわねえ。",
+       "who": "saeki",
+       "face": "normal"
+      },
+      {
+       "say": "{mother_name}さんは元気？ 昔はよく、煮物のお裾分けをいただいてねえ。",
+       "who": "saeki",
+       "face": "smile"
+      },
+      {
+       "choice": [
+        {
+         "text": "「元気ですよ」",
+         "do": [
+          {
+           "say": "そう、よかった。たまには顔を見せてあげなさいね。",
+           "who": "saeki",
+           "face": "smile"
+          },
+          {
+           "rel": {
+            "saeki": 1
+           }
+          }
+         ]
+        },
+        {
+         "text": "「最近、連絡してなくて」",
+         "do": [
+          {
+           "say": "あらあら。親なんてね、声が聞けるだけで嬉しいものよ。",
+           "who": "saeki",
+           "face": "normal"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "set": "saeki_met"
+      }
+     ],
+     "else": [
+      {
+       "say": "東の外れの『{shop_name}』……あそこには、あんまり近づかない方がいいわよ。",
+       "who": "saeki",
+       "face": "sad"
+      },
+      {
+       "say": "あそこから出てきた人はね、みんな少しだけ、笑い方が変わるの。",
+       "who": "saeki",
+       "face": "normal"
+      },
+      {
+       "set": "knows_shop"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "gen": [
+  {
+   "if": "sold:mother",
+   "then": [
+    {
+     "if": "!flag:gen_after",
+     "then": [
+      {
+       "say": "……おい、{player}。顔色が悪いぞ。",
+       "who": "gen",
+       "face": "surprised"
+      },
+      {
+       "say": "売ったんだな。……何を売ったかは聞かねえよ。どうせ、もう覚えてねえだろ。",
+       "who": "gen",
+       "face": "sad"
+      },
+      {
+       "say": "一杯食ってけ。……金はいい。",
+       "who": "gen",
+       "face": "normal"
+      },
+      {
+       "say": "湯気の向こうで、店主は目を合わせようとしなかった。"
+      },
+      {
+       "set": "gen_after"
+      },
+      {
+       "rel": {
+        "gen": 1
+       }
+      }
+     ],
+     "else": [
+      {
+       "say": "無理すんなよ。売ったもんは、もう戻らねえんだ。",
+       "who": "gen",
+       "face": "sad"
+      }
+     ]
+    }
+   ],
+   "else": [
+    {
+     "if": "!flag:gen_met",
+     "then": [
+      {
+       "say": "よう、{player}。今日もよく降るなあ。",
+       "who": "gen",
+       "face": "smile"
+      },
+      {
+       "say": "源さん。……この辺で、まとまった金を作る方法ってないですかね。",
+       "who": "minato",
+       "face": "normal"
+      },
+      {
+       "say": "……借金か。",
+       "who": "gen",
+       "face": "normal"
+      },
+      {
+       "say": "まっとうな方法なら、{work_name}で荷運びだな。日払いで出る。朝から昼までなら、まだ人を取ってるはずだ。",
+       "who": "gen",
+       "face": "normal"
+      },
+      {
+       "say": "まっとうじゃねえ方法なら――",
+       "who": "gen",
+       "face": "sad"
+      },
+      {
+       "say": "東の外れに、記憶買取店がある。『{shop_name}』だ。",
+       "who": "gen",
+       "face": "sad"
+      },
+      {
+       "say": "思い出を売って、金に替える。……この町じゃ、珍しくもねえ話さ。",
+       "who": "gen",
+       "face": "normal"
+      },
+      {
+       "choice": [
+        {
+         "text": "「記憶を売ると、どうなるんですか」",
+         "do": [
+          {
+           "say": "さあな。売った奴はみんな『何も変わらない』って言う。",
+           "who": "gen",
+           "face": "normal"
+          },
+          {
+           "say": "……売ったことごと、忘れてるんだから当たり前だがな。",
+           "who": "gen",
+           "face": "sad"
+          }
+         ]
+        },
+        {
+         "text": "「……考えておきます」",
+         "do": [
+          {
+           "say": "考えるのはタダだ。",
+           "who": "gen",
+           "face": "smile"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "set": [
+        "gen_met",
+        "knows_shop"
+       ]
+      }
+     ],
+     "else": [
+      {
+       "say": "腹が減ってちゃ、ろくな考えも浮かばねえぞ。",
+       "who": "gen",
+       "face": "smile"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "nagi": [
+  {
+   "if": "sold:beloved",
+   "then": [
+    {
+     "say": "……{player}？",
+     "who": "nagi",
+     "face": "surprised"
+    },
+    {
+     "say": "すみません、どこかでお会いしましたっけ。",
+     "who": "minato",
+     "face": "normal"
+    },
+    {
+     "say": "…………",
+     "who": "nagi",
+     "face": "sad"
+    },
+    {
+     "say": "そっか。最後のひとつも、売っちゃったんだ。",
+     "who": "nagi",
+     "face": "sad"
+    },
+    {
+     "say": "ううん、いいの。あなたが生きていけるなら、それで。",
+     "who": "nagi",
+     "face": "smile"
+    },
+    {
+     "say": "――じゃあね。もう、待たなくていいよね。",
+     "who": "nagi",
+     "face": "sad"
+    },
+    {
+     "say": "フードの女は、雨の向こうへ歩いていった。"
+    },
+    {
+     "say": "なぜだろう。もう二度と会えない気がした。"
+    },
+    {
+     "set": "nagi_gone"
+    },
+    {
+     "rel": {
+      "nagi": -5
+     }
+    }
+   ],
+   "else": [
+    {
+     "if": "!flag:nagi_met",
+     "then": [
+      {
+       "say": "――{player}！ やっと見つけた。",
+       "who": "nagi",
+       "face": "smile"
+      },
+      {
+       "say": "……え？",
+       "who": "minato",
+       "face": "surprised"
+      },
+      {
+       "say": "なに、その顔。……ああ、そっか。",
+       "who": "nagi",
+       "face": "sad"
+      },
+      {
+       "say": "ごめん、人違いだったかも。",
+       "who": "nagi",
+       "face": "sad"
+      },
+      {
+       "say": "――でも、もし思い出したら。あの橋の下で待ってるから。",
+       "who": "nagi",
+       "face": "normal"
+      },
+      {
+       "say": "知らない人だ。そのはずだ。なのに、どうして名前を知っているんだろう。"
+      },
+      {
+       "set": "nagi_met"
+      }
+     ],
+     "else": [
+      {
+       "if": "sold:mother",
+       "then": [
+        {
+         "say": "……売ったんだね。",
+         "who": "nagi",
+         "face": "sad"
+        },
+        {
+         "say": "大丈夫。最初はみんな、何を失くしたのかも分からないから。",
+         "who": "nagi",
+         "face": "normal"
+        },
+        {
+         "say": "でも、これだけは覚えておいて。――全部売ったら、あなたは『帰れなく』なる。",
+         "who": "nagi",
+         "face": "sad"
+        },
+        {
+         "set": "nagi_warned"
+        }
+       ],
+       "else": [
+        {
+         "say": "雨、止まないね。……この町の雨はね、ずっと前から降ってるんだよ。",
+         "who": "nagi",
+         "face": "normal"
+        },
+        {
+         "say": "あなたが、最初にあのお店に行った日から。",
+         "who": "nagi",
+         "face": "sad"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "shop_enter": [
+  {
+   "set": "visited_shop"
+  },
+  {
+   "if": "!flag:call1_done !flag:strange_call_done",
+   "then": [
+    {
+     "set": "call_pending"
+    }
+   ]
+  }
+ ],
+ "karasuma": [
+  {
+   "if": "!flag:karasuma_met",
+   "then": [
+    {
+     "say": "いらっしゃいませ。記憶買取の『メモリア』へようこそ。",
+     "who": "karasuma",
+     "face": "smile"
+    },
+    {
+     "say": "お客様は初めて……ではありませんね。",
+     "who": "karasuma",
+     "face": "normal"
+    },
+    {
+     "say": "――いえ、失礼。初めてのお客様ですね。",
+     "who": "karasuma",
+     "face": "smile"
+    },
+    {
+     "say": "当店では、お客様の記憶を査定し、その場で現金にて買い取らせていただきます。",
+     "who": "karasuma",
+     "face": "normal"
+    },
+    {
+     "say": "痛みはございません。手続きは五分ほど。売却された記憶は二度と戻りませんが――",
+     "who": "karasuma",
+     "face": "normal"
+    },
+    {
+     "say": "ご安心ください。皆さま『何も変わらない』とおっしゃいますよ。",
+     "who": "karasuma",
+     "face": "smile"
+    },
+    {
+     "set": "karasuma_met"
+    }
+   ],
+   "else": [
+    {
+     "say": "またのお越しを。……本日は、何をお売りになります？",
+     "who": "karasuma",
+     "face": "smile"
+    }
+   ]
+  },
+  {
+   "action": "open_shop"
+  }
+ ],
+ "jars": [
+  {
+   "say": "棚に並んだ小瓶の中で、淡い光が揺れている。"
+  },
+  {
+   "say": "ラベルには手書きの文字。『初恋（十七歳）』『祖父の葬儀』『卒業式の朝』――"
+  },
+  {
+   "if": "sold:mother",
+   "then": [
+    {
+     "say": "一番手前の瓶だけ、まだラベルが新しい。『{player}／母』"
+    },
+    {
+     "say": "中の光は、どこか見覚えのある色をしていた。",
+     "who": "minato",
+     "face": "blank"
+    }
+   ]
+  }
+ ],
+ "shop_chair": [
+  {
+   "say": "客用の椅子。座面が、まだほんのりと温かい。"
+  }
+ ],
+ "after_sell_mother": [
+  {
+   "say": "――はい、お疲れさまでした。こちら、代金の{last_price}円です。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "…………",
+   "who": "minato",
+   "face": "blank"
+  },
+  {
+   "say": "あれ。僕、今……何を売ったんだっけ。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "皆さま、そうおっしゃいます。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "お帰りの際は、足元にお気をつけて。……ご自宅の場所は、まだ覚えていらっしゃいますよね？",
+   "who": "karasuma",
+   "face": "normal"
+  },
+  {
+   "set": "call_pending"
+  }
+ ],
+ "after_sell_generic": [
+  {
+   "say": "――お疲れさまでした。こちら、代金の{last_price}円です。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "…………",
+   "who": "minato",
+   "face": "blank"
+  }
+ ],
+ "sleep_morning": [
+  {
+   "say": "{day}日目の朝。雨はまだ止まない。"
+  },
+  {
+   "if": "last_loan>0",
+   "then": [
+    {
+     "say": "生活費{daily_cost}円が払えなかった。"
+    },
+    {
+     "say": "スマホに通知。『ミナカミ・ファイナンスより、不足分{last_loan}円を自動でご融資しました』",
+     "written": true
+    },
+    {
+     "say": "……頼んだ覚えはない。借金は{debt}円に増えていた。",
+     "who": "minato",
+     "face": "sad"
+    }
+   ],
+   "else": [
+    {
+     "say": "生活費として{daily_cost}円を使った。所持金は{money}円。返済期限まで、あと{days_left}日。"
+    }
+   ]
+  }
+ ],
+ "deadline_paid": [
+  {
+   "say": "返済期限の朝。ドアの隙間から、新しい封筒が差し込まれていた。"
+  },
+  {
+   "say": "口座から{debt_paid}円が引き落とされ、借金は完済された――と書いてある。"
+  },
+  {
+   "say": "これで、終わったんだろうか。",
+   "who": "minato",
+   "face": "normal"
+  },
+  {
+   "if": "sold:mother",
+   "then": [
+    {
+     "say": "スマホが一度だけ震えて、すぐに止まった。画面には、読めない名前。"
+    }
+   ],
+   "else": [
+    {
+     "say": "スマホが鳴った。『{mom}』からだ。……今度の十二日には、花を持って帰ろう。"
+    }
+   ]
+  },
+  {
+   "action": "ending",
+   "arg": "prototype_paid"
+  }
+ ],
+ "deadline_failed": [
+  {
+   "say": "返済期限の朝。ドアを叩く音で目が覚めた。"
+  },
+  {
+   "say": "ミナカミ・ファイナンスの者です。水瀬{player}さん、ご返済の件で。",
+   "who": "voice"
+  },
+  {
+   "say": "お支払いいただけない場合、当社提携の『メモリア』にて、資産の差押えを――"
+  },
+  {
+   "say": "差し押さえられる資産。……それが何を指すのか、ようやく分かった。",
+   "who": "minato",
+   "face": "blank"
+  },
+  {
+   "action": "ending",
+   "arg": "prototype_failed"
+  }
+ ],
+ "work_enter": [
+  {
+   "set": "visited_work"
+  }
+ ],
+ "work_shutter": [
+  {
+   "say": "シャッターの横の通用口が開いている。貼り紙がある。"
+  },
+  {
+   "say": "『作業員募集　日払い　受付：朝〜昼』",
+   "written": true
+  }
+ ],
+ "work_rack": [
+  {
+   "say": "棚番号のラベルがずらりと並んでいる。"
+  },
+  {
+   "if": "sold:work",
+   "then": [
+    {
+     "say": "並び方に、何の規則も見いだせない。",
+     "who": "minato",
+     "face": "blank"
+    }
+   ],
+   "else": [
+    {
+     "say": "目をつぶっても、どの棚に何があるか分かる。三年分の慣れだ。",
+     "who": "minato",
+     "face": "normal"
+    }
+   ]
+  }
+ ],
+ "work_conveyor": [
+  {
+   "say": "仕分けラインのベルトコンベア。止まっているときでも、低いモーター音がする。"
+  }
+ ],
+ "timecard": [
+  {
+   "action": "paper",
+   "arg": "timecard"
+  }
+ ],
+ "makabe": [
+  {
+   "if": "time>=2",
+   "then": [
+    {
+     "if": "sold:work",
+     "then": [
+      {
+       "say": "新人さん、今日の受付はもう終わりだよ。明日の朝おいで。",
+       "who": "makabe",
+       "face": "normal"
+      }
+     ],
+     "else": [
+      {
+       "say": "今日の受付は終わりだ。明日の朝、また来い。",
+       "who": "makabe",
+       "face": "normal"
+      }
+     ]
+    }
+   ],
+   "else": [
+    {
+     "if": "sold:work",
+     "then": [
+      {
+       "if": "!flag:makabe_newbie",
+       "then": [
+        {
+         "say": "……ん？ 見ない顔だな。新人さんか？",
+         "who": "makabe",
+         "face": "surprised"
+        },
+        {
+         "say": "え……三年、ここで働いてますけど。",
+         "who": "minato",
+         "face": "surprised"
+        },
+        {
+         "say": "冗談はよせ。三年いる奴の顔を、俺が忘れるわけないだろう。",
+         "who": "makabe",
+         "face": "normal"
+        },
+        {
+         "say": "……まあいい。人手は足りてないんだ。仕分けは新人の日給になるが、いいな？",
+         "who": "makabe",
+         "face": "normal"
+        },
+        {
+         "say": "それが嫌なら荷運びもある。体力勝負だが、手順を覚える必要はない。",
+         "who": "makabe",
+         "face": "smile"
+        },
+        {
+         "set": "makabe_newbie"
+        }
+       ],
+       "else": [
+        {
+         "say": "新人さん、今日はどうする？",
+         "who": "makabe",
+         "face": "normal"
+        }
+       ]
+      },
+      {
+       "choice": [
+        {
+         "text": "仕分けをする（新人日給＋出来高）",
+         "do": [
+          {
+           "action": "work_sort"
+          }
+         ]
+        },
+        {
+         "text": "荷運びをする（{carry_pay}円・固定）",
+         "do": [
+          {
+           "action": "work_carry"
+          }
+         ]
+        },
+        {
+         "text": "やめておく",
+         "do": []
+        }
+       ]
+      }
+     ],
+     "else": [
+      {
+       "if": "!flag:makabe_met",
+       "then": [
+        {
+         "say": "おう、水瀬。やっと来たか。",
+         "who": "makabe",
+         "face": "smile"
+        },
+        {
+         "say": "設備点検が終わってな、今日から再開だ。いつもの仕分け、頼めるか？",
+         "who": "makabe",
+         "face": "normal"
+        },
+        {
+         "say": "北と港は左、霧野と東町は真ん中、旧市街と埋立地は右。……お前には言うまでもないか。",
+         "who": "makabe",
+         "face": "smile"
+        },
+        {
+         "set": "makabe_met"
+        }
+       ],
+       "else": [
+        {
+         "say": "おう、水瀬。今日も仕分けか？",
+         "who": "makabe",
+         "face": "smile"
+        }
+       ]
+      },
+      {
+       "choice": [
+        {
+         "text": "仕分けをする（日給＋出来高）",
+         "do": [
+          {
+           "action": "work_sort"
+          }
+         ]
+        },
+        {
+         "text": "やめておく",
+         "do": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "work_done": [
+  {
+   "if": "last_pay>=6000",
+   "then": [
+    {
+     "say": "お疲れ。いい手際だったな。今日の分だ。",
+     "who": "makabe",
+     "face": "smile"
+    }
+   ],
+   "else": [
+    {
+     "say": "お疲れ。……まあ、こんな日もある。今日の分だ。",
+     "who": "makabe",
+     "face": "normal"
+    }
+   ]
+  },
+  {
+   "say": "{last_pay}円を受け取った。気づけば、もう{time}になっていた。"
+  },
+  {
+   "set": "worked_once"
+  }
+ ],
+ "work_carry_done": [
+  {
+   "say": "重い段ボールを、ひたすらトラックとの間で往復した。"
+  },
+  {
+   "say": "手順も、伝票も、何も覚えていなくていい。体だけが、黙って動いていた。"
+  },
+  {
+   "say": "お疲れさん。新人にしちゃ根性あるな。ほら、{last_pay}円。",
+   "who": "makabe",
+   "face": "smile"
+  },
+  {
+   "set": [
+    "worked_once",
+    "found_carry_job"
+   ]
+  }
+ ],
+ "atm": [
+  {
+   "say": "ミナカミ・ファイナンス　ご返済専用端末",
+   "who": "atm",
+   "written": true
+  },
+  {
+   "say": "ご返済残高：{debt}円　／　お手持ち：{money}円",
+   "who": "atm",
+   "written": true
+  },
+  {
+   "choice": [
+    {
+     "text": "10,000円を返済する",
+     "if": "money>=10000 debt>=10000",
+     "written": true,
+     "do": [
+      {
+       "action": "repay",
+       "arg": 10000
+      },
+      {
+       "run": "atm_after"
+      }
+     ]
+    },
+    {
+     "text": "30,000円を返済する",
+     "if": "money>=30000 debt>=30000",
+     "written": true,
+     "do": [
+      {
+       "action": "repay",
+       "arg": 30000
+      },
+      {
+       "run": "atm_after"
+      }
+     ]
+    },
+    {
+     "text": "全額を返済する（{debt}円）",
+     "if": "money>=debt",
+     "written": true,
+     "do": [
+      {
+       "action": "repay",
+       "arg": -1
+      },
+      {
+       "run": "atm_after"
+      }
+     ]
+    },
+    {
+     "text": "やめる",
+     "written": true,
+     "do": []
+    }
+   ]
+  }
+ ],
+ "atm_after": [
+  {
+   "if": "debt<=0",
+   "then": [
+    {
+     "run": "debt_cleared"
+    }
+   ],
+   "else": [
+    {
+     "say": "ご返済ありがとうございました。残高：{debt}円",
+     "who": "atm",
+     "written": true
+    }
+   ]
+  }
+ ],
+ "debt_cleared": [
+  {
+   "say": "ご返済ありがとうございました。残高：0円",
+   "who": "atm",
+   "written": true
+  },
+  {
+   "say": "画面の「0」が、やけに軽く見えた。"
+  },
+  {
+   "say": "これで、終わったんだろうか。",
+   "who": "minato",
+   "face": "normal"
+  },
+  {
+   "if": "sold:beloved",
+   "then": [
+    {
+     "say": "胸のどこかに、ぽっかりと穴が空いている。何が入っていたのかは、もう分からない。"
+    }
+   ],
+   "else": [
+    {
+     "say": "ポケットの中で、くしゃくしゃになったメモに指が触れた。――あの橋の下に、行かなければ。"
+    }
+   ]
+  },
+  {
+   "action": "ending",
+   "arg": "prototype_paid"
+  }
+ ],
+ "alley_west": [
+  {
+   "if": "sold:city",
+   "then": [
+    {
+     "say": "暗い路地。どこに続いているのか分からない。"
+    },
+    {
+     "say": "……入る気になれない。",
+     "who": "minato",
+     "face": "blank"
+    }
+   ],
+   "else": [
+    {
+     "say": "東の外れまで抜けられる近道だ。この町の人間しか知らない。"
+    },
+    {
+     "choice": [
+      {
+       "text": "近道を通る",
+       "do": [
+        {
+         "action": "warp",
+         "arg": "town:alley_e"
+        }
+       ]
+      },
+      {
+       "text": "やめておく",
+       "do": []
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "alley_east": [
+  {
+   "if": "sold:city",
+   "then": [
+    {
+     "say": "暗い路地。どこに続いているのか分からない。"
+    },
+    {
+     "say": "……入る気になれない。",
+     "who": "minato",
+     "face": "blank"
+    }
+   ],
+   "else": [
+    {
+     "say": "西の霧野ハイツの方へ抜けられる近道だ。"
+    },
+    {
+     "choice": [
+      {
+       "text": "近道を通る",
+       "do": [
+        {
+         "action": "warp",
+         "arg": "town:alley_w"
+        }
+       ]
+      },
+      {
+       "text": "やめておく",
+       "do": []
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "home_photo2": [
+  {
+   "if": "sold:beloved",
+   "then": [
+    {
+     "action": "photo",
+     "arg": "beloved"
+    },
+    {
+     "say": "雨の橋の下で撮った写真。自分と、誰かが写っている。"
+    },
+    {
+     "say": "……誰だろう。どうしてこんなものを飾っていたんだろう。",
+     "who": "minato",
+     "face": "blank"
+    },
+    {
+     "say": "捨ててしまおうか、と一瞬思った。なぜか、手が動かなかった。"
+    },
+    {
+     "set": "saw_photo2_after"
+    }
+   ],
+   "else": [
+    {
+     "action": "photo",
+     "arg": "beloved"
+    },
+    {
+     "say": "雨の橋の下で撮った写真。一本の傘の下に、自分と、もう一人。"
+    },
+    {
+     "say": "隣にいる人の顔だけが、どうしても思い出せない。"
+    },
+    {
+     "say": "でも、この写真を見ると胸の奥が痛む。……何か、約束をした気がする。",
+     "who": "minato",
+     "face": "sad"
+    },
+    {
+     "set": "saw_photo2"
+    }
+   ]
+  }
+ ],
+ "after_sell_city": [
+  {
+   "say": "――お疲れさまでした。こちら、代金の{last_price}円です。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "…………",
+   "who": "minato",
+   "face": "blank"
+  },
+  {
+   "say": "店を出たら、どっちへ行けばいいんだっけ。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "ご心配なく。お客様のご自宅は、この通りの西の端ですよ。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "……どうして、それを。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "お得意様のことは、すべて存じておりますので。",
+   "who": "karasuma",
+   "face": "normal"
+  }
+ ],
+ "after_sell_work": [
+  {
+   "say": "――お疲れさまでした。こちら、代金の{last_price}円です。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "明日からのお仕事、うまくいくといいですね。",
+   "who": "karasuma",
+   "face": "normal"
+  },
+  {
+   "say": "仕事……？ 僕、何の仕事をしてたんだっけ。",
+   "who": "minato",
+   "face": "surprised"
+  }
+ ],
+ "after_sell_letters": [
+  {
+   "say": "――お疲れさまでした。こちら、代金と領収書です。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "action": "paper",
+   "arg": "receipt"
+  },
+  {
+   "say": "……読めない。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "文字の形は見えるのに、意味がばらばらにほどけていく。数字だけが、かろうじて目に引っかかる。"
+  },
+  {
+   "say": "大丈夫。数字と絵さえ分かれば、この町では生きていけますから。",
+   "who": "karasuma",
+   "face": "smile"
+  }
+ ],
+ "after_sell_beloved": [
+  {
+   "say": "……お疲れさまでした。",
+   "who": "karasuma",
+   "face": "normal"
+  },
+  {
+   "say": "{last_price}円。当店でいちばんの高値です。",
+   "who": "karasuma",
+   "face": "normal"
+  },
+  {
+   "say": "…………",
+   "who": "minato",
+   "face": "blank"
+  },
+  {
+   "say": "胸の奥にあった、小さな痛みが消えていた。何が痛かったのか、もう思い出せない。"
+  },
+  {
+   "say": "これで、借金はきれいに返せますね。……前回と同じように。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "前回……？",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "いえ。なんでもございません。",
+   "who": "karasuma",
+   "face": "smile"
+  }
+ ]
 }
