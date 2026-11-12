@@ -249,7 +249,8 @@
     "auto": true,
     "prompt": "外へ出る"
    }
-  ]
+  ],
+  "bgm": "home"
  },
  "town": {
   "name": "霧野町 — 湾岸通り",
@@ -266,7 +267,7 @@
    "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
    "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
-   "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+   "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFffF",
    "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
    "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
    "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
@@ -296,6 +297,11 @@
     20.0,
     4.7,
     "down"
+   ],
+   "stairs": [
+    62.0,
+    9.5,
+    "up"
    ]
   },
   "on_enter": [
@@ -505,7 +511,7 @@
     "facing": "left",
     "script": "nagi",
     "prompt": "話す",
-    "if": "!flag:nagi_gone"
+    "if": "!flag:nagi_gone !flag:read_past_letter"
    },
    {
     "id": "poster",
@@ -610,8 +616,35 @@
     ],
     "script": "alley_east",
     "prompt": "路地"
+   },
+   {
+    "id": "stairs",
+    "kind": "warp",
+    "rect": [
+     61,
+     10,
+     2,
+     1
+    ],
+    "to": "bridge",
+    "spawn": "stairs",
+    "auto": true,
+    "prompt": "階段を下りる"
+   },
+   {
+    "id": "ghost",
+    "kind": "npc",
+    "char": "minato",
+    "pos": [
+     36.5,
+     9.6
+    ],
+    "facing": "down",
+    "if": "sold_count>=2 time>=2 !flag:ghost_seen",
+    "vanish": 60
    }
-  ]
+  ],
+  "bgm": "town"
  },
  "shop": {
   "name": "記憶買取 メモリア",
@@ -682,7 +715,8 @@
      3,
      6,
      2
-    ]
+    ],
+    "if": "time<=2"
    },
    {
     "id": "jars_l",
@@ -751,8 +785,23 @@
     "spawn": "shop_door",
     "auto": true,
     "prompt": "外へ出る"
+   },
+   {
+    "id": "ledger",
+    "kind": "prop",
+    "sprite": "ledger",
+    "rect": [
+     7,
+     4,
+     2,
+     1
+    ],
+    "script": "shop_ledger",
+    "prompt": "調べる",
+    "if": "time>=3"
    }
-  ]
+  ],
+  "bgm": "shop"
  },
  "work": {
   "name": "{work_name} — 霧野倉庫",
@@ -889,6 +938,135 @@
     "spawn": "work_door",
     "auto": true,
     "prompt": "外へ出る"
+   }
+  ],
+  "bgm": "work"
+ },
+ "bridge": {
+  "name": "霧野橋の下",
+  "outdoor": true,
+  "floor": "concrete",
+  "bgm": "title",
+  "tiles": [
+   "UffUUUUUUUUUUUUUUUUU",
+   "UffUUUUUUUUUUUUUUUUU",
+   "UKKKKKKKKKKKKKKKKKKU",
+   "UKKKKKKKKKKKKKKKKKKU",
+   "UKKKKKKKKKKKKKKKKKKU",
+   "UKKKKKKKKKKKKKKKKKKU",
+   "UKKKKKKKKKKKKKKKKKKU",
+   "UKKKKKKKKKKKKKKKKKKU",
+   "EEEEEEEEEEEEEEEEEEEE",
+   "CCCCCCCCCCCCCCCCCCCC",
+   "CCCCCCCCCCCCCCCCCCCC"
+  ],
+  "spawns": {
+   "stairs": [
+    2.0,
+    2.7,
+    "down"
+   ]
+  },
+  "on_enter": [
+   {
+    "if": "!flag:visited_bridge",
+    "script": "bridge_first"
+   }
+  ],
+  "objects": [
+   {
+    "id": "exit",
+    "kind": "warp",
+    "rect": [
+     1,
+     0,
+     2,
+     1
+    ],
+    "to": "town",
+    "spawn": "stairs",
+    "auto": true,
+    "prompt": "階段を上る"
+   },
+   {
+    "id": "pillar1",
+    "kind": "prop",
+    "sprite": "pillar",
+    "rect": [
+     6,
+     2,
+     2,
+     4
+    ],
+    "solid": true,
+    "script": "bridge_pillar",
+    "prompt": "調べる"
+   },
+   {
+    "id": "pillar2",
+    "kind": "prop",
+    "sprite": "pillar",
+    "rect": [
+     14,
+     2,
+     2,
+     4
+    ],
+    "solid": true
+   },
+   {
+    "id": "nagi_b",
+    "kind": "npc",
+    "char": "nagi",
+    "pos": [
+     10.5,
+     5.2
+    ],
+    "facing": "down",
+    "script": "nagi_bridge",
+    "prompt": "話す",
+    "if": "flag:read_past_letter !sold:beloved"
+   },
+   {
+    "id": "empty",
+    "kind": "prop",
+    "sprite": "none",
+    "rect": [
+     10,
+     4,
+     1,
+     2
+    ],
+    "script": "bridge_empty",
+    "prompt": "調べる",
+    "if": "flag:read_past_letter sold:beloved"
+   },
+   {
+    "id": "river",
+    "kind": "prop",
+    "sprite": "none",
+    "rect": [
+     0,
+     8,
+     20,
+     1
+    ],
+    "script": "bridge_river",
+    "prompt": "眺める"
+   },
+   {
+    "id": "cardboard",
+    "kind": "prop",
+    "sprite": "boxes",
+    "rect": [
+     16,
+     6,
+     2,
+     1
+    ],
+    "solid": true,
+    "script": "bridge_boxes",
+    "prompt": "調べる"
    }
   ]
  }

@@ -12,7 +12,7 @@
   "text": "街の東にある記憶買取店へ行く"
  },
  {
-  "if": "map:shop !flag:karasuma_met",
+  "if": "map:shop !flag:karasuma_met time<=2",
   "text": "カウンターの店主に話しかける"
  },
  {
@@ -20,11 +20,35 @@
   "text": "家に帰る"
  },
  {
-  "if": "time>=2",
-  "text": "{time}になった。家に帰って休む"
+  "if": "flag:dream_bridge !flag:found_key",
+  "text": "夢に出てきた写真を確かめる"
  },
  {
-  "if": "!flag:worked_once",
+  "if": "flag:found_key !flag:read_past_letter",
+  "text": "鍵で机の引き出しを開ける"
+ },
+ {
+  "if": "flag:read_past_letter !flag:bridge_met !flag:visited_bridge",
+  "text": "手紙の絵の場所へ（湾岸通り東端の階段）"
+ },
+ {
+  "if": "flag:clue_nagi !flag:clue_ledger",
+  "text": "夜のメモリアで台帳を探す（ベッドで夜まで休める）"
+ },
+ {
+  "if": "flag:clue_contract flag:clue_ledger !flag:clue_poster",
+  "text": "店先のポスターをよく見る"
+ },
+ {
+  "if": "flag:clue_poster flag:clue_contract flag:clue_ledger",
+  "text": "証拠を持って烏間に会う／借金を返す"
+ },
+ {
+  "if": "time>=3",
+  "text": "夜も更けた。家に帰って休む"
+ },
+ {
+  "if": "!flag:worked_once time<=1",
   "text": "倉庫（{work_name}）で働いて金を稼ぐ"
  },
  {

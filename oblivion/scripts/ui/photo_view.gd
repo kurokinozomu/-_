@@ -25,6 +25,7 @@ func show_photo(p_kind: String = "mother") -> void:
 	lost = GameState.is_sold("beloved" if kind == "beloved" else "mother")
 	visible = true
 	_guard = 0.25
+	Sound.se("paper")
 	await closed
 	visible = false
 

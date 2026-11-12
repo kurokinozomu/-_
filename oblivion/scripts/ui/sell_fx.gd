@@ -39,6 +39,7 @@ func play(mem: Dictionary) -> void:
 	_sub = ""
 	_caption_a = 0.0
 	_flash = 0.0
+	Sound.se("sell")
 	var tw := create_tween()
 	tw.tween_property(self, "_dim", 0.88, 0.5)
 	await get_tree().create_timer(0.3).timeout
@@ -49,12 +50,14 @@ func play(mem: Dictionary) -> void:
 		glitch_level.emit(0.2 + 0.07 * k)
 		await get_tree().create_timer(0.06).timeout
 	_flash = 1.0
+	Sound.se("glitch")
 	glitch_level.emit(1.0)
 	_frags.clear()
 	await get_tree().create_timer(0.25).timeout
 	glitch_level.emit(0.0)
 	_caption = "記憶をひとつ、売却しました"
 	_sub = "+%s円" % GameState.format_yen(int(mem.get("price", 0)))
+	Sound.se("coin")
 	await get_tree().create_timer(2.2).timeout
 	var tw2 := create_tween()
 	tw2.tween_property(self, "_dim", 0.0, 0.6)

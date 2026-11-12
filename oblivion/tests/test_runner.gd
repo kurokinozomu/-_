@@ -17,7 +17,10 @@ func _ready() -> void:
 	Engine.time_scale = 3.0
 	# テスト用のセーブ先 (本番セーブを壊さない)
 	GameData.config["save_path"] = "user://test_save.json"
+	GameData.config["records_path"] = "user://test_records.json"
 	GameState.delete_save()
+	if FileAccess.file_exists("user://test_records.json"):
+		DirAccess.remove_absolute("user://test_records.json")
 	await _run_all()
 
 
@@ -31,6 +34,7 @@ func _run_all() -> void:
 	await _test_save_load()
 	await _test_no_sale_branch()
 	await _test_phase2()
+	await _test_phase3()
 	_finish()
 
 
@@ -341,6 +345,177 @@ func _test_phase2() -> void:
 	main.ending.closed.emit()
 	await _frames(3)
 	check(main.title.visible, "エンディング後タイトルへ戻る")
+
+
+# ------------------------------------------------------------------ 7. phase 3
+func _new_game() -> void:
+	GameState.delete_save()
+	main._back_to_title()
+	await _frames(3)
+	main.title.new_game_requested.emit()
+	await _frames(10)
+	await _advance_until_explore()
+
+
+func _event(id: String, choices: Array = []) -> void:
+	main.run_event(id)
+	await _frames(3)
+	await _advance_until_explore(choices, 3000)
+
+
+## エンディング画面が出るまで待ち、閉じてタイトルへ戻る。出たエンディングIDを返す
+func _await_ending() -> String:
+	var f := 0
+	while not main.ending.visible and f < 900:
+		f += 1
+		await _frames(1)
+	var id: String = main.ending.ending_id if main.ending.visible else ""
+	main.ending.closed.emit()
+	await _frames(5)
+	return id
+
+
+func _test_phase3() -> void:
+	print("[7] Phase 3 物語とエンディング")
+	await _new_game()
+	check(Sound.current_bgm() == "home", "自宅ではBGM『home』が流れる")
+	for f in ["read_notice", "visited_town", "visited_shop", "karasuma_met", "call1_done"]:
+		GameState.set_flag(f)
+	# 時間つぶし
+	await _event("home_bed", [1])
+	check(GameState.time_slot == 3, "ベッドで夜まで休める")
+	# 2日目の夢 → 鍵 → 引き出し
+	await _event("home_bed", [0])
+	check(GameState.day == 2 and GameState.has_flag("dream_bridge"), "2日目の朝に橋の夢を見る")
+	check(main.hud.current_objective().contains("写真"), "目標が夢の写真へ誘導する")
+	await _event("home_drawer")
+	check(not GameState.has_flag("read_past_letter"), "鍵がないと引き出しは開かない")
+	await _event("home_photo2")
+	check(GameState.has_flag("found_key"), "写真立ての裏に鍵がある")
+	main.run_event("home_drawer")
+	await _frames(4)
+	var saw_letter := false
+	var f := 0
+	while main.mode != "explore" and f < 3000:
+		f += 1
+		if main.paper.visible and main.paper._raw_body.contains("絶対に売るな"):
+			saw_letter = true
+		await _advance_until_explore([], 1)
+	check(saw_letter, "過去の自分の手紙「あの人の記憶だけは絶対に売るな」が読める")
+	check(GameState.has_flag("read_past_letter") and GameState.has_flag("clue_contract"), "去年の契約書（証拠1）を手に入れる")
+	# 橋の下へ (実際に歩く)
+	GameState.time_slot = 0
+	main.world.load_map("town", "shop_door")
+	await _frames(3)
+	check(not main.world.objects.any(func(o): return o.data["id"] == "nagi"), "手紙を読むと、凪は街から橋の下へ移る")
+	check(await _walk_path([Vector2(912, 90), Vector2(992, 90), Vector2(992, 150)]), "東端の階段まで歩ける")
+	await _walk_path([Vector2(992, 168)])
+	check(await _wait_map("bridge"), "階段を下りて橋の下へ行ける")
+	await _advance_until_explore()
+	check(Sound.current_bgm() == "title", "橋の下では別のBGMになる")
+	check(await _walk_path([Vector2(40, 112), Vector2(168, 112), Vector2(168, 98)]), "凪の前まで歩ける")
+	await _face_and_interact("up")
+	await _advance_until_explore([0])
+	check(GameState.has_flag("bridge_promise") and GameState.has_flag("clue_nagi"), "凪と約束し、台帳の手がかりを得る")
+	# 夜の店で台帳
+	GameState.time_slot = 3
+	main.world.load_map("shop", "entrance")
+	await _frames(3)
+	check(not main.world.objects.any(func(o): return o.data["id"] == "karasuma"), "夜の店に烏間はいない")
+	check(main.world.objects.any(func(o): return o.data["id"] == "ledger"), "夜はカウンターに台帳がある")
+	await _event("shop_ledger")
+	check(GameState.has_flag("clue_ledger"), "台帳（証拠2）を読める")
+	await _event("poster")
+	check(main.hud.current_objective().contains("烏間"), "証拠がそろうと目標が対決を示す")
+	# エンディング A: 約束して完済
+	GameState.money = GameState.debt
+	main.run_event("atm")
+	await _frames(3)
+	await _advance_until_explore([2], 1500)
+	check(await _await_ending() == "protected", "約束して完済 → ENDING A 雨上がりの橋")
+
+	# エンディング C / F: 対決
+	await _new_game()
+	for fl in ["karasuma_met", "clue_poster", "clue_contract", "clue_ledger"]:
+		GameState.set_flag(fl)
+	main.world.load_map("shop", "entrance")
+	main.run_event("karasuma")
+	await _frames(3)
+	await _advance_until_explore([0, 1], 3000)
+	check(await _await_ending() == "secret", "証拠を突きつけて売らない → ENDING C メモリア閉店")
+	await _new_game()
+	for fl in ["karasuma_met", "clue_poster", "clue_contract", "clue_ledger"]:
+		GameState.set_flag(fl)
+	main.world.load_map("shop", "entrance")
+	main.run_event("karasuma")
+	await _frames(3)
+	await _advance_until_explore([0, 0], 3000)
+	check(await _await_ending() == "loop", "秘密の記憶まで売る → ENDING F はじめてのお客様")
+
+	# エンディング B: 大切な人を売って完済
+	await _new_game()
+	await _sell("beloved")
+	GameState.money = GameState.debt
+	main.run_event("atm")
+	await _frames(3)
+	await _advance_until_explore([2], 1500)
+	check(await _await_ending() == "forgotten", "大切な人を売って完済 → ENDING B 忘却の朝")
+
+	# エンディング D: 約束せずに期限日に完済 (自動返済)
+	await _new_game()
+	GameState.day = GameState.deadline_day - 1
+	GameState.money = GameState.debt + 2000
+	main.run_event("home_bed")
+	await _frames(3)
+	await _advance_until_explore([0], 3000)
+	check(await _await_ending() == "paid", "約束せず期限日に完済 → ENDING D 返済完了")
+
+	# エンディング E: 期限切れ
+	await _new_game()
+	GameState.day = GameState.deadline_day - 1
+	main.run_event("home_bed")
+	await _frames(3)
+	await _advance_until_explore([0], 3000)
+	check(await _await_ending() == "seized", "返せずに期限 → ENDING E 差押え")
+	check(not GameState.has_save(), "エンディング後はセーブが消える")
+	var seen := GameState.endings_seen()
+	check(seen.size() == 6, "6種類のエンディングがすべて記録される %s" % str(seen))
+	check(main.title.info_label.text.contains("6/6"), "タイトルに回収状況が出る: " + main.title.info_label.text)
+
+	# その他の演出
+	await _new_game()
+	GameState.sold = ["mother", "city"]
+	GameState.time_slot = 2
+	GameState.changed.emit()
+	main.world.load_map("town", "home_door")
+	await _frames(3)
+	var ghost: WorldObject = null
+	for o in main.world.objects:
+		if o.data["id"] == "ghost":
+			ghost = o
+	check(ghost != null, "記憶を2つ以上売った夕方以降、街に『自分』の人影が立つ")
+	if ghost:
+		main.world.player.position = ghost.position + Vector2(-80, 0)
+		await _walk_to(ghost.position + Vector2(-40, 0))
+		await _frames(5)
+		await _advance_until_explore()
+		check(GameState.has_flag("ghost_seen") and not main.world.objects.any(func(o): return o.data["id"] == "ghost"), "近づくと人影は消える")
+	GameState.time_slot = 0
+	GameState.money = 1000
+	GameState.set_flag("gen_met")
+	GameState.set_flag("gen_talked")
+	main.run_event("gen")
+	await _frames(3)
+	await _advance_until_explore([0])
+	check(GameState.money == 500 and GameState.time_slot == 1, "屋台で一杯食べると時間が進む")
+	GameState.sold.append("letters")
+	main.world.load_map("home", "start")
+	GameState.set_flag("found_key")
+	main.run_event("home_drawer")
+	await _frames(3)
+	var b0 := log_lines.size()
+	await _advance_until_explore([], 3000)
+	check("\n".join(log_lines.slice(b0)).contains("絵だけは分かる"), "文字を売っていても、手紙の絵から橋へたどり着ける")
 
 
 # ------------------------------------------------------------------ 1. data

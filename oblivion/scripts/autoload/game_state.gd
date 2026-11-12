@@ -451,6 +451,34 @@ func load_game() -> bool:
 	return true
 
 
+# ------------------------------------------------------------------ endings record (セーブとは別に永続化)
+const ENDING_ORDER := ["protected", "forgotten", "secret", "paid", "seized", "loop"]
+
+
+func records_path() -> String:
+	return str(GameData.cfg("records_path", "user://oblivion_records.json"))
+
+
+func endings_seen() -> Array:
+	if not FileAccess.file_exists(records_path()):
+		return []
+	var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(records_path()))
+	if typeof(d) == TYPE_DICTIONARY:
+		return Array(d.get("endings", []))
+	return []
+
+
+func record_ending(id: String) -> void:
+	var seen := endings_seen()
+	if not seen.has(id):
+		seen.append(id)
+	var f := FileAccess.open(records_path(), FileAccess.WRITE)
+	if f == null:
+		notify.emit("エンディングの記録を保存できませんでした。", true)
+		return
+	f.store_string(JSON.stringify({"endings": seen}))
+
+
 func delete_save() -> void:
 	if has_save():
 		DirAccess.remove_absolute(save_path())

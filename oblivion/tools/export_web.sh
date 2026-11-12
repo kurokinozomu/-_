@@ -7,5 +7,9 @@ cd "$(dirname "$0")/.."
 GODOT="${GODOT:-godot}"
 mkdir -p build/web
 "$GODOT" --headless --path . --editor --quit >/dev/null 2>&1 || true
+# 書き出しはスクリプトエラーがあっても成功してしまうので、先にテストで止める
+if [ "${SKIP_TESTS:-0}" != "1" ]; then
+  "$GODOT" --headless --path . res://tests/test_runner.tscn
+fi
 "$GODOT" --headless --path . --export-release "Web" build/web/index.html
 ls -la build/web

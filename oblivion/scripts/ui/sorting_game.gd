@@ -81,6 +81,8 @@ func play(seed: int = -1) -> Dictionary:
 	_show_intro()
 	await _start_pressed
 	state = "play"
+	Sound.se("confirm")
+	Sound.bgm("work")
 	start_button.visible = false
 	info_label.visible = false
 	_since_spawn = float(cfg.get("spawn_interval", 1.6)) - 0.4
@@ -167,6 +169,7 @@ func _end() -> void:
 func _on_done() -> void:
 	if state != "result":
 		return
+	Sound.se("coin")
 	_finished.emit({"pay": current_pay(), "correct": correct, "wrong": wrong, "missed": missed})
 
 
@@ -184,6 +187,7 @@ func sort_into(b: int) -> void:
 	if state != "play" or pkg.is_empty() or b < 0 or b > 2:
 		return
 	var ok := b == correct_bin()
+	Sound.se("correct" if ok else "wrong")
 	if ok:
 		correct += 1
 		_popup(b, "+%d" % int(cfg.get("per_correct", 300)), UITheme.GOOD)
@@ -222,6 +226,7 @@ func _process(delta: float) -> void:
 			pkg["t"] += delta
 			if pkg["t"] >= float(cfg.get("travel_time", 2.6)):
 				missed += 1
+				Sound.se("wrong", 0.8)
 				_popup(1, "見逃し", UITheme.WARN)
 				pkg = {}
 	queue_redraw()

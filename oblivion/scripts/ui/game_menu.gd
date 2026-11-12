@@ -17,6 +17,7 @@ var _seed := 0
 var _t := 0.0
 var _confirm_title := false
 var title_button: Button
+var volume_button: Button
 
 
 func _ready() -> void:
@@ -48,9 +49,13 @@ func _ready() -> void:
 	save_button.pressed.connect(func(): save_requested.emit())
 	touch_button = UITheme.make_button("", 170)
 	touch_button.pressed.connect(_cycle_touch)
+	volume_button = UITheme.make_button("", 170)
+	volume_button.pressed.connect(func():
+		volume_button.text = "音量: " + Sound.cycle_volume()
+		Sound.se("select"))
 	title_button = UITheme.make_button("タイトルへ戻る", 170)
 	title_button.pressed.connect(_on_title)
-	for b in [close_button, save_button, touch_button, title_button]:
+	for b in [close_button, save_button, touch_button, volume_button, title_button]:
 		v.add_child(b)
 	var help := UITheme.make_label("PC: WASD/矢印で移動\nE/Space で調べる・進む\nEsc でメニュー\n\nスマホ: 左側をドラッグで移動\n右下のボタンで調べる", 12, UITheme.TEXT_DIM)
 	v.add_child(help)
@@ -63,6 +68,8 @@ func open_menu(touch_mode: String) -> void:
 	_confirm_title = false
 	title_button.text = "タイトルへ戻る"
 	_update_touch_label()
+	volume_button.text = "音量: " + Sound.volume_name()
+	Sound.se("select")
 	_render()
 	visible = true
 	_layout()

@@ -23,7 +23,9 @@ func _ready() -> void:
 	new_button = UITheme.make_button("はじめから", 220)
 	buttons.add_child(cont_button)
 	buttons.add_child(new_button)
-	cont_button.pressed.connect(func(): continue_requested.emit())
+	cont_button.pressed.connect(func():
+		Sound.se("confirm")
+		continue_requested.emit())
 	new_button.pressed.connect(_on_new)
 	info_label = UITheme.make_label("", 12, UITheme.TEXT_DIM)
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -40,7 +42,13 @@ func refresh() -> void:
 	confirm_overwrite = false
 	new_button.text = "はじめから"
 	cont_button.disabled = not GameState.has_save()
-	var info := "v%s　Phase 1 プロトタイプ" % str(ProjectSettings.get_setting("application/config/version", ""))
+	var info := "v%s" % str(ProjectSettings.get_setting("application/config/version", ""))
+	var seen := GameState.endings_seen()
+	if seen.size() > 0:
+		var marks := ""
+		for i in GameState.ENDING_ORDER.size():
+			marks += ("ABCDEF"[i] if seen.has(GameState.ENDING_ORDER[i]) else "・")
+		info += "　　エンディング %d/%d　[%s]" % [seen.size(), GameState.ENDING_ORDER.size(), marks]
 	if GameData.load_errors.size() > 0:
 		info = "データ読み込みエラー: " + GameData.load_errors[0]
 		info_label.add_theme_color_override("font_color", UITheme.WARN)
@@ -58,6 +66,7 @@ func _on_new() -> void:
 		confirm_overwrite = true
 		new_button.text = "セーブを消して始める？"
 		return
+	Sound.se("confirm")
 	new_game_requested.emit()
 
 

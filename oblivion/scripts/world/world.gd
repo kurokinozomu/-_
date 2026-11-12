@@ -5,10 +5,11 @@ extends Node2D
 
 signal warp_triggered(to_map: String, spawn: String)
 signal target_changed(obj: WorldObject)
+signal ghost_vanished
 
 const TILE := PixelArt.TILE
 const ZOOM := 2.0
-const FLOOR_CHARS := {"wood": ".", "shop": ",", "street": "S", "warehouse": "_"}
+const FLOOR_CHARS := {"wood": ".", "shop": ",", "street": "S", "warehouse": "_", "concrete": "K"}
 
 var map_id: String = ""
 var map: Dictionary = {}
@@ -145,6 +146,7 @@ func _process(_delta: float) -> void:
 		return
 	_update_camera(false)
 	_check_warps()
+	_check_vanish()
 	_update_target()
 	GameState.player_pos = player.position
 	GameState.facing = player.facing
@@ -164,6 +166,18 @@ func _update_camera(_snap: bool) -> void:
 	else:
 		c.y = clampf(c.y, view.y / 2.0, size.y - view.y / 2.0)
 	camera.position = c.snapped(Vector2(0.5, 0.5))
+
+
+## 近づくと消える人影 (data.vanish = 半径px)
+func _check_vanish() -> void:
+	if not player.control_enabled:
+		return
+	for o in objects:
+		if o.data.has("vanish") and o.visible and o.position.distance_to(player.position) < float(o.data["vanish"]):
+			o.visible = false
+			o.solid_rect = Rect2()
+			ghost_vanished.emit()
+			return
 
 
 func _check_warps() -> void:

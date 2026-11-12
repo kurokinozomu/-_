@@ -4,9 +4,10 @@
 
 2D生活シミュレーション × 心理ホラー × アドベンチャー。Godot 4.3 (GDScript) / Web ブラウザ向け (PC・iPhone・Android)。
 
-現在 **Phase 2（生活システム）** まで実装済み。
+現在 **Phase 3（物語と完成度向上）** まで実装済み。最初から最後まで遊べ、エンディングは6種類。
 - Phase 1: 「自宅で目覚める → 街へ出る → 記憶買取店に入る → 母親の記憶を売る → 自宅へ戻る → 母親からの電話に違和感を覚える」
 - Phase 2: 倉庫の仕分けミニゲーム・時間帯（朝/昼/夕方/夜）・生活費と自動融資・ATM返済・5種類すべての記憶の売却と影響
+- Phase 3: 過去の自分の手紙・橋の下・秘密の証拠集めと対決・エンディング6種・BGM/環境音/効果音・演出強化
 
 ## 起動方法
 
@@ -28,7 +29,7 @@ python3 -m http.server -d build/web 8000
 ```bash
 GODOT=/path/to/godot tools/run_tests.sh
 ```
-データ整合性 (会話の参照先・条件式・マップの出入口・フォントの収録文字)、Phase 1 の通しプレイ（実際に入力を送って歩かせる）、セーブ/ロード、分岐、Phase 2 の仕事・返済・自動融資・各記憶の影響を検証する (187項目)。
+データ整合性 (会話の参照先・条件式・マップの出入口・フォントの収録文字)、Phase 1 の通しプレイ（実際に入力を送って歩かせる）、セーブ/ロード、分岐、Phase 2 の仕事・返済・自動融資・各記憶の影響を検証する 、Phase 3 の物語の流れと6種類すべてのエンディング (243項目)。
 
 ## 操作方法
 
@@ -66,12 +67,14 @@ oblivion/
 │  └─ ui/                   HUD・会話・買取店・演出・タッチ操作・メニュー・タイトル等
 ├─ shaders/screen_noise.gdshader  画面ノイズ・走査線・グリッチ
 ├─ assets/fonts/            DotGothic16 (SIL Open Font License 1.1, OFL.txt 同梱)
+├─ assets/audio/            BGM・環境音・効果音 (tools/gen_audio.py で合成したオリジナル)
 ├─ tests/                   自動テスト
-├─ tools/                   テスト・Web書き出しスクリプト
+├─ tools/                   テスト・Web書き出し・音源生成スクリプト
 └─ docs/DESIGN.md           企画・物語設定・システム設計・ロードマップ
 ```
 
 ## 素材とライセンス
 - グラフィックはすべてコード (`scripts/art/pixel_art.gd`) で描いたオリジナル。外部画像・有料素材は不使用。
+- BGM・効果音もすべて `tools/gen_audio.py` が数式から合成したオリジナル (`python3 tools/gen_audio.py` で再生成。numpy と ffmpeg が必要)。
 - フォント: [DotGothic16](https://github.com/fontworks-fonts/DotGothic16) (SIL OFL 1.1)。npm の `@fontsource/dotgothic16` に同梱のサブセットを結合して1ファイル化。
 - 外部の生成AI API・有料サービスは不使用。

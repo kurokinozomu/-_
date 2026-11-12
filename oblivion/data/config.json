@@ -121,6 +121,10 @@
     "town_name": {
       "text": "霧野町",
       "memory": "city"
+    },
+    "nagi": {
+      "text": "凪",
+      "memory": "beloved"
     }
   }
 }

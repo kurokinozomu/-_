@@ -185,8 +185,11 @@ func _process(delta: float) -> void:
 		_guard -= delta
 	if _mode == "line":
 		if _typing:
+			var before := int(_shown)
 			_shown += delta * CHARS_PER_SEC
 			body.visible_characters = int(_shown)
+			if int(_shown) != before:
+				Sound.text_blip()
 			if int(_shown) >= _total:
 				_typing = false
 				body.visible_characters = -1
@@ -216,6 +219,7 @@ func _try_advance() -> void:
 func _on_choice(idx: int) -> void:
 	if _guard > 0.0 or _mode != "choice":
 		return
+	Sound.se("confirm")
 	_chosen.emit(idx)
 
 

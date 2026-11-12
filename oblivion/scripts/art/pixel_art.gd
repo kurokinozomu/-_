@@ -47,8 +47,8 @@ const C_NEON_PURPLE := Color("#b48aff")
 const C_OUTLINE := Color("#0a0a14")
 const C_SHADOW := Color(0, 0, 0, 0.35)
 
-const SOLID_TILES := "#wWTbghkpaFCDnd"
-const WALKABLE_OVERRIDE := "de"   # d=開いているドア e=出口マット
+const SOLID_TILES := "#wWTbghkpaFCDndUE"
+const WALKABLE_OVERRIDE := "def"   # d=開いているドア e=出口マット f=階段
 
 
 static func is_solid_char(ch: String) -> bool:
@@ -183,6 +183,29 @@ static func draw_tile(ci: CanvasItem, ch: String, tx: int, ty: int, grid: Packed
 			px(ci, x + 2, y + 4, 2, 10, C_RAIL.darkened(0.15))
 			px(ci, x + 10, y + 4, 2, 10, C_RAIL.darkened(0.15))
 			px(ci, x, y + 14, TILE, 2, Color("#1c2034"))
+		"U":
+			# 橋の裏側
+			px(ci, x, y, TILE, TILE, Color("#101120"))
+			px(ci, x, y + 12, TILE, 4, Color("#181a2c"))
+			if tx % 4 == 0:
+				px(ci, x, y, 3, TILE, Color("#1c1e32"))
+		"K":
+			px(ci, x, y, TILE, TILE, Color("#2c2f3e"))
+			px(ci, x, y + 15, TILE, 1, Color("#262836"))
+			if h % 6 == 0:
+				px(ci, x + (h % 9), y + (h % 7) + 3, 5, 3, Color("#24263a"))
+			if ty == 2:
+				px(ci, x, y, TILE, 3, Color("#1a1c2c"))
+		"E":
+			px(ci, x, y, TILE, TILE, Color("#3a3d50"))
+			px(ci, x, y, TILE, 2, Color("#4a4e64"))
+			px(ci, x, y + 12, TILE, 4, Color("#14182a"))
+		"f":
+			px(ci, x, y, TILE, TILE, Color("#2a2c3c"))
+			for j in range(0, TILE, 4):
+				px(ci, x, y + j, TILE, 1, Color("#4a4e64"))
+			px(ci, x, y, 1, TILE, Color("#5a5e74"))
+			px(ci, x + 15, y, 1, TILE, Color("#5a5e74"))
 		"C":
 			px(ci, x, y, TILE, TILE, C_WATER)
 			if h % 4 == 0:
@@ -742,6 +765,21 @@ static func draw_prop(ci: CanvasItem, sprite: String, r: Rect2, t: float, state:
 			px(ci, x + 14, y - 2, 16, 12, Color("#8a6a40"))
 			px(ci, x + 4, y - 14, 12, 9, Color("#b88a58"))
 			px(ci, x + 6, y - 6, 2, 14, Color("#c8a070", 0.5))
+		"pillar":
+			px(ci, x + 2, y - 10, w - 4, h + 10, Color("#3a3d50"))
+			px(ci, x + 2, y - 10, 3, h + 10, Color("#4a4e64"))
+			px(ci, x + w - 5, y - 10, 3, h + 10, Color("#2c2f40"))
+			px(ci, x + 8, y + h * 0.45, 14, 8, Color(1.0, 0.5, 0.8, 0.25))
+			px(ci, x + 10, y + h * 0.45 + 2, 3, 4, Color(1.0, 0.6, 0.85, 0.5))
+			px(ci, x + 16, y + h * 0.45 + 2, 3, 4, Color(1.0, 0.6, 0.85, 0.5))
+		"ledger":
+			px(ci, x + 6, y + 2, 20, 10, Color("#3a2018"))
+			px(ci, x + 7, y + 3, 18, 8, Color("#e8e0c8"))
+			px(ci, x + 16, y + 3, 1, 8, Color("#8a7a60"))
+			for j in 3:
+				px(ci, x + 9, y + 5 + j * 2, 5, 1, Color("#606070"))
+				px(ci, x + 18, y + 5 + j * 2, 5, 1, Color("#606070"))
+			glow(ci, Vector2(x + 16, y + 7), 12.0, Color(1.0, 0.9, 0.6), 0.05)
 		"chair":
 			px(ci, x + 3, y - 6, 10, 8, Color("#4a2a5a"))
 			px(ci, x + 3, y + 2, 10, 4, Color("#5a3a6a"))

@@ -51,12 +51,117 @@
  ],
  "home_drawer": [
   {
-   "say": "机の引き出し。一番下の段だけ、鍵がかかっている。"
-  },
-  {
-   "say": "鍵がどこにあるのか、思い出せない。……そもそも、鍵なんてかけた覚えがない。",
-   "who": "minato",
-   "face": "normal"
+   "if": "flag:found_key !flag:read_past_letter",
+   "then": [
+    {
+     "say": "鍵を差し込むと、引き出しは拍子抜けするほど簡単に開いた。"
+    },
+    {
+     "say": "中には、封筒がひとつ。表に、自分の字で『これを読んでいる僕へ』"
+    },
+    {
+     "action": "paper",
+     "arg": "past_letter"
+    },
+    {
+     "if": "sold:letters",
+     "then": [
+      {
+       "say": "……ほとんど読めない。文字がばらばらにほどけて、意味にならない。"
+      },
+      {
+       "say": "でも、描かれた絵だけは分かる。雨の降る、橋の下。傘の下に、ふたり。"
+      },
+      {
+       "say": "湾岸通りの東の端に、運河へ下りる階段があったはずだ。",
+       "who": "minato",
+       "face": "normal"
+      }
+     ],
+     "else": [
+      {
+       "say": "あの人。……誰のことだ。",
+       "who": "minato",
+       "face": "surprised"
+      },
+      {
+       "say": "{nagi}。その名前を口の中で転がしてみる。何も浮かばない。なのに、喉の奥が熱くなる。"
+      },
+      {
+       "say": "手紙の端に、橋の絵が描いてある。湾岸通りの東の端、運河へ下りる階段の先だ。"
+      }
+     ]
+    },
+    {
+     "say": "封筒の底に、もう一枚。折りたたまれた書類が入っていた。"
+    },
+    {
+     "action": "paper",
+     "arg": "contract"
+    },
+    {
+     "say": "契約書の控え。……一年前の、自分の署名。",
+     "who": "minato",
+     "face": "blank"
+    },
+    {
+     "say": "記憶を売った代金が、ミナカミへの返済に『直接充当』されている。",
+     "who": "minato",
+     "face": "sad"
+    },
+    {
+     "set": [
+      "read_past_letter",
+      "clue_contract"
+     ]
+    }
+   ],
+   "else": [
+    {
+     "if": "flag:read_past_letter",
+     "then": [
+      {
+       "say": "引き出しの中には、手紙と契約書の控えが入っている。"
+      },
+      {
+       "choice": [
+        {
+         "text": "手紙を読み返す",
+         "do": [
+          {
+           "action": "paper",
+           "arg": "past_letter"
+          }
+         ]
+        },
+        {
+         "text": "契約書を読み返す",
+         "do": [
+          {
+           "action": "paper",
+           "arg": "contract"
+          }
+         ]
+        },
+        {
+         "text": "閉じる",
+         "do": []
+        }
+       ]
+      }
+     ],
+     "else": [
+      {
+       "say": "机の引き出し。一番下の段だけ、鍵がかかっている。"
+      },
+      {
+       "say": "鍵がどこにあるのか、思い出せない。……そもそも、鍵なんてかけた覚えがない。",
+       "who": "minato",
+       "face": "normal"
+      }
+     ]
+    }
+   ]
   }
  ],
  "home_memo": [
@@ -194,6 +299,18 @@
      "do": [
       {
        "action": "sleep"
+      }
+     ]
+    },
+    {
+     "text": "夜まで横になる",
+     "if": "time<=2",
+     "do": [
+      {
+       "action": "rest_until_night"
+      },
+      {
+       "say": "少し横になるつもりが、窓の外はすっかり暗くなっていた。"
       }
      ]
     },
@@ -826,6 +943,61 @@
      ]
     }
    ]
+  },
+  {
+   "if": "flag:gen_talked",
+   "then": [
+    {
+     "choice": [
+      {
+       "text": "一杯食べる（500円）",
+       "if": "money>=500 time<=2",
+       "do": [
+        {
+         "say": "一杯どうだ。",
+         "who": "gen",
+         "face": "smile"
+        },
+        {
+         "money": -500
+        },
+        {
+         "action": "advance_time",
+         "arg": 1
+        },
+        {
+         "say": "湯気の立つ醤油らーめん。……昔から、この味だけは変わらない。"
+        },
+        {
+         "if": "day>=3 !flag:clue_gen",
+         "then": [
+          {
+           "say": "……なあ、{player}。去年の今ごろも、お前はそこに座って同じ顔をしてたよ。",
+           "who": "gen",
+           "face": "sad"
+          },
+          {
+           "say": "借金がどうとか言ってな。で、ある日けろっとした顔で来て、何も覚えてなかった。",
+           "who": "gen",
+           "face": "normal"
+          },
+          {
+           "set": "clue_gen"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "text": "やめておく",
+       "do": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "set": "gen_talked"
   }
  ],
  "nagi": [
@@ -965,6 +1137,17 @@
      "set": "call_pending"
     }
    ]
+  },
+  {
+   "if": "time>=3",
+   "then": [
+    {
+     "say": "店の中には誰もいない。棚の小瓶だけが、ぼんやりと光っている。"
+    },
+    {
+     "say": "カウンターの上に、分厚い帳面が置きっぱなしになっている。"
+    }
+   ]
   }
  ],
  "karasuma": [
@@ -1014,7 +1197,38 @@
    ]
   },
   {
-   "action": "open_shop"
+   "if": "flag:clue_poster flag:clue_contract flag:clue_ledger !flag:confronted",
+   "then": [
+    {
+     "choice": [
+      {
+       "text": "証拠を突きつける",
+       "do": [
+        {
+         "run": "confront"
+        }
+       ]
+      },
+      {
+       "text": "査定を頼む",
+       "do": [
+        {
+         "action": "open_shop"
+        }
+       ]
+      },
+      {
+       "text": "何でもない",
+       "do": []
+      }
+     ]
+    }
+   ],
+   "else": [
+    {
+     "action": "open_shop"
+    }
+   ]
   }
  ],
  "jars": [
@@ -1087,6 +1301,29 @@
  ],
  "sleep_morning": [
   {
+   "action": "day_card"
+  },
+  {
+   "if": "day>=2 !flag:dream_bridge",
+   "then": [
+    {
+     "say": "……夢を見ていた。"
+    },
+    {
+     "say": "雨の降る橋の下。誰かが、傘をこちらに差し出している。"
+    },
+    {
+     "say": "顔は見えない。でも、その人は確かに言った。『ここで待ってる』"
+    },
+    {
+     "say": "目が覚めると、壁の写真立てが、少しだけ傾いていた。"
+    },
+    {
+     "set": "dream_bridge"
+    }
+   ]
+  },
+  {
    "say": "{day}日目の朝。雨はまだ止まない。"
   },
   {
@@ -1114,32 +1351,10 @@
  ],
  "deadline_paid": [
   {
-   "say": "返済期限の朝。ドアの隙間から、新しい封筒が差し込まれていた。"
+   "say": "返済期限の朝。手持ちの金で、借金は完済された。"
   },
   {
-   "say": "口座から{debt_paid}円が引き落とされ、借金は完済された――と書いてある。"
-  },
-  {
-   "say": "これで、終わったんだろうか。",
-   "who": "minato",
-   "face": "normal"
-  },
-  {
-   "if": "sold:mother",
-   "then": [
-    {
-     "say": "スマホが一度だけ震えて、すぐに止まった。画面には、読めない名前。"
-    }
-   ],
-   "else": [
-    {
-     "say": "スマホが鳴った。『{mom}』からだ。……今度の十二日には、花を持って帰ろう。"
-    }
-   ]
-  },
-  {
-   "action": "ending",
-   "arg": "prototype_paid"
+   "run": "resolve_paid"
   }
  ],
  "deadline_failed": [
@@ -1148,7 +1363,8 @@
   },
   {
    "say": "ミナカミ・ファイナンスの者です。水瀬{player}さん、ご返済の件で。",
-   "who": "voice"
+   "who": "voice",
+   "face": "normal"
   },
   {
    "say": "お支払いいただけない場合、当社提携の『メモリア』にて、資産の差押えを――"
@@ -1159,8 +1375,21 @@
    "face": "blank"
   },
   {
+   "action": "glitch",
+   "arg": 1.0
+  },
+  {
+   "say": "……………"
+  },
+  {
+   "say": "……雨の音で、目が覚めた。"
+  },
+  {
+   "say": "知らない部屋だ。机の上に、封筒がひとつ。"
+  },
+  {
    "action": "ending",
-   "arg": "prototype_failed"
+   "arg": "seized"
   }
  ],
  "work_enter": [
@@ -1480,33 +1709,14 @@
  "debt_cleared": [
   {
    "say": "ご返済ありがとうございました。残高：0円",
-   "who": "atm",
-   "written": true
+   "written": true,
+   "who": "atm"
   },
   {
    "say": "画面の「0」が、やけに軽く見えた。"
   },
   {
-   "say": "これで、終わったんだろうか。",
-   "who": "minato",
-   "face": "normal"
-  },
-  {
-   "if": "sold:beloved",
-   "then": [
-    {
-     "say": "胸のどこかに、ぽっかりと穴が空いている。何が入っていたのかは、もう分からない。"
-    }
-   ],
-   "else": [
-    {
-     "say": "ポケットの中で、くしゃくしゃになったメモに指が触れた。――あの橋の下に、行かなければ。"
-    }
-   ]
-  },
-  {
-   "action": "ending",
-   "arg": "prototype_paid"
+   "run": "resolve_paid"
   }
  ],
  "alley_west": [
@@ -1585,45 +1795,77 @@
  ],
  "home_photo2": [
   {
-   "if": "sold:beloved",
+   "if": "flag:dream_bridge !flag:found_key",
    "then": [
     {
      "action": "photo",
      "arg": "beloved"
     },
     {
-     "say": "雨の橋の下で撮った写真。自分と、誰かが写っている。"
+     "say": "傾いた写真立てを直そうとして、手が止まった。"
     },
     {
-     "say": "……誰だろう。どうしてこんなものを飾っていたんだろう。",
+     "say": "裏板に、小さな鍵がテープで留めてある。"
+    },
+    {
+     "action": "se",
+     "arg": "coin"
+    },
+    {
+     "say": "……誰が、こんなところに。",
      "who": "minato",
-     "face": "blank"
+     "face": "surprised"
     },
     {
-     "say": "捨ててしまおうか、と一瞬思った。なぜか、手が動かなかった。"
+     "say": "鍵には、マスキングテープで印がつけてある。自分の字だ。『机』"
     },
     {
-     "set": "saw_photo2_after"
+     "set": "found_key"
     }
    ],
    "else": [
     {
-     "action": "photo",
-     "arg": "beloved"
-    },
-    {
-     "say": "雨の橋の下で撮った写真。一本の傘の下に、自分と、もう一人。"
-    },
-    {
-     "say": "隣にいる人の顔だけが、どうしても思い出せない。"
-    },
-    {
-     "say": "でも、この写真を見ると胸の奥が痛む。……何か、約束をした気がする。",
-     "who": "minato",
-     "face": "sad"
-    },
-    {
-     "set": "saw_photo2"
+     "if": "sold:beloved",
+     "then": [
+      {
+       "action": "photo",
+       "arg": "beloved"
+      },
+      {
+       "say": "雨の橋の下で撮った写真。自分と、誰かが写っている。"
+      },
+      {
+       "say": "……誰だろう。どうしてこんなものを飾っていたんだろう。",
+       "who": "minato",
+       "face": "blank"
+      },
+      {
+       "say": "捨ててしまおうか、と一瞬思った。なぜか、手が動かなかった。"
+      },
+      {
+       "set": "saw_photo2_after"
+      }
+     ],
+     "else": [
+      {
+       "action": "photo",
+       "arg": "beloved"
+      },
+      {
+       "say": "雨の橋の下で撮った写真。一本の傘の下に、自分と、もう一人。"
+      },
+      {
+       "say": "隣にいる人の顔だけが、どうしても思い出せない。"
+      },
+      {
+       "say": "でも、この写真を見ると胸の奥が痛む。……何か、約束をした気がする。",
+       "who": "minato",
+       "face": "sad"
+      },
+      {
+       "set": "saw_photo2"
+      }
+     ]
     }
    ]
   }
@@ -1734,6 +1976,527 @@
    "say": "いえ。なんでもございません。",
    "who": "karasuma",
    "face": "smile"
+  }
+ ],
+ "shop_ledger": [
+  {
+   "action": "paper",
+   "arg": "ledger"
+  },
+  {
+   "say": "……昨年。本年。次回査定予定、一年後。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "霧野町内、214件。……この町の、ほとんど全員じゃないか。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "set": "clue_ledger"
+  }
+ ],
+ "confront": [
+  {
+   "action": "shake"
+  },
+  {
+   "say": "この契約書と、店の台帳。それに、店先のポスター。",
+   "who": "minato",
+   "face": "normal"
+  },
+  {
+   "say": "メモリアとミナカミは、同じ会社だ。返せない借金を作らせて、記憶で払わせてる。",
+   "who": "minato",
+   "face": "sad"
+  },
+  {
+   "say": "一年後に『再査定』。……僕たちは、何度も記憶を売らされてるんだ。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "…………",
+   "who": "karasuma",
+   "face": "normal"
+  },
+  {
+   "say": "お見事です。去年のお客様は、そこまでたどり着けませんでしたよ。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "ですが、それを知ってどうなさいます？ 売った記憶は戻りません。町の誰も、自分が何を失くしたかすら覚えていない。",
+   "who": "karasuma",
+   "face": "normal"
+  },
+  {
+   "say": "そこで、ご提案です。――その『気づいてしまった記憶』、当店で買い取らせていただけませんか。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "お値段は、ちょうどお客様の借金と同じ額。悪いお話ではないでしょう？",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "set": "confronted"
+  },
+  {
+   "choice": [
+    {
+     "text": "売る",
+     "do": [
+      {
+       "run": "ending_loop"
+      }
+     ]
+    },
+    {
+     "text": "売らない。全部、明るみに出す",
+     "do": [
+      {
+       "say": "……そうですか。",
+       "who": "karasuma",
+       "face": "normal"
+      },
+      {
+       "say": "残念です。あなたは、いいお得意様だったのに。",
+       "who": "karasuma",
+       "face": "smile"
+      },
+      {
+       "run": "ending_secret"
+      }
+     ]
+    },
+    {
+     "text": "（考えさせてほしい）",
+     "do": [
+      {
+       "say": "ええ、いつでも。記憶は、逃げませんから。",
+       "who": "karasuma",
+       "face": "smile"
+      },
+      {
+       "unset": "confronted"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "bridge_first": [
+  {
+   "say": "階段を下りると、橋の下だった。"
+  },
+  {
+   "say": "雨が橋の縁から、すだれのように落ちている。ここだけ、音が遠い。"
+  },
+  {
+   "set": "visited_bridge"
+  }
+ ],
+ "bridge_pillar": [
+  {
+   "say": "コンクリートの柱に、古い落書きがある。"
+  },
+  {
+   "action": "paper",
+   "arg": "graffiti"
+  },
+  {
+   "if": "!sold:beloved",
+   "then": [
+    {
+     "say": "……M。湊のM？",
+     "who": "minato",
+     "face": "surprised"
+    }
+   ],
+   "else": [
+    {
+     "say": "誰かの落書きだ。",
+     "who": "minato",
+     "face": "blank"
+    }
+   ]
+  }
+ ],
+ "bridge_river": [
+  {
+   "say": "黒い運河。橋の上を、誰かが傘をさして通り過ぎていく足音だけが聞こえる。"
+  }
+ ],
+ "bridge_boxes": [
+  {
+   "say": "誰かが寝床にしていた段ボール。毛布がきれいに畳んである。"
+  },
+  {
+   "if": "flag:read_past_letter !sold:beloved",
+   "then": [
+    {
+     "say": "ずっと、ここで待っていたのだろうか。",
+     "who": "minato",
+     "face": "sad"
+    }
+   ]
+  }
+ ],
+ "bridge_empty": [
+  {
+   "say": "橋の下には、誰もいない。"
+  },
+  {
+   "say": "……誰かを探しに来た気がする。でも、誰を？",
+   "who": "minato",
+   "face": "blank"
+  },
+  {
+   "say": "畳まれた毛布の上に、乾いた花がひとつ置いてあった。"
+  }
+ ],
+ "nagi_bridge": [
+  {
+   "if": "!flag:bridge_met",
+   "then": [
+    {
+     "say": "……来てくれたんだ。",
+     "who": "nagi_named",
+     "face": "smile"
+    },
+    {
+     "say": "手紙を読んだ。昔の僕が書いた手紙。……あなたが、{nagi}？",
+     "who": "minato",
+     "face": "normal"
+    },
+    {
+     "say": "名前、知ってるんだ。……ううん、思い出したわけじゃないよね。",
+     "who": "nagi_named",
+     "face": "sad"
+    },
+    {
+     "say": "一年前、あなたは借金を返すために、わたしの記憶を売った。",
+     "who": "nagi_named",
+     "face": "normal"
+    },
+    {
+     "say": "売るって決めた最後の夜、ここで言ったの。『ここで待ってる』って。",
+     "who": "nagi_named",
+     "face": "sad"
+    },
+    {
+     "say": "約束の記憶だけは売らないでって頼んだ。あなたは、それだけは手放さなかった。",
+     "who": "nagi_named",
+     "face": "normal"
+    },
+    {
+     "say": "それから毎日、ここで待ってた。あなたはときどき上の道を通って、気づかずに帰っていった。",
+     "who": "nagi_named",
+     "face": "sad"
+    },
+    {
+     "say": "……ごめん。",
+     "who": "minato",
+     "face": "sad"
+    },
+    {
+     "say": "謝らないで。悪いのはあの店。メモリアとミナカミは、最初からグルなの。",
+     "who": "nagi_named",
+     "face": "normal"
+    },
+    {
+     "say": "夜、烏間がいないときに店に入ってみて。カウンターに台帳がある。あなたの名前も、町じゅうの人の名前も。",
+     "who": "nagi_named",
+     "face": "normal"
+    },
+    {
+     "set": "clue_nagi"
+    },
+    {
+     "say": "ねえ、{player}。今度は、売らないで。",
+     "who": "nagi_named",
+     "face": "sad"
+    },
+    {
+     "choice": [
+      {
+       "text": "「約束する。もう、売らない」",
+       "do": [
+        {
+         "say": "……うん。待ってる。今度は、そっちから迎えに来てね。",
+         "who": "nagi_named",
+         "face": "smile"
+        },
+        {
+         "set": "bridge_promise"
+        },
+        {
+         "rel": {
+          "nagi": 3
+         }
+        }
+       ]
+      },
+      {
+       "text": "「……分からない。生きるためには、必要かもしれない」",
+       "do": [
+        {
+         "say": "そうだよね。……それでも、わたしはここにいるから。",
+         "who": "nagi_named",
+         "face": "sad"
+        },
+        {
+         "set": "bridge_honest"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "set": "bridge_met"
+    }
+   ],
+   "else": [
+    {
+     "if": "flag:bridge_promise",
+     "then": [
+      {
+       "say": "約束、覚えてる？ ……ふふ、覚えてるよね。",
+       "who": "nagi_named",
+       "face": "smile"
+      }
+     ],
+     "else": [
+      {
+       "say": "雨、止まないね。……わたしは、ここにいるよ。",
+       "who": "nagi_named",
+       "face": "normal"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ghost_vanish": [
+  {
+   "action": "glitch",
+   "arg": 0.7
+  },
+  {
+   "say": "――今、街灯の下に誰かいた。"
+  },
+  {
+   "say": "自分と同じコートを着た、自分と同じ背格好の誰か。"
+  },
+  {
+   "say": "……今の、僕？",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "set": "ghost_seen"
+  }
+ ],
+ "resolve_paid": [
+  {
+   "if": "sold:beloved",
+   "then": [
+    {
+     "run": "ending_forgotten"
+    }
+   ],
+   "else": [
+    {
+     "if": "flag:bridge_promise",
+     "then": [
+      {
+       "run": "ending_protected"
+      }
+     ],
+     "else": [
+      {
+       "run": "ending_paid"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ending_protected": [
+  {
+   "say": "借金を返し終えた日の夕方。雨が、少しだけ弱くなっていた。"
+  },
+  {
+   "say": "階段を下りる。橋の下に、フードの女――{nagi}が立っていた。"
+  },
+  {
+   "say": "……迎えに来てくれた。",
+   "who": "nagi_named",
+   "face": "smile"
+  },
+  {
+   "say": "約束したから。……顔も名前も、まだ思い出せないけど。",
+   "who": "minato",
+   "face": "normal"
+  },
+  {
+   "say": "いいよ。これから、また覚えればいい。",
+   "who": "nagi_named",
+   "face": "smile"
+  },
+  {
+   "if": "sold:mother",
+   "then": [
+    {
+     "say": "帰り道、スマホを開いた。読めない名前に、初めて自分から電話をかけた。"
+    },
+    {
+     "say": "……もしもし。",
+     "who": "voice",
+     "face": "normal"
+    }
+   ]
+  },
+  {
+   "say": "雨が止んだ。雲の切れ間から、薄い光が差し込んでいた。"
+  },
+  {
+   "action": "ending",
+   "arg": "protected"
+  }
+ ],
+ "ending_forgotten": [
+  {
+   "say": "借金はなくなった。"
+  },
+  {
+   "say": "部屋の写真立てを、ゴミ袋に入れた。誰が写っていたのかは、もう分からない。"
+  },
+  {
+   "if": "flag:read_past_letter",
+   "then": [
+    {
+     "if": "sold:letters",
+     "then": [
+      {
+       "say": "引き出しの手紙は、もう読めない。"
+      }
+     ],
+     "else": [
+      {
+       "say": "引き出しの手紙には『あの人の記憶だけは絶対に売るな』と書いてある。"
+      },
+      {
+       "say": "あの人って、誰だろう。",
+       "who": "minato",
+       "face": "blank"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "say": "雨はまだ降っている。明日も、たぶん。"
+  },
+  {
+   "action": "ending",
+   "arg": "forgotten"
+  }
+ ],
+ "ending_paid": [
+  {
+   "say": "借金は返し終えた。"
+  },
+  {
+   "say": "それなのに、何か大事な用事を忘れている気がする。"
+  },
+  {
+   "say": "橋の下で、今日も誰かが待っている気がする。……気のせいだろう。",
+   "who": "minato",
+   "face": "normal"
+  },
+  {
+   "action": "ending",
+   "arg": "paid"
+  }
+ ],
+ "ending_secret": [
+  {
+   "action": "shake"
+  },
+  {
+   "say": "烏間の台帳と契約書の写真を、町じゅうの掲示板とネットに流した。"
+  },
+  {
+   "say": "三日後、メモリアのシャッターは閉じたまま開かなくなった。"
+  },
+  {
+   "say": "ミナカミ・ファイナンスには警察が入り、町の人間の『借金』は、ほとんどが無効になった。"
+  },
+  {
+   "say": "売った記憶は、戻らない。"
+  },
+  {
+   "say": "それでも、知らない顔になりかけていた町の人たちが、少しずつ互いの名前を呼び直しはじめた。"
+  },
+  {
+   "if": "!sold:beloved !flag:nagi_gone",
+   "then": [
+    {
+     "say": "橋の下には、{nagi}がいた。"
+    },
+    {
+     "say": "遅いよ。",
+     "who": "nagi_named",
+     "face": "smile"
+    }
+   ],
+   "else": [
+    {
+     "say": "橋の下には、誰もいなかった。……誰かがいた気がした。"
+    }
+   ]
+  },
+  {
+   "action": "ending",
+   "arg": "secret"
+  }
+ ],
+ "ending_loop": [
+  {
+   "action": "sell_secret"
+  },
+  {
+   "say": "……あれ。",
+   "who": "minato",
+   "face": "blank"
+  },
+  {
+   "say": "なんで僕、こんなところに立っているんだっけ。",
+   "who": "minato",
+   "face": "surprised"
+  },
+  {
+   "say": "いらっしゃいませ。記憶買取の『メモリア』へようこそ。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "say": "お客様は初めて……ではありませんね。",
+   "who": "karasuma",
+   "face": "normal"
+  },
+  {
+   "say": "――いえ、失礼。初めてのお客様ですね。",
+   "who": "karasuma",
+   "face": "smile"
+  },
+  {
+   "action": "ending",
+   "arg": "loop"
   }
  ]
 }

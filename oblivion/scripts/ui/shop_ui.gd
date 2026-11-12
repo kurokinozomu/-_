@@ -251,6 +251,7 @@ func _render_detail() -> void:
 
 
 func _on_confirm_yes() -> void:
+	Sound.se("confirm")
 	var m := GameData.get_memory(_selected)
 	# 大切な記憶は二度確認する
 	if bool(m.get("double_confirm", false)) and _confirm_stage == 0:
@@ -273,6 +274,7 @@ func _on_sell_pressed() -> void:
 	confirm_text.text = "[center]本当に [color=#%s]%s[/color] を売りますか？\n\n買取価格：%s円\n\n[color=#ff6a7a]売った記憶は、二度と戻りません。[/color][/center]" % [
 		Color(str(m.get("color", "#ffffff"))).to_html(false), str(m["name"]), GameState.format_yen(int(m["price"]))]
 	confirm_layer.visible = true
+	Sound.se("heartbeat")
 	_layout()
 	confirm_no.grab_focus()
 

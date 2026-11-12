@@ -28,6 +28,9 @@ var mode: String = "title"
 var touch_mode: String = "auto"
 var _glitch_pulse := 0.0
 var _glitch_hold := 0.0
+var _ring_t := 0.0
+var _shake := 0.0
+var day_card: Label
 var _autotest := false
 var _autotest_t := 0.0
 
@@ -127,6 +130,13 @@ func _build_scene() -> void:
 	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top_root.add_child(fade)
+	day_card = UITheme.make_label("", 28, Color.WHITE)
+	day_card.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	day_card.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	day_card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	day_card.modulate.a = 0.0
+	top_root.add_child(day_card)
+	world.ghost_vanished.connect(_on_ghost_vanished)
 	_on_state_changed()
 
 
@@ -153,6 +163,8 @@ func _show_title() -> void:
 	title.visible = true
 	hud.visible = false
 	rain.visible = false
+	Sound.bgm("title")
+	Sound.rain("out")
 	title.refresh()
 
 
@@ -197,6 +209,7 @@ func _enter_map(id: String, spawn: String, pos: Variant = null, keep_black: bool
 		GameState.notify.emit("マップ「%s」を読み込めませんでした" % id, true)
 		world.load_map("home", "start")
 	rain.visible = world.is_outdoor()
+	_apply_map_audio()
 	hud.refresh()
 	if not keep_black:
 		await _fade_to(0.0, 0.22)
@@ -219,7 +232,13 @@ func _enter_map(id: String, spawn: String, pos: Variant = null, keep_black: bool
 func _on_warp(to_map: String, spawn: String) -> void:
 	if mode != "explore":
 		return
+	Sound.se("door")
 	await _enter_map(to_map, spawn)
+
+
+func _apply_map_audio() -> void:
+	Sound.bgm(str(world.map.get("bgm", "")))
+	Sound.rain("out" if world.is_outdoor() else "in")
 
 
 func _fade_to(a: float, dur: float) -> void:
@@ -260,6 +279,17 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if mode == "explore":
 		world.player.touch_vector = touch.vector
+	# 着信中は電話が鳴り続ける
+	if GameState.has_flag("call_pending") and world.map_id == "home" and not title.visible:
+		_ring_t -= delta
+		if _ring_t <= 0.0:
+			_ring_t = 2.4
+			Sound.se("ring")
+	if _shake > 0.0:
+		_shake = maxf(0.0, _shake - delta)
+		world.camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * 3.0 * (_shake / 0.5)
+	elif world.camera.offset != Vector2.ZERO:
+		world.camera.offset = Vector2.ZERO
 	# 一時的なグリッチ
 	_glitch_pulse = maxf(0.0, _glitch_pulse - delta * 1.2)
 	noise_mat.set_shader_parameter("glitch", maxf(_glitch_pulse, _glitch_hold))
@@ -298,6 +328,8 @@ func _debug_command(cmd: String) -> void:
 		"map": world.load_map(p[1], p[2] if p.size() > 2 else "")
 		"event": run_event(p[1])
 		"sort_time": sorting.time_left = float(p[1])
+		"day": GameState.day = int(p[1]); GameState.changed.emit()
+		"debt": GameState.debt = int(p[1]); GameState.changed.emit()
 
 
 func _try_interact() -> void:
@@ -376,6 +408,7 @@ func do_action(action: String, arg: Variant) -> void:
 		"repay":
 			var paid := GameState.repay(int(arg) if arg != null else -1)
 			if paid > 0:
+				Sound.se("atm")
 				GameState.notify.emit("%s円を返済しました" % GameState.format_yen(paid), false)
 				GameState.save_game(true)
 		"warp":
@@ -388,9 +421,37 @@ func do_action(action: String, arg: Variant) -> void:
 			await paper.show_paper(str(arg))
 		"glitch":
 			_glitch_pulse = float(arg) if arg != null else 0.6
+			Sound.se("glitch")
 			await get_tree().create_timer(0.35).timeout
+		"shake":
+			_shake = 0.5
+			_glitch_pulse = 0.3
+			Sound.se("heartbeat")
+		"se":
+			Sound.se(str(arg))
+		"advance_time":
+			GameState.advance_time(int(arg) if arg != null else 1)
+		"rest_until_night":
+			dialogue.close()
+			await _fade_to(1.0, 0.6)
+			GameState.time_slot = 3
+			GameState.changed.emit()
+			await get_tree().create_timer(0.4).timeout
+			await _fade_to(0.0, 0.6)
+		"day_card":
+			await _show_day_card()
+		"sell_secret":
+			dialogue.close()
+			Sound.se("sell")
+			_glitch_hold = 1.0
+			await _fade_to(1.0, 1.2)
+			_glitch_hold = 0.0
+			await get_tree().create_timer(0.6).timeout
+			await _fade_to(0.0, 1.0)
 		"ring":
 			_glitch_pulse = 0.25
+			Sound.se("ring")
+			_ring_t = 2.4
 		"ring_stop":
 			GameState.set_flag("call_pending", false)
 		"fade_in_slow":
@@ -409,7 +470,9 @@ func _action_shop() -> void:
 		return
 	var mem := GameData.get_memory(sold_id)
 	dialogue.close()
+	Sound.bgm("")
 	await sell_fx.play(mem)
+	Sound.bgm("shop")
 	_glitch_hold = 0.0
 	if not GameState.sell_memory(sold_id):
 		GameState.notify.emit("売却処理に失敗しました", true)
@@ -449,6 +512,7 @@ func _action_sleep() -> void:
 	var result := GameState.advance_day()
 	world.load_map("home", "start")
 	rain.visible = false
+	_apply_map_audio()
 	hud.refresh()
 	await get_tree().create_timer(0.6).timeout
 	await _fade_to(0.0, 0.8)
@@ -464,9 +528,32 @@ func _action_sleep() -> void:
 
 func _action_ending(id: String) -> void:
 	dialogue.close()
-	await _fade_to(1.0, 1.0)
+	Sound.bgm("ending", 2.5)
+	Sound.rain("off" if id in ["protected", "secret"] else "in")
+	await _fade_to(1.0, 1.4)
 	runner.aborted = true
+	GameState.record_ending(id)
 	GameState.delete_save()
 	fade.color.a = 0.0
 	await ending.show_ending(id)
 	_show_title()
+
+
+## 「2日目　返済期限まであと6日」のカード (眠った翌朝)
+func _show_day_card() -> void:
+	dialogue.close()
+	day_card.text = "%d日目\n返済期限まで あと%d日" % [GameState.day, GameState.days_left()]
+	fade.color.a = 1.0
+	var tw := create_tween()
+	tw.tween_property(day_card, "modulate:a", 1.0, 0.5)
+	tw.tween_interval(1.1)
+	tw.tween_property(day_card, "modulate:a", 0.0, 0.5)
+	tw.tween_property(fade, "color:a", 0.0, 0.6)
+	await tw.finished
+
+
+func _on_ghost_vanished() -> void:
+	_glitch_pulse = 0.8
+	Sound.se("glitch")
+	if mode == "explore":
+		await run_event("ghost_vanish")

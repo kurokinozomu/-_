@@ -65,5 +65,14 @@
  "atm": {
   "name": "ATM",
   "portrait": "atm"
+ },
+ "nagi_named": {
+  "name": "{nagi}",
+  "skin": "#f0d0c0",
+  "hair": "#8a6ad0",
+  "coat": "#2a2040",
+  "pants": "#1a1828",
+  "accent": "#ff6ad0",
+  "style": "hood"
  }
 }

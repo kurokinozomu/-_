@@ -1,12 +1,32 @@
 {
-  "prototype_paid": {
-    "title": "PROTOTYPE END",
-    "subtitle": "返済完了",
-    "body": "借金は消えた。\n代わりに何を失くしたのか、\n今の {player} には分からない。\n\n（Phase 1 プロトタイプはここまで。\n　本編のエンディングは Phase 3 で実装予定）"
-  },
-  "prototype_failed": {
-    "title": "PROTOTYPE END",
-    "subtitle": "差押え",
-    "body": "返せなかった借金の代わりに、\n{player} は、自分の人生を差し出した。\n\n（Phase 1 プロトタイプはここまで。\n　本編のエンディングは Phase 3 で実装予定）"
-  }
+ "protected": {
+  "title": "ENDING A",
+  "subtitle": "雨上がりの橋",
+  "body": "顔も名前も思い出せないまま、\n{player} は約束の場所へ迎えに行った。\n\n売らずに守った、たったひとつの記憶が\nふたりをもう一度つないだ。"
+ },
+ "forgotten": {
+  "title": "ENDING B",
+  "subtitle": "忘却の朝",
+  "body": "借金は消えた。\n胸の痛みも消えた。\n\n何を守るべきだったのかを、\n{player} はもう知らない。\nだから、明日も生きていける。"
+ },
+ "secret": {
+  "title": "ENDING C",
+  "subtitle": "メモリア閉店",
+  "body": "記憶を売る町の仕組みは暴かれ、\nメモリアのシャッターは二度と開かなかった。\n\n売った記憶は戻らない。\nそれでも町の人たちは、\n互いの名前を呼び直しはじめた。"
+ },
+ "paid": {
+  "title": "ENDING D",
+  "subtitle": "返済完了",
+  "body": "借金は返し終えた。\n\nポケットの中のメモの意味も、\n橋の下で誰かが待っていることも、\n{player} は知らないまま、日常へ帰っていく。"
+ },
+ "seized": {
+  "title": "ENDING E",
+  "subtitle": "差押え",
+  "body": "返せなかった借金の代わりに、\n{player} は自分の人生を差し出した。\n\n目を覚ますと、雨の音がした。\n机の上に、封筒がひとつ。"
+ },
+ "loop": {
+  "title": "ENDING F",
+  "subtitle": "はじめてのお客様",
+  "body": "秘密に気づいた記憶さえ、\n{player} は売ってしまった。\n\n一年後、雨の町で、\nまた同じ扉が開く。"
+ }
 }

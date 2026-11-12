@@ -45,6 +45,8 @@ func setup(d: Dictionary, p_font: Font) -> void:
 			z_index = -1
 		if kind == "sign":
 			z_index = -1
+	if d.has("vanish"):
+		modulate = Color(0.85, 0.85, 1.0, 0.7)
 	_t = randf() * 10.0
 
 
