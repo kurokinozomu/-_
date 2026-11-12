@@ -1,0 +1,12 @@
+{
+  "prototype_paid": {
+    "title": "PROTOTYPE END",
+    "subtitle": "返済完了",
+    "body": "借金は消えた。\n代わりに何を失くしたのか、\n今の {player} には分からない。\n\n（Phase 1 プロトタイプはここまで。\n　本編のエンディングは Phase 3 で実装予定）"
+  },
+  "prototype_failed": {
+    "title": "PROTOTYPE END",
+    "subtitle": "差押え",
+    "body": "返せなかった借金の代わりに、\n{player} は、自分の人生を差し出した。\n\n（Phase 1 プロトタイプはここまで。\n　本編のエンディングは Phase 3 で実装予定）"
+  }
+}

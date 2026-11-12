@@ -1,0 +1,46 @@
+; Engine configuration file.
+; 忘却都市 — Project OBLIVION (Godot 4.3, GL Compatibility)
+
+config_version=5
+
+[application]
+
+config/name="忘却都市 Project OBLIVION"
+config/description="生きるために、人生を忘れていく。"
+config/version="0.1.0-phase1"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.03, 0.03, 0.06, 1)
+boot_splash/show_image=false
+
+[autoload]
+
+GameData="*res://scripts/autoload/game_data.gd"
+GameState="*res://scripts/autoload/game_state.gd"
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[gui]
+
+theme/custom_font="res://assets/fonts/DotGothic16-Regular.ttf"
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+pointing/emulate_touch_from_mouse=false
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.03, 0.03, 0.06, 1)

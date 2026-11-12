@@ -1,0 +1,673 @@
+{
+ "home": {
+  "name": "自宅 — 霧野ハイツ203号室",
+  "outdoor": false,
+  "floor": "wood",
+  "tiles": [
+   "##################",
+   "#wwWWwwwwwwwWWwww#",
+   "#wwwwwwwwwwwwwwww#",
+   "#............____#",
+   "#............____#",
+   "#............____#",
+   "#............____#",
+   "#................#",
+   "#................#",
+   "#................#",
+   "#######ee#########"
+  ],
+  "spawns": {
+   "start": [
+    2.5,
+    6.5,
+    "down"
+   ],
+   "from_town": [
+    8.0,
+    9.2,
+    "up"
+   ]
+  },
+  "on_enter": [
+   {
+    "if": "!flag:intro_done",
+    "script": "intro"
+   },
+   {
+    "if": "flag:call_pending",
+    "script": "phone_ringing"
+   }
+  ],
+  "objects": [
+   {
+    "id": "bed",
+    "kind": "prop",
+    "sprite": "bed",
+    "rect": [
+     1,
+     3,
+     2,
+     3
+    ],
+    "solid": true,
+    "script": "home_bed",
+    "prompt": "休む"
+   },
+   {
+    "id": "desk",
+    "kind": "prop",
+    "sprite": "desk",
+    "rect": [
+     4,
+     3,
+     3,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "letter",
+    "kind": "prop",
+    "sprite": "letter",
+    "rect": [
+     4,
+     3,
+     1,
+     1
+    ],
+    "script": "home_letter",
+    "prompt": "読む"
+   },
+   {
+    "id": "drawer",
+    "kind": "prop",
+    "sprite": "none",
+    "rect": [
+     5,
+     3,
+     1,
+     1
+    ],
+    "script": "home_drawer",
+    "prompt": "調べる"
+   },
+   {
+    "id": "memo",
+    "kind": "prop",
+    "sprite": "memo",
+    "rect": [
+     6,
+     3,
+     1,
+     1
+    ],
+    "script": "home_memo",
+    "prompt": "読む",
+    "if": "sold:mother"
+   },
+   {
+    "id": "photo",
+    "kind": "prop",
+    "sprite": "photo",
+    "rect": [
+     8,
+     2,
+     1,
+     1
+    ],
+    "script": "home_photo",
+    "prompt": "見る"
+   },
+   {
+    "id": "window1",
+    "kind": "prop",
+    "sprite": "none",
+    "rect": [
+     3,
+     2,
+     2,
+     1
+    ],
+    "script": "home_window",
+    "prompt": "見る"
+   },
+   {
+    "id": "window2",
+    "kind": "prop",
+    "sprite": "none",
+    "rect": [
+     12,
+     2,
+     2,
+     1
+    ],
+    "script": "home_window",
+    "prompt": "見る"
+   },
+   {
+    "id": "table",
+    "kind": "prop",
+    "sprite": "lowtable",
+    "rect": [
+     9,
+     6,
+     2,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "phone",
+    "kind": "prop",
+    "sprite": "phone",
+    "rect": [
+     9,
+     6,
+     1,
+     1
+    ],
+    "script": "home_phone",
+    "prompt": "スマホ"
+   },
+   {
+    "id": "kitchen",
+    "kind": "prop",
+    "sprite": "kitchen",
+    "rect": [
+     13,
+     3,
+     4,
+     1
+    ],
+    "solid": true,
+    "script": "home_kitchen",
+    "prompt": "調べる"
+   },
+   {
+    "id": "fridge",
+    "kind": "prop",
+    "sprite": "fridge",
+    "rect": [
+     16,
+     4,
+     1,
+     2
+    ],
+    "solid": true,
+    "script": "home_fridge",
+    "prompt": "開ける"
+   },
+   {
+    "id": "rug",
+    "kind": "deco",
+    "sprite": "rug",
+    "rect": [
+     8,
+     5,
+     4,
+     3
+    ]
+   },
+   {
+    "id": "plant",
+    "kind": "prop",
+    "sprite": "plant",
+    "rect": [
+     1,
+     8,
+     1,
+     1
+    ],
+    "solid": true,
+    "script": "home_plant",
+    "prompt": "調べる"
+   },
+   {
+    "id": "exit",
+    "kind": "warp",
+    "rect": [
+     7,
+     10,
+     2,
+     1
+    ],
+    "to": "town",
+    "spawn": "home_door",
+    "auto": true,
+    "prompt": "外へ出る"
+   }
+  ]
+ },
+ "town": {
+  "name": "霧野町 — 湾岸通り",
+  "outdoor": true,
+  "floor": "street",
+  "tiles": [
+   "TTTTTTTTTTTTaaTTTTTTTTTTTTaaTTTTTTTTTTTTTTTTTTTTaaTTTTTTTTTTTTTT",
+   "TTTTTTTTTTTTaaTTTTTTTTTTTTaaTTTTTTTTTTTTTTTTTTTTaaTTTTTTTTTTTTTT",
+   "bgbgbbbgbgbbaahhhhhhhhhhhhaakkkkkkkkbgbggbbgbgbbaapppppppppppppp",
+   "bbbbbdbbbbbbaahhhhDDDDhhhhaakkknnkkkbbgbbbgbbbgbaappppppddpppppp",
+   "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+   "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+   "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+   "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+   "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+   "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+   "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+   "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+   "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+   "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+  ],
+  "spawns": {
+   "home_door": [
+    5.5,
+    4.7,
+    "down"
+   ],
+   "shop_door": [
+    57.0,
+    4.7,
+    "down"
+   ]
+  },
+  "on_enter": [
+   {
+    "if": "!flag:visited_town",
+    "script": "town_first"
+   }
+  ],
+  "objects": [
+   {
+    "id": "home_door",
+    "kind": "warp",
+    "rect": [
+     5,
+     3,
+     1,
+     1
+    ],
+    "to": "home",
+    "spawn": "from_town",
+    "auto": true,
+    "prompt": "家に入る"
+   },
+   {
+    "id": "home_sign",
+    "kind": "prop",
+    "sprite": "plate",
+    "rect": [
+     6,
+     3,
+     1,
+     1
+    ],
+    "script": "home_plate",
+    "prompt": "見る",
+    "label": "霧野ハイツ"
+   },
+   {
+    "id": "saeki",
+    "kind": "npc",
+    "char": "saeki",
+    "pos": [
+     8.5,
+     4.6
+    ],
+    "facing": "down",
+    "script": "saeki",
+    "prompt": "話す"
+   },
+   {
+    "id": "guide",
+    "kind": "prop",
+    "sprite": "guide",
+    "rect": [
+     13,
+     9,
+     1,
+     1
+    ],
+    "solid": true,
+    "script": "guide_sign",
+    "prompt": "見る"
+   },
+   {
+    "id": "lamp1",
+    "kind": "prop",
+    "sprite": "lamp",
+    "rect": [
+     3,
+     9,
+     1,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "work_door",
+    "kind": "prop",
+    "sprite": "none",
+    "rect": [
+     18,
+     3,
+     4,
+     1
+    ],
+    "script": "work_door",
+    "prompt": "調べる"
+   },
+   {
+    "id": "work_sign",
+    "kind": "sign",
+    "sprite": "neon",
+    "rect": [
+     16,
+     2,
+     8,
+     1
+    ],
+    "label": "{work_name}",
+    "color": "#ffd25a"
+   },
+   {
+    "id": "vending",
+    "kind": "prop",
+    "sprite": "vending",
+    "rect": [
+     26,
+     4,
+     2,
+     1
+    ],
+    "solid": true,
+    "script": "vending",
+    "prompt": "買う"
+   },
+   {
+    "id": "lamp2",
+    "kind": "prop",
+    "sprite": "lamp",
+    "rect": [
+     22,
+     9,
+     1,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "ramen_sign",
+    "kind": "sign",
+    "sprite": "neon",
+    "rect": [
+     29,
+     2,
+     6,
+     1
+    ],
+    "label": "{ramen_name}",
+    "color": "#ff6a5a"
+   },
+   {
+    "id": "yatai",
+    "kind": "prop",
+    "sprite": "yatai",
+    "rect": [
+     30,
+     4,
+     4,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "gen",
+    "kind": "npc",
+    "char": "gen",
+    "pos": [
+     32.0,
+     4.3
+    ],
+    "facing": "down",
+    "script": "gen",
+    "prompt": "話す",
+    "rect": [
+     30,
+     4,
+     4,
+     2
+    ]
+   },
+   {
+    "id": "lamp3",
+    "kind": "prop",
+    "sprite": "lamp",
+    "rect": [
+     40,
+     9,
+     1,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "nagi",
+    "kind": "npc",
+    "char": "nagi",
+    "pos": [
+     42.5,
+     9.7
+    ],
+    "facing": "left",
+    "script": "nagi",
+    "prompt": "話す"
+   },
+   {
+    "id": "poster",
+    "kind": "prop",
+    "sprite": "poster",
+    "rect": [
+     47,
+     3,
+     1,
+     1
+    ],
+    "script": "poster",
+    "prompt": "見る"
+   },
+   {
+    "id": "shop_sign",
+    "kind": "sign",
+    "sprite": "neon",
+    "rect": [
+     52,
+     2,
+     10,
+     1
+    ],
+    "label": "記憶買取 {shop_name}",
+    "color": "#ff5ad0"
+   },
+   {
+    "id": "shop_door",
+    "kind": "warp",
+    "rect": [
+     56,
+     3,
+     2,
+     1
+    ],
+    "to": "shop",
+    "spawn": "entrance",
+    "auto": true,
+    "prompt": "店に入る"
+   },
+   {
+    "id": "lamp4",
+    "kind": "prop",
+    "sprite": "lamp",
+    "rect": [
+     58,
+     9,
+     1,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "canal",
+    "kind": "prop",
+    "sprite": "none",
+    "rect": [
+     0,
+     10,
+     64,
+     1
+    ],
+    "script": "canal",
+    "prompt": "眺める"
+   }
+  ]
+ },
+ "shop": {
+  "name": "記憶買取 メモリア",
+  "outdoor": false,
+  "floor": "shop",
+  "tiles": [
+   "################",
+   "#wwwwwwwwwwwwww#",
+   "#wwwwwwwwwwwwww#",
+   "#,,,,,,,,,,,,,,#",
+   "#,,,,,,,,,,,,,,#",
+   "#,,,,,,,,,,,,,,#",
+   "#,,,,,,,,,,,,,,#",
+   "#,,,,,,,,,,,,,,#",
+   "#,,,,,,,,,,,,,,#",
+   "#######ee#######"
+  ],
+  "spawns": {
+   "entrance": [
+    8.0,
+    8.2,
+    "up"
+   ]
+  },
+  "on_enter": [
+   {
+    "if": "",
+    "script": "shop_enter"
+   }
+  ],
+  "objects": [
+   {
+    "id": "shelf_back",
+    "kind": "deco",
+    "sprite": "jarwall",
+    "rect": [
+     1,
+     1,
+     14,
+     2
+    ]
+   },
+   {
+    "id": "counter",
+    "kind": "prop",
+    "sprite": "counter",
+    "rect": [
+     4,
+     4,
+     8,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "karasuma",
+    "kind": "npc",
+    "char": "karasuma",
+    "pos": [
+     8.0,
+     3.7
+    ],
+    "facing": "down",
+    "script": "karasuma",
+    "prompt": "話す",
+    "rect": [
+     5,
+     3,
+     6,
+     2
+    ]
+   },
+   {
+    "id": "jars_l",
+    "kind": "prop",
+    "sprite": "jars",
+    "rect": [
+     1,
+     4,
+     1,
+     3
+    ],
+    "solid": true,
+    "script": "jars",
+    "prompt": "見る"
+   },
+   {
+    "id": "jars_r",
+    "kind": "prop",
+    "sprite": "jars",
+    "rect": [
+     14,
+     4,
+     1,
+     3
+    ],
+    "solid": true,
+    "script": "jars",
+    "prompt": "見る"
+   },
+   {
+    "id": "chair",
+    "kind": "prop",
+    "sprite": "chair",
+    "rect": [
+     3,
+     6,
+     1,
+     1
+    ],
+    "solid": true,
+    "script": "shop_chair",
+    "prompt": "調べる"
+   },
+   {
+    "id": "plant2",
+    "kind": "prop",
+    "sprite": "plant",
+    "rect": [
+     12,
+     7,
+     1,
+     1
+    ],
+    "solid": true
+   },
+   {
+    "id": "exit",
+    "kind": "warp",
+    "rect": [
+     7,
+     9,
+     2,
+     1
+    ],
+    "to": "town",
+    "spawn": "shop_door",
+    "auto": true,
+    "prompt": "外へ出る"
+   }
+  ]
+ }
+}

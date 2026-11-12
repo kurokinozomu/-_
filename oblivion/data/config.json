@@ -1,0 +1,25 @@
+{
+  "_comment": "ゲームバランス用の設定値。ここを書き換えるだけで調整できる。",
+  "start_money": 3000,
+  "start_debt": 100000,
+  "daily_cost": 2000,
+  "deadline_days": 7,
+  "start_day": 1,
+  "start_map": "home",
+  "start_spawn": "start",
+  "player_speed": 72.0,
+  "player_name": "湊",
+  "save_path": "user://oblivion_save_v1.json",
+  "noise_base": 0.18,
+  "noise_per_memory": 0.16,
+  "tokens": {
+    "_comment": "{token} を本文中で使うと置換される。memory が売却済みなら文字化け表示になる。",
+    "mom": {"text": "母さん", "memory": "mother"},
+    "mother_name": {"text": "春子", "memory": "mother"},
+    "mother_full": {"text": "水瀬春子", "memory": "mother"},
+    "shop_name": {"text": "メモリア", "memory": "city"},
+    "work_name": {"text": "ハコブネ物流", "memory": "city"},
+    "ramen_name": {"text": "らーめん源", "memory": "city"},
+    "town_name": {"text": "霧野町", "memory": "city"}
+  }
+}
