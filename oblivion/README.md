@@ -45,6 +45,13 @@ python3 -m http.server -d build/web 8000
 3. Embed options: Viewport **1280 × 720**、**Mobile friendly**（Orientation: Landscape）、**Fullscreen button** にチェック
 4. SharedArrayBuffer 対応のチェックは**不要**（スレッド無し版のため）
 
+### C. claude.ai のアーティファクト（現在の公開先）
+公開中: https://claude.ai/artifact/KzgomhH8QPwrsCx5qAWv4u （最初は持ち主だけが開ける。ページの「共有」メニューから公開範囲を変える）
+1. `tools/export_web.sh` で書き出す
+2. `python3 tools/make_artifact_page.py` で `build/artifact/` を作る
+   （1ファイル15MBの上限に収めるため、エンジンとデータを gzip にして置き、ページ側で展開する。Service Worker は使えないので PWA なし）
+3. `build/artifact/oblivion.html` を本体、残りのファイルを付属ファイルとして同じ URL に再公開する
+
 ### 実機確認
 公開後、`docs/DEVICE_TEST.md` のチェックリストで iPhone Safari / Android Chrome を確認する。
 
