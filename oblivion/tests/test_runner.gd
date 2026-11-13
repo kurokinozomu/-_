@@ -580,12 +580,20 @@ func _test_data_integrity() -> void:
 		if fn.ends_with(".json"):
 			texts.append(FileAccess.get_file_as_string("res://data/" + fn))
 	texts.append(GlitchText.NOISE)
+	# スクリプト内の文字列 (UI の文言など) も対象にする
+	var re_str := RegEx.new()
+	re_str.compile("\"([^\"\\n]*)\"")
+	for dir in ["res://scripts/autoload", "res://scripts/core", "res://scripts/ui", "res://scripts/world", "res://scripts/art"]:
+		for fn in DirAccess.get_files_at(dir):
+			if fn.ends_with(".gd"):
+				for m in re_str.search_all(FileAccess.get_file_as_string(dir + "/" + fn)):
+					texts.append(m.get_string(1))
 	for t in texts:
 		for ch in str(t):
 			var cp := ch.unicode_at(0)
 			if cp > 127 and not font.has_char(cp):
 				missing[ch] = true
-	check(missing.is_empty(), "全テキストの文字がフォントに収録されている %s" % str(missing.keys()))
+	check(missing.is_empty(), "全テキストの文字がフォントに収録されている (不足があれば tools/subset_font.py を再実行) %s" % str(missing.keys()))
 
 
 func _collect_refs(steps: Variant, refs: Dictionary) -> void:

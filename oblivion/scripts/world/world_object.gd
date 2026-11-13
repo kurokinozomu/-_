@@ -15,6 +15,7 @@ var _t: float = 0.0
 var _anim_speed: float = 0.0
 var _base_facing: String = "down"
 var _look_timer: float = 0.0
+var _redraw_acc: float = 0.0
 
 
 func setup(d: Dictionary, p_font: Font) -> void:
@@ -81,9 +82,12 @@ func _process(delta: float) -> void:
 		_look_timer -= delta
 		if _look_timer <= 0.0:
 			facing = _base_facing
-	# アニメーションするものだけ再描画する (モバイルの負荷対策)
+	# アニメーションするものだけ、毎秒15回まで再描画する (モバイルの負荷対策)
 	if kind == "npc" or kind == "sign" or _is_animated_prop():
-		queue_redraw()
+		_redraw_acc += delta
+		if _redraw_acc >= 1.0 / 15.0:
+			_redraw_acc = 0.0
+			queue_redraw()
 
 
 func _is_animated_prop() -> bool:

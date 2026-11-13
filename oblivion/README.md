@@ -4,10 +4,11 @@
 
 2D生活シミュレーション × 心理ホラー × アドベンチャー。Godot 4.3 (GDScript) / Web ブラウザ向け (PC・iPhone・Android)。
 
-現在 **Phase 3（物語と完成度向上）** まで実装済み。最初から最後まで遊べ、エンディングは6種類。
+**Phase 4（Web公開準備）まで完了**。最初から最後まで遊べ、エンディングは6種類。プレイ時間の目安は15〜25分。
 - Phase 1: 「自宅で目覚める → 街へ出る → 記憶買取店に入る → 母親の記憶を売る → 自宅へ戻る → 母親からの電話に違和感を覚える」
 - Phase 2: 倉庫の仕分けミニゲーム・時間帯（朝/昼/夕方/夜）・生活費と自動融資・ATM返済・5種類すべての記憶の売却と影響
 - Phase 3: 過去の自分の手紙・橋の下・秘密の証拠集めと対決・エンディング6種・BGM/環境音/効果音・演出強化
+- Phase 4: 読み込みの軽量化・描画の高速化・ホーム画面に追加 (PWA)・全画面切替・自動公開の設定
 
 ## 起動方法
 
@@ -19,11 +20,33 @@
 ### Web 版をローカルで遊ぶ
 ```bash
 # Godot 4.3 のエクスポートテンプレートをインストール済みであること
-GODOT=/path/to/godot tools/export_web.sh
+GODOT=/path/to/godot tools/export_web.sh      # 自動テスト → 書き出し (SKIP_TESTS=1 でテスト省略)
 python3 -m http.server -d build/web 8000
 # → http://localhost:8000 を開く (スマホからは同じ LAN の PC の IP で)
 ```
-スレッド無しの書き出し設定なので、COOP/COEP ヘッダーなしの静的ホスティング (GitHub Pages, Netlify, itch.io 等) にそのまま置ける。
+スレッド無しの書き出し設定なので、COOP/COEP ヘッダーなしの静的ホスティングにそのまま置ける。
+ダウンロード量は gzip 圧縮時で約 11MB（エンジン本体 7.8MB + ゲームデータ 3.5MB）。2回目以降はブラウザのキャッシュから起動する。
+
+## 公開方法
+
+### A. GitHub Pages（無料・自動）
+`.github/workflows/oblivion-web.yml` が、**main ブランチに push されると自動でテスト → 書き出し → 公開**する。
+1. このブランチを main にマージする
+2. GitHub のリポジトリで **Settings → Pages → Build and deployment → Source** を **「GitHub Actions」** にする
+3. **Actions** タブで `oblivion-web` を実行（main への push で自動、または「Run workflow」で手動）
+4. 公開URL: `https://<ユーザー名>.github.io/<リポジトリ名>/`
+
+注意: 無料プランの GitHub Pages は **公開 (Public) リポジトリでのみ**使える。リポジトリを公開すると、ゲーム以外のファイル（動画制作システム等）も公開される。
+ゲームだけを公開したい場合は、`oblivion/` だけを別の公開リポジトリに分けるか、下の itch.io を使う。
+
+### B. itch.io（無料・リポジトリ非公開のままでよい）
+1. Actions の実行結果から成果物 **oblivion-web**（zip）をダウンロード（またはローカルで `build/web` を zip にする）
+2. itch.io で新規プロジェクト → Kind of project: **HTML** → zip をアップロードし「This file will be played in the browser」にチェック
+3. Embed options: Viewport **1280 × 720**、**Mobile friendly**（Orientation: Landscape）、**Fullscreen button** にチェック
+4. SharedArrayBuffer 対応のチェックは**不要**（スレッド無し版のため）
+
+### 実機確認
+公開後、`docs/DEVICE_TEST.md` のチェックリストで iPhone Safari / Android Chrome を確認する。
 
 ### 自動テスト
 ```bash
@@ -69,12 +92,13 @@ oblivion/
 ├─ assets/fonts/            DotGothic16 (SIL Open Font License 1.1, OFL.txt 同梱)
 ├─ assets/audio/            BGM・環境音・効果音 (tools/gen_audio.py で合成したオリジナル)
 ├─ tests/                   自動テスト
-├─ tools/                   テスト・Web書き出し・音源生成スクリプト
+├─ tools/                   テスト・Web書き出し・音源生成・フォント軽量化スクリプト (Godot からは無視される)
 └─ docs/DESIGN.md           企画・物語設定・システム設計・ロードマップ
 ```
 
 ## 素材とライセンス
 - グラフィックはすべてコード (`scripts/art/pixel_art.gd`) で描いたオリジナル。外部画像・有料素材は不使用。
 - BGM・効果音もすべて `tools/gen_audio.py` が数式から合成したオリジナル (`python3 tools/gen_audio.py` で再生成。numpy と ffmpeg が必要)。
-- フォント: [DotGothic16](https://github.com/fontworks-fonts/DotGothic16) (SIL OFL 1.1)。npm の `@fontsource/dotgothic16` に同梱のサブセットを結合して1ファイル化。
+- フォント: [DotGothic16](https://github.com/fontworks-fonts/DotGothic16) (SIL OFL 1.1)。npm の `@fontsource/dotgothic16` に同梱のサブセットを結合した全字版を `tools/font_src/` に置き、`tools/subset_font.py` でゲームで使う約1,000字だけに絞ったもの（3.5MB → 191KB）を `assets/fonts/` に入れている。
+  **台詞に新しい漢字を足したら `python3 tools/subset_font.py` を再実行する**（忘れても自動テストが不足文字を検出する）。
 - 外部の生成AI API・有料サービスは不使用。

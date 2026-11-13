@@ -303,7 +303,7 @@ func _process(delta: float) -> void:
 func _publish_state() -> void:
 	var p := world.player.position
 	var st := {
-		"mode": mode, "map": world.map_id, "x": p.x, "y": p.y,
+		"mode": mode, "map": world.map_id, "ios": WebPlatform.is_ios(), "fs_ok": WebPlatform.can_toggle_fullscreen(), "fps": Engine.get_frames_per_second(), "x": p.x, "y": p.y,
 		"dialog": dialogue._mode if dialogue.visible else "",
 		"typing": dialogue._typing,
 		"paper": paper.visible, "photo": photo.visible, "shop": shop.visible,
@@ -330,6 +330,14 @@ func _debug_command(cmd: String) -> void:
 		"sort_time": sorting.time_left = float(p[1])
 		"day": GameState.day = int(p[1]); GameState.changed.emit()
 		"debt": GameState.debt = int(p[1]); GameState.changed.emit()
+		"hide":
+			match p[1]:
+				"noise": noise.visible = false
+				"rain": rain.visible = false
+				"tiles": world.tile_layer.visible = false
+				"objects":
+					for o in world.objects: o.visible = false
+				"hud": hud.visible = false
 
 
 func _try_interact() -> void:

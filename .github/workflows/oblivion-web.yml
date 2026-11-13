@@ -1,0 +1,83 @@
+# 忘却都市 (oblivion/) の Web 版をビルドして GitHub Pages に公開する。
+# - main への push (oblivion/ 以下の変更) か、Actions 画面からの手動実行で動く
+# - 自動テストに失敗したら公開しない
+# - ビルド結果は "oblivion-web" という成果物 (zip) としても保存されるので、itch.io などにも使える
+# 公開には リポジトリの Settings → Pages → Source を「GitHub Actions」にしておく必要がある。
+name: oblivion-web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "oblivion/**"
+      - ".github/workflows/oblivion-web.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: oblivion-pages
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: "4.3"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oblivion
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot and web export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-web-templates
+
+      - name: Install Godot ${{ env.GODOT_VERSION }}
+        run: |
+          set -euo pipefail
+          if [ ! -x "$HOME/godot/godot" ]; then
+            mkdir -p "$HOME/godot" && cd "$HOME/godot"
+            base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+            curl -sSfL -o godot.zip "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+            unzip -q godot.zip && mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot && rm godot.zip
+            curl -sSfL -o templates.tpz "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+            unzip -q templates.tpz 'templates/web*' 'templates/version.txt' && rm templates.tpz
+          fi
+          dest="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$dest" && cp "$HOME/godot/templates/"* "$dest/"
+          "$HOME/godot/godot" --version
+
+      - name: Test and export
+        run: GODOT="$HOME/godot/godot" tools/export_web.sh
+
+      - name: Upload build (zip for itch.io etc.)
+        uses: actions/upload-artifact@v4
+        with:
+          name: oblivion-web
+          path: oblivion/build/web
+          retention-days: 30
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: oblivion/build/web
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -71,7 +71,7 @@ func load_map(id: String, spawn: String, saved_pos: Variant = null, saved_facing
 	map_w = grid[0].length() if map_h > 0 else 0
 	tile_layer.set("grid", grid)
 	tile_layer.set("floor_ch", FLOOR_CHARS.get(str(map.get("floor", "wood")), "."))
-	tile_layer.queue_redraw()
+	tile_layer.call("rebuild")
 	_rebuild_objects()
 	# プレイヤー配置
 	var spawns: Dictionary = map.get("spawns", {})

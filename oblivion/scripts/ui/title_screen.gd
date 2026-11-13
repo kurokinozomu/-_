@@ -53,6 +53,9 @@ func refresh() -> void:
 		info = "データ読み込みエラー: " + GameData.load_errors[0]
 		info_label.add_theme_color_override("font_color", UITheme.WARN)
 	info_label.text = info
+	# iPhone の Safari では、ホーム画面に追加するとアドレスバーなしの全画面で遊べる
+	if WebPlatform.is_ios() and not WebPlatform.is_standalone():
+		info_label.text = "共有ボタン →「ホーム画面に追加」で、全画面で遊べます\n" + info
 	_layout()
 	await get_tree().process_frame
 	if not cont_button.disabled:
@@ -74,9 +77,11 @@ func _layout() -> void:
 	buttons.reset_size()
 	var bs := buttons.get_combined_minimum_size()
 	buttons.position = Vector2((size.x - bs.x) / 2.0, size.y * 0.58)
-	info_label.size = Vector2(size.x, 20)
+	info_label.size = Vector2(size.x, 0)
+	info_label.reset_size()
+	info_label.size.x = size.x
 	var m := UITheme.safe_margins(get_viewport())
-	info_label.position = Vector2(0, size.y - m.w - 20)
+	info_label.position = Vector2(0, size.y - m.w - info_label.get_minimum_size().y)
 
 
 func _process(delta: float) -> void:

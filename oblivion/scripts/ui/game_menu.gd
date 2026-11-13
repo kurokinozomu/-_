@@ -18,6 +18,7 @@ var _t := 0.0
 var _confirm_title := false
 var title_button: Button
 var volume_button: Button
+var fullscreen_button: Button
 
 
 func _ready() -> void:
@@ -41,7 +42,7 @@ func _ready() -> void:
 	info.add_theme_constant_override("line_separation", 1)
 	h.add_child(info)
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
+	v.add_theme_constant_override("separation", 6)
 	h.add_child(v)
 	close_button = UITheme.make_button("ゲームに戻る", 170)
 	close_button.pressed.connect(func(): closed.emit())
@@ -53,11 +54,18 @@ func _ready() -> void:
 	volume_button.pressed.connect(func():
 		volume_button.text = "音量: " + Sound.cycle_volume()
 		Sound.se("select"))
+	fullscreen_button = UITheme.make_button("全画面にする", 170)
+	fullscreen_button.pressed.connect(func():
+		WebPlatform.toggle_fullscreen()
+		Sound.se("select")
+		await get_tree().create_timer(0.3).timeout
+		_update_fullscreen_label())
 	title_button = UITheme.make_button("タイトルへ戻る", 170)
 	title_button.pressed.connect(_on_title)
-	for b in [close_button, save_button, touch_button, volume_button, title_button]:
+	for b in [close_button, save_button, touch_button, volume_button, fullscreen_button, title_button]:
+		b.custom_minimum_size.y = 30
 		v.add_child(b)
-	var help := UITheme.make_label("PC: WASD/矢印で移動\nE/Space で調べる・進む\nEsc でメニュー\n\nスマホ: 左側をドラッグで移動\n右下のボタンで調べる", 12, UITheme.TEXT_DIM)
+	var help := UITheme.make_label("PC：WASD/矢印で移動・E で調べる\nスマホ：左側をドラッグで移動\n　　　　右下のボタンで調べる", 11, UITheme.TEXT_DIM)
 	v.add_child(help)
 	resized.connect(_layout)
 	_update_touch_label()
@@ -69,6 +77,8 @@ func open_menu(touch_mode: String) -> void:
 	title_button.text = "タイトルへ戻る"
 	_update_touch_label()
 	volume_button.text = "音量: " + Sound.volume_name()
+	fullscreen_button.visible = WebPlatform.can_toggle_fullscreen()
+	_update_fullscreen_label()
 	Sound.se("select")
 	_render()
 	visible = true
@@ -102,6 +112,10 @@ func _process(delta: float) -> void:
 			_t = 0.0
 			_seed += 1
 			_render()
+
+
+func _update_fullscreen_label() -> void:
+	fullscreen_button.text = "全画面を解除" if WebPlatform.is_fullscreen() else "全画面にする"
 
 
 func _cycle_touch() -> void:
