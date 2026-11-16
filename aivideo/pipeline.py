@@ -58,7 +58,7 @@ def build_timeline(scenes: list[dict], spoken: list) -> list[dict]:
     for k, (sc, sp) in enumerate(zip(scenes, spoken)):
         lead = LEAD + (0.3 if k == 0 else 0) + (CHAPTER_PAUSE if prev_ch is not None and sc["chapter"] != prev_ch else 0)
         last = k == len(scenes) - 1
-        dur = lead + sp.duration + (END_HOLD if last else TAIL + TRANS)
+        dur = lead + sp.duration + float(sc.get("hold", 0) or 0) + (END_HOLD if last else TAIL + TRANS)
         tl.append({"start": t, "duration": dur, "voice_start": t + lead})
         t += dur - (0 if last else TRANS)
         prev_ch = sc["chapter"]
@@ -158,12 +158,25 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     # 5. ナレーション (目標尺から大きくずれたら話速を調整して 1 回だけ再合成)
     engine = get_tts(settings)
     narrator = Narrator(engine, cache / "tts")
+    voices = plan.get("voices") or {}
+    cast_engines = {}
+    if voices and engine.name == "voicevox":  # ドラマ: 役ごとに別の声
+        from .tts import VoicevoxTTS
+        for role, sid in voices.items():
+            cast_engines[role] = Narrator(VoicevoxTTS(settings.voicevox_url, int(sid), engine.speed), cache / "tts")
+        log("配役: " + " / ".join(f"{r}={n.engine.credit.replace('VOICEVOX:', '')}" for r, n in cast_engines.items()))
+    elif voices:
+        log("役ごとの声には VOICEVOX が必要です。全員同じ声で読み上げます。")
+
+    def speak(sc):
+        return cast_engines.get(sc.get("speaker", ""), narrator).speak(sc["narration"])
+
     log("ナレーション音声を合成中...")
-    spoken = [narrator.speak(s["narration"]) for s in scenes]
+    spoken = [speak(s) for s in scenes]
     est = build_timeline(scenes, spoken)[-1]
     est_total = est["start"] + est["duration"]
     ratio = est_total / seconds
-    if (ratio > 1.12 or ratio < 0.88):
+    if not cast_engines and (ratio > 1.12 or ratio < 0.88):
         new_speed = max(0.9, min(1.2, engine.speed * (ratio ** 0.9)))
         log(f"推定 {est_total:.0f}秒 (目標 {seconds:.0f}秒) → 話速を {engine.speed:.2f}→{new_speed:.2f} に調整")
         engine.speed = new_speed
@@ -181,6 +194,8 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     if plan.get("hud"):
         for sc in scenes:
             sc["onscreen_text"] = ""
+        os.environ.setdefault("AIVIDEO_AI_EVERY", "1")
+    if plan.get("drama"):  # ドラマ: 全カット AI 画像
         os.environ.setdefault("AIVIDEO_AI_EVERY", "1")
     plan["_animate"] = animate  # キャラクターの居場所を空けたレイアウトにする
     imager = SceneImager(settings, plan, cache / "images")
@@ -241,7 +256,9 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     audio.write_wav(wav, mixed)
 
     # 7. 字幕
-    sents = [(txt, tm["voice_start"] + a, tm["voice_start"] + b, sc.get("highlight", []))
+    colors = plan.get("colors") or {}
+    sents = [(txt, tm["voice_start"] + a, tm["voice_start"] + b, sc.get("highlight", []),
+              colors.get(sc.get("speaker", "")))
              for sc, tm, sp in zip(scenes, tl, spoken) for txt, a, b in sp.sentences]
     events = subtitles.build_events(sents)
     ass = work / "subtitles.ass"
@@ -270,7 +287,7 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     # 10. サムネイル・メタデータ
     if not shorts:  # ショートはアプリ上で動画内のフレームを表紙に選ぶ
         imager.thumbnail(out_dir / "thumbnail.png")
-    credits = set(imager.used) | {engine.credit}
+    credits = set(imager.used) | ({n.engine.credit for n in cast_engines.values()} or {engine.credit})
     if sub_font or imager.heavy_font:
         credits.add("フォント: M PLUS Rounded 1c / Dela Gothic One (SIL Open Font License)")
     write_metadata(plan, scenes, tl, total, credits, out_dir)

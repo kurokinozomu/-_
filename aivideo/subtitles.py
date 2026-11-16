@@ -123,19 +123,20 @@ def build_events(sentences) -> list[tuple[str, float, float, list[str]]]:
     events = []
     for item in sentences:
         text, start, end = item[:3]
-        hl = list(item[3]) if len(item) > 3 else []
+        hl = list(item[3]) if len(item) > 3 and item[3] else []
+        color = item[4] if len(item) > 4 else None
         parts = chunk(clean(text))
         total = sum(len(p) for p in parts) or 1
         t = start
         for p in parts:
             d = (end - start) * len(p) / total
-            events.append((p, t, t + d, hl))
+            events.append((p, t, t + d, hl, color))
             t += d
     # 隙間が短い字幕はつなげてチラつきを防ぐ
     for k in range(len(events) - 1):
         a, b = events[k], events[k + 1]
         if 0 < b[1] - a[2] < 0.35:
-            events[k] = (a[0], a[1], b[1], a[3])
+            events[k] = (a[0], a[1], b[1]) + tuple(a[3:])
     return events
 
 
@@ -210,7 +211,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         t0, t1 = _ass_time(s), _ass_time(e)
         longest = max(len(ln) for ln in wrapped.split("\\N"))
         fit = f"\\fs{int(fs * (LINE_MAX + 0.5) / longest)}" if longest > LINE_MAX else ""  # はみ出す行は少し小さく
-        lines.append(f"Dialogue: 0,{t0},{t1},Outer,,0,0,0,,{{\\fad(70,70)\\blur1.5{fit}}}{wrapped}\n")
+        spk = ev[4] if len(ev) > 4 and ev[4] else None   # 話し手ごとのフチの色 (#RRGGBB)
+        oc_tag = ""
+        if spk:
+            r_, g_, b_ = (int(spk.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))
+            oc_tag = f"\\3c{_ass_color((r_, g_, b_))}&\\1c{_ass_color((r_, g_, b_))}&"
+        lines.append(f"Dialogue: 0,{t0},{t1},Outer,,0,0,0,,{{\\fad(70,70)\\blur1.5{fit}{oc_tag}}}{wrapped}\n")
         lines.append(f"Dialogue: 1,{t0},{t1},Inner,,0,0,0,,{{\\fad(70,70){fit}}}{inner}\n")
     path.write_text("".join(lines), encoding="utf-8")
 
