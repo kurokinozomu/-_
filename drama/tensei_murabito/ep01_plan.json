@@ -20,7 +20,8 @@
     "ガルド": 13,
     "神官": 42,
     "ナレーション": 52,
-    "システム": 89
+    "システム": 89,
+    "村人": 12
   },
   "colors": {
     "湊": "#2F80ED",
@@ -55,14 +56,14 @@
           "chapter": 0,
           "speaker": "ナレーション",
           "narration": "死んだと思ったら、異世界にいた。しかも――",
-          "onscreen_text": "転生したら―― レベル1の村人だった",
+          "onscreen_text": "レベル1の村人だった",
           "visual_prompt": "a 25-year-old Japanese man, short messy black hair, dark brown eyes, slim build, clean-shaven, wearing a worn beige linen tunic with a brown leather belt and dark brown trousers, standing alone in a small medieval European-style frontier village with timber-framed houses, surrounded by forest and distant mountains at dawn, staring in shock at a translucent glowing blue status window floating in front of him",
           "camera": "zoom_in",
           "transition": "fade",
           "sfx": "impact",
           "emoji": [],
           "highlight": [],
-          "hold": 0.3
+          "hold": 0.6
         },
         {
           "id": "s001",
@@ -76,7 +77,7 @@
           "sfx": "whoosh",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
           "id": "s002",
@@ -90,7 +91,7 @@
           "sfx": "chime",
           "emoji": [],
           "highlight": [],
-          "hold": 0.4
+          "hold": 0.5
         },
         {
           "id": "s003",
@@ -104,10 +105,24 @@
           "sfx": "none",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
           "id": "s004",
+          "chapter": 0,
+          "speaker": "湊",
+          "narration": "剣と魔法の……異世界？　本当に、転生したのか。",
+          "onscreen_text": "",
+          "visual_prompt": "wide shot of a small medieval European-style frontier village with timber-framed houses, surrounded by forest and distant mountains seen from a hill, a distant castle on a cliff, two dragons flying across a golden sky, a 25-year-old Japanese man, short messy black hair, dark brown eyes, slim build, clean-shaven, wearing a worn beige linen tunic with a brown leather belt and dark brown trousers standing small in the foreground seen from behind",
+          "camera": "zoom_out",
+          "transition": "dissolve",
+          "sfx": "whoosh",
+          "emoji": [],
+          "highlight": [],
+          "hold": 0.6
+        },
+        {
+          "id": "s005",
           "chapter": 0,
           "speaker": "神官",
           "narration": "次の者。水晶に手をかざしなさい。",
@@ -118,10 +133,10 @@
           "sfx": "none",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s005",
+          "id": "s006",
           "chapter": 0,
           "speaker": "湊",
           "narration": "職業鑑定……ゲームかよ。",
@@ -132,10 +147,10 @@
           "sfx": "chime",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s006",
+          "id": "s007",
           "chapter": 0,
           "speaker": "神官",
           "narration": "職業……村人。レベル、1じゃ。",
@@ -146,10 +161,24 @@
           "sfx": "none",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s007",
+          "id": "s008",
+          "chapter": 0,
+          "speaker": "村人",
+          "narration": "おい聞いたか、転生者なのに村人だってよ。",
+          "onscreen_text": "",
+          "visual_prompt": "a crowd of medieval villagers whispering and pointing, smirking faces, a small medieval European-style frontier village with timber-framed houses, surrounded by forest and distant mountains",
+          "camera": "pan_left",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [],
+          "highlight": [],
+          "hold": 0.5
+        },
+        {
+          "id": "s009",
           "chapter": 0,
           "speaker": "ガルド",
           "narration": "ハッ。転生者と聞いて期待したが、ただの村人か。",
@@ -160,10 +189,10 @@
           "sfx": "pop",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s008",
+          "id": "s010",
           "chapter": 0,
           "speaker": "ガルド",
           "narration": "せいぜい畑でも耕してろ。",
@@ -174,10 +203,10 @@
           "sfx": "none",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s009",
+          "id": "s011",
           "chapter": 0,
           "speaker": "湊",
           "narration": "（村人って……最弱じゃねえか）",
@@ -188,10 +217,10 @@
           "sfx": "none",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s010",
+          "id": "s012",
           "chapter": 0,
           "speaker": "リナ",
           "narration": "大丈夫？　私はリナ。あんな人、気にしないで。",
@@ -202,10 +231,24 @@
           "sfx": "none",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s011",
+          "id": "s013",
+          "chapter": 0,
+          "speaker": "湊",
+          "narration": "……ありがとう。",
+          "onscreen_text": "",
+          "visual_prompt": "close-up of a 25-year-old Japanese man, short messy black hair, dark brown eyes, slim build, clean-shaven, wearing a worn beige linen tunic with a brown leather belt and dark brown trousers looking up with a small grateful smile, warm afternoon light",
+          "camera": "push",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [],
+          "highlight": [],
+          "hold": 0.6
+        },
+        {
+          "id": "s014",
           "chapter": 0,
           "speaker": "ナレーション",
           "narration": "その時だった。",
@@ -216,10 +259,24 @@
           "sfx": "impact",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s012",
+          "id": "s015",
+          "chapter": 0,
+          "speaker": "リナ",
+          "narration": "魔物よ！　みんな、逃げて！",
+          "onscreen_text": "",
+          "visual_prompt": "an 18-year-old young woman, long chestnut-brown hair in a side braid, green eyes, gentle face, wearing a moss-green linen dress with a white apron, terrified, running and shouting toward the villagers, black wolves chasing in the background, dramatic motion",
+          "camera": "pan_right",
+          "transition": "slideleft",
+          "sfx": "whoosh",
+          "emoji": [],
+          "highlight": [],
+          "hold": 0.5
+        },
+        {
+          "id": "s016",
           "chapter": 0,
           "speaker": "ガルド",
           "narration": "下がってろ、雑魚ども！　ファイアボール！",
@@ -230,10 +287,24 @@
           "sfx": "impact",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s013",
+          "id": "s017",
+          "chapter": 0,
+          "speaker": "ナレーション",
+          "narration": "炎が、魔物の群れを飲み込んだ。その瞬間――",
+          "onscreen_text": "",
+          "visual_prompt": "a massive fireball explosion engulfing a pack of black wolves at the edge of a forest, flames and embers flying, epic cinematic action",
+          "camera": "zoom_out",
+          "transition": "fadeblack",
+          "sfx": "impact",
+          "emoji": [],
+          "highlight": [],
+          "hold": 0.5
+        },
+        {
+          "id": "s018",
           "chapter": 0,
           "speaker": "湊",
           "narration": "……なんだ、これ。",
@@ -244,10 +315,10 @@
           "sfx": "whoosh",
           "emoji": [],
           "highlight": [],
-          "hold": 0.0
+          "hold": 0.5
         },
         {
-          "id": "s014",
+          "id": "s019",
           "chapter": 0,
           "speaker": "システム",
           "narration": "隠しスキル、模倣を確認しました。",
@@ -258,10 +329,10 @@
           "sfx": "chime",
           "emoji": [],
           "highlight": [],
-          "hold": 0.3
+          "hold": 0.5
         },
         {
-          "id": "s015",
+          "id": "s020",
           "chapter": 0,
           "speaker": "湊",
           "narration": "俺にも……使える、のか？",
@@ -272,10 +343,10 @@
           "sfx": "impact",
           "emoji": [],
           "highlight": [],
-          "hold": 0.4
+          "hold": 0.5
         },
         {
-          "id": "s016",
+          "id": "s021",
           "chapter": 0,
           "speaker": "ナレーション",
           "narration": "最弱の村人の、成り上がりが始まる。",
