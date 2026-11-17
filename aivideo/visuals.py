@@ -268,13 +268,13 @@ def radial_glow(size, center, color, radius, strength=0.8) -> Image.Image:
 
 
 def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
-                       size=None, char_space: bool = False) -> Image.Image | None:
+                       size=None, char_space: bool = False, talk: bool = False) -> Image.Image | None:
     """絵文字イラストを使った、シーン内容に合わせた背景イラスト。"""
     from . import assets
     rnd = random.Random(seed)
     W, H = size = size or (IMG_W, IMG_H)
     tall = H > W
-    main_size = int(W * (0.44 if char_space else 0.52)) if tall else int(H * 0.46)
+    main_size = int(W * (0.44 if char_space else 0.52)) if tall else int(H * (0.4 if talk else 0.46))
     side_ratio = 0.45 if H > W else 0.55
     imgs = [assets.emoji_image(e, main_size if i == 0 else int(main_size * side_ratio))
             for i, e in enumerate(emojis[:3])]
@@ -287,6 +287,9 @@ def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
     cx = {"center": W * 0.5, "left": W * 0.36, "right": W * 0.64}[layout]
     if tall and char_space:  # 左下にしゃべるキャラクターが入るので、イラストは右へ
         cx = W * 0.64
+    if talk and not tall:    # 掛け合い: 下の左右に顔キャラ、下中央に字幕が入るので中央やや上へ
+        layout, cx, cy = "center", W * 0.5, H * 0.42
+        main_size = int(H * 0.4)
     cy = H * (0.47 if tall else 0.49)
     style = rnd.choice(["rays", "rays", "dots", "plain"])
     if style == "rays":
@@ -663,7 +666,8 @@ class SceneImager:
                 return img, "ai"
         if self.illustrations and scene.get("emoji"):
             img = illustration_scene(scene["emoji"], self.palette, seed,
-                                     char_space=bool(self.plan.get("_animate")))
+                                     char_space=bool(self.plan.get("_animate")),
+                                     talk=bool(self.plan.get("talk")))
             if img is not None:
                 self.used.add(ILLUSTRATION_CREDIT)
                 return img, "illustration"

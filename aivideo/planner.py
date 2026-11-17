@@ -59,7 +59,7 @@ def _concept_prompt(theme: str, target_sec: float, n_chapters: int) -> str:
 ナレーション総文字数の目安は約{total_chars}文字です（合成音声で毎秒約{CHARS_PER_SEC:.0f}文字）。
 章の数は{n_chapters}個にしてください（1個目は導入フック、最後はまとめ。1個だけなら全体で1章）。
 
-{escalation_guide(theme)}{ranking_guide(theme)}{avoid_block()}
+{escalation_guide(theme)}{ranking_guide(theme)}{talk_guide(theme)}{avoid_block()}
 次の JSON を出力:
 {{
   "concept": {{
@@ -112,6 +112,30 @@ def avoid_block() -> str:
         return ""
     return ("\n【これまでの動画で使用済みの項目。同じ内容・同じ雑学は使わず、別のネタにすること】\n"
             + "、".join(_AVOID) + "\n")
+
+
+TALK_RE = re.compile(r"ゆっくり|掛け合い|雑談|実況風|解説風")
+
+
+def talk_guide(theme: str) -> str:
+    """ゆっくり実況・解説風の、2 人の掛け合い動画の演出指示。"""
+    if not TALK_RE.search(theme):
+        return ""
+    return """
+【この動画は 2 人のキャラクターの掛け合い（ゆっくり実況・解説風の雑談）です】
+- 登場するのは「ミカン」（ボケ担当。元気で、思いつきで話す。語尾は「〜だよ！」「〜じゃん」）と
+  「ソラ」（ツッコミ担当。冷静で物知り。語尾は「〜だね」「〜でしょ」）。ナレーションは入れない
+- 1 シーン = 1 人の 1 セリフ（10〜35文字）。2 人が交互にテンポよく話す。同じ人が 3 回続けて話さない
+- シーン数は、指定された数の約 2.5 倍にする（セリフが短いため）
+- ボケ → ツッコミ、あるある → 共感、豆知識 → 驚き、の流れで笑いと「へぇ」を混ぜる
+- 冒頭は「ミカンだよ！」「ソラです」の短い挨拶からすぐ本題へ。最後は「ご視聴ありがとうございました」で締める
+- 各シーンに次のキーを追加:
+  "speaker": "ミカン" か "ソラ",
+  "expr": そのセリフの表情。normal / happy / surprised / angry / troubled / smug のいずれか（変化をつける）
+- onscreen_text は話題が変わるシーンだけに入れる見出し（12文字以内）。それ以外は空文字
+- emoji は話題を表すイラスト（1〜2個）。同じ話題の間は同じ絵文字にする
+- bgm_mood は upbeat か warm
+"""
 
 
 def ranking_guide(theme: str) -> str:
@@ -192,7 +216,7 @@ def _scenes_prompt(theme: str, plan: dict, idx: int, prev_tail: str) -> str:
 章の狙い: {ch.get('goal', '')}
 {position}{cont}
 
-{escalation_guide(theme)}{ranking_guide(theme)}{avoid_block()}
+{escalation_guide(theme)}{ranking_guide(theme)}{talk_guide(theme)}{avoid_block()}
 これを約{n_scenes}個のシーンに分割してください。1シーンは4〜10秒（ナレーション25〜60文字、1〜3文）。
 画像はシーンごとにAIで生成します。visual_prompt は英語で、具体的な被写体・構図・光・雰囲気を書き、
 文字・ロゴ・実在の人物や作品は含めないでください（画面に文字を入れたい場合は onscreen_text を使う）。
@@ -224,7 +248,7 @@ def _shorts_prompt(theme: str, target_sec: float) -> str:
     return f"""テーマ「{theme}」で、YouTubeショート（縦型・約{target_sec:.0f}秒）の台本を書いてください。
 ナレーションは合計約{chars}文字（±10%）、約{n}シーン。1シーンは2〜4秒（ナレーション10〜25文字、1文）。
 
-{escalation_guide(theme)}{ranking_guide(theme)}{avoid_block()}
+{escalation_guide(theme)}{ranking_guide(theme)}{talk_guide(theme)}{avoid_block()}
 ショートの鉄則:
 - 最初の1文（1〜2秒）で結論か強烈な問いを出す。挨拶・前置きは入れない
 - 1シーン1情報。テンポよく畳みかけ、途中で「実は」「しかも」で展開を変える

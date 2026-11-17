@@ -12,6 +12,7 @@ from pathlib import Path
 from . import audio, render, subtitles
 from . import animate as anim_mod
 from . import registry
+from . import talk as talk_mod
 from . import config, visuals
 from .config import ROOT, Settings, log
 from .llm import get_llm
@@ -27,13 +28,15 @@ CHAPTER_PAUSE = 0.4
 END_HOLD = 2.0
 
 
-def use_profile(shorts: bool) -> None:
-    """ショート (縦型・テンポ重視) / 通常 (横型) の編集設定に切り替える。"""
+def use_profile(shorts: bool, talk: bool = False) -> None:
+    """ショート (縦型・テンポ重視) / 通常 (横型) / 掛け合い の編集設定に切り替える。"""
     global TRANS, LEAD, TAIL, CHAPTER_PAUSE, END_HOLD
     config.set_vertical(shorts)
     visuals.set_canvas(config.WIDTH, config.HEIGHT)
-    subtitles.configure(shorts)
-    if shorts:
+    subtitles.configure(shorts, talk)
+    if talk:  # セリフの応酬: 間を詰めて、転換はごく短く
+        TRANS, LEAD, TAIL, CHAPTER_PAUSE, END_HOLD = 0.12, 0.06, 0.1, 0.25, 1.5
+    elif shorts:
         TRANS, LEAD, TAIL, CHAPTER_PAUSE, END_HOLD = 0.3, 0.15, 0.12, 0.0, 1.2
     else:
         TRANS, LEAD, TAIL, CHAPTER_PAUSE, END_HOLD = 0.6, 0.45, 0.35, 0.4, 2.0
@@ -146,7 +149,22 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     else:
         plan = make_plan(get_llm(settings), theme, seconds, shorts=shorts,
                          avoid=registry.used_items(limit=int(os.environ.get("AIVIDEO_AVOID_LIMIT", "400"))))
-    use_profile(shorts)
+    from .planner import TALK_RE
+    if plan.get("talk") or TALK_RE.search(plan.get("theme", "")) or any(
+            s.get("expr") for ch in plan.get("chapters", []) for s in ch.get("scenes", [])):
+        plan["talk"] = True
+        plan.setdefault("cast", talk_mod.DEFAULT_CAST)
+        plan.setdefault("voices", dict(talk_mod.DEFAULT_VOICES))
+        plan.setdefault("colors", dict(talk_mod.DEFAULT_COLORS))
+        names = [c["name"] for c in plan["cast"]]
+        k = 0
+        for ch in plan.get("chapters", []):
+            for s in ch.get("scenes", []):
+                if s.get("speaker") not in names:
+                    s["speaker"] = names[k % len(names)]
+                k += 1
+                s["sfx"] = s.get("sfx") if s.get("onscreen_text") else "none"
+    use_profile(shorts, bool(plan.get("talk")))
     if shorts:
         log("ショート動画 (縦 1080x1920) として制作します")
         settings.tts_speed = max(settings.tts_speed, 1.18)
@@ -204,7 +222,23 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     telops = {}
     img_workers = 1 if imager.ai else workers
 
+    # 掛け合い: セリフごとに背景を変えると落ち着かないので、話題 (見出し/イラスト) が変わるまで同じ背景を使う
+    leader = list(range(len(scenes)))
+    if plan.get("talk"):
+        for k in range(1, len(scenes)):
+            same = (not scenes[k].get("onscreen_text")) and (
+                scenes[k].get("emoji") == scenes[leader[k - 1]].get("emoji") or k - leader[k - 1] < 3)
+            if same and scenes[k].get("chapter") == scenes[k - 1].get("chapter"):
+                leader[k] = leader[k - 1]
+                scenes[k]["camera"] = "hold"
+                scenes[k]["transition"] = "fade"
+        for k in range(len(scenes)):
+            if leader[k] == k:
+                scenes[k]["camera"] = "push"
+
     def mk_img(k):
+        if leader[k] != k:
+            return
         telops[k] = imager.render(scenes[k], img_paths[k])
 
     with ThreadPoolExecutor(max_workers=img_workers) as ex:
@@ -215,7 +249,28 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     # 8a. カメラワーク付きシーン映像
     log("シーン映像をレンダリング中 (カメラワーク)...")
     clip_paths = [work / f"{s['id']}.mp4" for s in scenes]
-    if animate:
+    for k in range(len(scenes)):  # 同じ背景を使うシーン
+        if leader[k] != k:
+            img_paths[k] = img_paths[leader[k]]
+            telops[k] = telops.get(leader[k])
+    if plan.get("talk"):
+        log("掛け合い (左右のキャラクターが口パクで会話) で描画します")
+        env = anim_mod.voice_envelope(total, [(tm["voice_start"], sp.audio) for tm, sp in zip(tl, spoken)])
+        jobs = [(img_paths[k], clip_paths[k], tl[k]["duration"], sc["camera"], telops.get(k), tl[k]["start"], env,
+                 {"cast": plan["cast"], "speaker": sc.get("speaker", ""), "expr": sc.get("expr", "normal"),
+                  "seed": k, "slide": leader[k] == k})
+                for k, sc in enumerate(scenes)]
+        done = [0]
+
+        def one_talk(job):
+            talk_mod.render_talk_clip(*job)
+            done[0] += 1
+            if done[0] % 10 == 0 or done[0] == len(jobs):
+                log(f"  シーン映像 {done[0]}/{len(jobs)}")
+
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            list(ex.map(one_talk, jobs))
+    elif animate:
         log("アニメーション演出 (口パクするキャラクター・声のエフェクト) で描画します")
         env = anim_mod.voice_envelope(total, [(tm["voice_start"], sp.audio) for tm, sp in zip(tl, spoken)])
         hud = plan.get("hud") or {}

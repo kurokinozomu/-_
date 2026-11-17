@@ -171,10 +171,14 @@ def _highlight(line: str, words: list[str]) -> str:
     return line
 
 
-def configure(vertical: bool) -> None:
-    """縦型ショートでは 1 行を短く、2 行までに収める。"""
-    global LINE_MAX, EVENT_MAX
-    LINE_MAX, EVENT_MAX = (11, 22) if vertical else (19, 34)
+TALK = False
+
+
+def configure(vertical: bool, talk: bool = False) -> None:
+    """縦型ショートでは 1 行を短く。掛け合い動画では左右のキャラクターの間に収める。"""
+    global LINE_MAX, EVENT_MAX, TALK
+    TALK = talk and not vertical
+    LINE_MAX, EVENT_MAX = (11, 22) if vertical else ((14, 28) if talk else (19, 34))
 
 
 def write_ass(events, path: Path, font_family: str, outer: tuple[int, int, int] = (20, 60, 140),
@@ -185,8 +189,8 @@ def write_ass(events, path: Path, font_family: str, outer: tuple[int, int, int] 
     """
     oc = _ass_color(outer)
     tall = height > width
-    fs = 82 if tall else 86
-    mv = int(height * 0.27) if tall else 46   # 縦型はショートの下部 UI を避けて少し上に
+    fs = 82 if tall else (70 if TALK else 86)
+    mv = int(height * 0.27) if tall else (30 if TALK else 46)   # 縦型はショートの下部 UI を避けて少し上に
     head = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {width}
