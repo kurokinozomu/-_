@@ -1,0 +1,1323 @@
+{
+  "concept": {
+    "angle": "湯船が薄暗かった理由と、湯上がりにくつろいだ二階座敷から、江戸の銭湯をお湯につかる場所であり町の社交場でもあった施設として読み解く",
+    "hook": "江戸の銭湯では、湯船のまわりが薄暗く、隣の人の顔もよく見えなかったと伝えられているんです。",
+    "target_audience": "歴史や江戸の暮らしに興味がある大人。時代劇や落語が好きな人。銭湯やサウナが好きな人",
+    "promise": "江戸の人がなぜ銭湯に通ったのか、湯屋の造りと過ごし方、男たちが集まった二階の様子がわかります。時代劇や落語の場面も、今までより楽しく見られるようになります。"
+  },
+  "visual_style": "flat ukiyo-e woodblock print inspired digital painting, Edo period townscape, soft steam and lantern glow, calm palette of indigo, kinari cream and muted vermilion, people drawn small in the distance as simple stylized figures, not photorealistic, no modern objects, calm and nostalgic atmosphere, no text",
+  "bgm_mood": "warm",
+  "palette": [
+    "#1F3A5F",
+    "#F2E3C6",
+    "#C8553D"
+  ],
+  "titles": [
+    "江戸の銭湯、湯船は真っ暗だった？知られざる湯屋の姿",
+    "江戸っ子はなぜ毎日銭湯へ？家に風呂がなかった理由",
+    "湯上がりは二階へ｜江戸の銭湯は町のサロンだった",
+    "混浴が当たり前？江戸の銭湯と幕府の禁令",
+    "江戸の銭湯はどんな場所？4つの顔で読み解く",
+    "湯銭は約10文、江戸に500軒｜江戸の銭湯のリアル"
+  ],
+  "description": "江戸の町の人たちは、多くが家にお風呂を持たず、町の「湯屋（ゆや）」に通っていました。\nでも、その湯屋は今の銭湯とはかなり違う場所だったんです。\n\n湯船の入り口にある、身をかがめてくぐる「柘榴口（ざくろぐち）」。\n湯気がこもり、薄暗かったといわれる湯船。\n男女が同じ湯に入る「入込湯（いれこみゆ）」と、寛政・天保の改革で出された禁令。\nそして湯上がりの男たちが集まり、お茶を飲んだり将棋を指したりした二階の座敷。\n\nこの動画では、史料から確かめられることと言い伝えを分けながら、江戸の銭湯が町の暮らしの中でどんな役割を持っていたのかを、やさしく解説します。\n時代劇や落語に出てくる湯屋の場面が、きっと今までより身近に感じられるはずです。\n\n感想や「こんな江戸の暮らしを知りたい」というリクエストは、コメント欄で気軽に教えてくださいね。\n\n#江戸時代 #銭湯 #日本史",
+  "tags": [
+    "江戸時代",
+    "銭湯",
+    "湯屋",
+    "江戸の暮らし",
+    "日本史",
+    "柘榴口",
+    "浮世風呂",
+    "式亭三馬",
+    "混浴",
+    "寛政の改革",
+    "天保の改革",
+    "江戸っ子",
+    "歴史雑学",
+    "風呂の歴史",
+    "町人文化"
+  ],
+  "thumbnail": {
+    "label": "江戸の謎",
+    "line1": "江戸の銭湯",
+    "line2": "湯船は真っ暗？",
+    "emphasis": "真っ暗",
+    "sub_text": "湯屋は町のサロンだった",
+    "badge": "必見",
+    "emoji": [
+      "♨️",
+      "🏮"
+    ],
+    "image_prompt": "Edo period Japanese public bathhouse interior, dim wooden bath area filled with soft steam, an ornate low wooden entrance gate to the bath glowing with warm lantern light on the right side, wooden buckets in the foreground, indigo, kinari cream and muted vermilion tones, flat ukiyo-e woodblock inspired digital painting, no people faces in detail, no text",
+    "ideas": [
+      "右側に湯気の立つ薄暗い柘榴口、左側に大見出し「江戸の銭湯／湯船は真っ暗？」を配置し、「真っ暗」を朱で強調する",
+      "上下二分割で、上に湯気の湯船、下に湯上がりの二階座敷のシルエットを置き、「下は湯、上はサロン」の対比を見せる",
+      "江戸の町並みの夕景に湯屋の藍色ののれんと提灯を右に置き、左に手桶と♨️の絵文字を大きく配置する"
+    ],
+    "text": "江戸の銭湯はどんな場所だ"
+  },
+  "chapters": [
+    {
+      "title": "湯船は薄暗かった？",
+      "goal": "江戸の銭湯の湯船は薄暗く、湯気でよく見えなかったという意外な事実をフックにする。今の銭湯とはまるで違う場所だったことを示し、「なぜ暗いのか」「みんなは湯上がりにどこへ行ったのか」というオープンループを置く",
+      "seconds": 50.0,
+      "scenes": [
+        {
+          "narration": "江戸の銭湯の湯船は、実は薄暗くて、隣の人の顔もよく見えなかったんです。",
+          "onscreen_text": "湯船は薄暗かった",
+          "visual_prompt": "Dim interior of an Edo-period Japanese public bathhouse, wooden bathtub filled with steaming hot water, thick white steam swirling, faint warm light from a small opening, silhouettes of bathers barely visible through the haze, mysterious and calm atmosphere, cinematic low-key lighting, painterly historical illustration style",
+          "camera": "zoom_in",
+          "transition": "fadeblack",
+          "sfx": "impact",
+          "emoji": [
+            "♨️",
+            "🌫️",
+            "🏮"
+          ],
+          "highlight": [
+            "薄暗くて"
+          ],
+          "id": "s000",
+          "chapter": 0,
+          "_chapter_first": true
+        },
+        {
+          "narration": "今の銭湯のように、明るいタイル張りの広い浴室を想像すると、まるで違います。",
+          "onscreen_text": "",
+          "visual_prompt": "Bright modern Japanese public bath interior with clean white tiles, large open bathing area, wide windows letting in daylight, shiny faucets in a row, no people, airy and clean atmosphere, soft natural lighting, wide-angle composition",
+          "camera": "pan_right",
+          "transition": "slideleft",
+          "sfx": "whoosh",
+          "emoji": [
+            "🛁",
+            "💡"
+          ],
+          "highlight": [
+            "まるで違います"
+          ],
+          "id": "s001",
+          "chapter": 0
+        },
+        {
+          "narration": "湯船のまわりは湯気がこもり、ぼんやりとした明かりの中で、人々はお湯につかっていました。",
+          "onscreen_text": "",
+          "visual_prompt": "Edo-period townspeople soaking quietly in a dark wooden bathtub, dense steam filling the cramped space, a single faint shaft of warm light cutting through the vapor, wooden beams overhead, relaxed and hushed mood, soft focus, painterly historical illustration, faces indistinct",
+          "camera": "pan_left",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "♨️",
+            "🪵",
+            "🌫️"
+          ],
+          "highlight": [
+            "湯気がこもり"
+          ],
+          "id": "s002",
+          "chapter": 0
+        },
+        {
+          "narration": "暗い中では「ひえもんでござい」、冷えた体で失礼します、と声をかけて入ったと伝わっています。",
+          "onscreen_text": "ひえもんでござい＝冷えた体で失礼",
+          "visual_prompt": "A man in Edo-period style bending forward to step into a steamy dark bathing area, his hand raised politely as if announcing himself, other bathers as vague shadows in the mist, warm dim lantern glow, gentle and slightly humorous mood, painterly historical illustration, face not detailed",
+          "camera": "zoom_in",
+          "transition": "smoothleft",
+          "sfx": "pop",
+          "emoji": [
+            "🙇",
+            "♨️",
+            "🗣️"
+          ],
+          "highlight": [
+            "ひえもんでござい",
+            "冷えた体"
+          ],
+          "id": "s003",
+          "chapter": 0
+        },
+        {
+          "narration": "でも実は、銭湯はお湯につかるだけの場所ではありませんでした。",
+          "onscreen_text": "それだけじゃない",
+          "visual_prompt": "Exterior of a traditional Edo-period bathhouse on a lively town street at dusk, wooden two-story building with a fabric curtain at the entrance, steam rising from the roof, townspeople in kimono passing by, warm lantern light, nostalgic atmosphere, painterly historical illustration, no text on signs or curtain",
+          "camera": "zoom_out",
+          "transition": "wipeleft",
+          "sfx": "whoosh",
+          "emoji": [
+            "🏠",
+            "👘",
+            "🏮"
+          ],
+          "highlight": [
+            "でも実は"
+          ],
+          "id": "s004",
+          "chapter": 0
+        },
+        {
+          "narration": "なぜ湯船は暗かったのか。そして、湯上がりの人々はどこへ向かったのか。",
+          "onscreen_text": "なぜ暗い？どこへ？",
+          "visual_prompt": "Cutaway view of a two-story wooden Edo-period bathhouse on a night street, dark kawara tile roof, indigo noren curtain and paper lanterns at the entrance, the ground floor dim and filled with steam behind a low ornate zakuroguchi gable, warm light glowing from the lattice windows of the second-floor tatami room, tiny distant figures of townsmen in light cotton yukata with chonmage topknots and tenugui towels on their shoulders walking from the steamy bath toward a steep wooden staircase leading upstairs, flat ukiyo-e woodblock print style, simple stylized figures, no text",
+          "camera": "pan_up",
+          "transition": "circleopen",
+          "sfx": "chime",
+          "emoji": [
+            "❓",
+            "🪜",
+            "♨️"
+          ],
+          "highlight": [
+            "なぜ",
+            "どこへ"
+          ],
+          "id": "s005",
+          "chapter": 0
+        },
+        {
+          "narration": "今日は、江戸の町の暮らしに欠かせなかった湯屋の中を、のぞいてみましょう。",
+          "onscreen_text": "江戸の湯屋へ",
+          "visual_prompt": "View through a half-open wooden sliding door into a warm, bustling Edo-period bathhouse entrance, wooden floor, baskets for clothes, soft steam and golden lamp light, inviting and gentle atmosphere, eye-level composition as if the viewer is stepping inside, painterly historical illustration",
+          "camera": "zoom_in",
+          "transition": "zoomin",
+          "sfx": "none",
+          "emoji": [
+            "🚪",
+            "♨️",
+            "🏯"
+          ],
+          "highlight": [
+            "湯屋"
+          ],
+          "id": "s006",
+          "chapter": 0
+        }
+      ]
+    },
+    {
+      "title": "家に風呂がない町",
+      "goal": "江戸の町人の多くが内風呂を持たなかった理由を説明する。火事への警戒、燃料や水の手間、長屋の狭さなど、一般に挙げられる事情を紹介し、湯銭や湯屋の軒数の目安を示して、湯屋が暮らしに欠かせなかったことを伝える。章末で「その湯屋の中には、ちょっと変わった入り口がありました」と引く",
+      "seconds": 80.0,
+      "scenes": [
+        {
+          "narration": "まず、少し意外な事実から始めましょう。江戸の町人の多くは、家にお風呂がありませんでした。",
+          "onscreen_text": "家に風呂がない",
+          "visual_prompt": "Interior of a small Edo-period Japanese townhouse room with tatami mats and sliding paper doors, no bathtub anywhere, soft morning light through a shoji screen, quiet and humble atmosphere, warm muted color palette, historical illustration style",
+          "camera": "zoom_in",
+          "transition": "fade",
+          "sfx": "chime",
+          "emoji": [
+            "🏠",
+            "🛁",
+            "❓"
+          ],
+          "highlight": [
+            "お風呂がありませんでした"
+          ],
+          "id": "s007",
+          "chapter": 1,
+          "_chapter_first": true
+        },
+        {
+          "narration": "長屋で暮らす人たちは、日々、町の湯屋へ通っていたんです。",
+          "onscreen_text": "",
+          "visual_prompt": "Edo-period townspeople in simple kimono walking along a narrow dirt alley between wooden row houses, carrying small cloth towels and wooden buckets, heading toward a public bathhouse with a fabric noren curtain at the entrance, late afternoon golden light, lively but calm street scene",
+          "camera": "pan_right",
+          "transition": "slideleft",
+          "sfx": "none",
+          "emoji": [
+            "🚶",
+            "🏘️",
+            "♨️"
+          ],
+          "highlight": [
+            "湯屋"
+          ],
+          "id": "s008",
+          "chapter": 1
+        },
+        {
+          "narration": "では、なぜ家に風呂を作らなかったのでしょうか。よく挙げられる理由が、いくつかあります。",
+          "onscreen_text": "なぜ作らない？",
+          "visual_prompt": "A thoughtful Edo-period merchant sitting on the wooden veranda of a modest house, looking out at a crowded neighborhood of tiled and wooden roofs, dusk sky, contemplative mood, soft painterly style",
+          "camera": "zoom_out",
+          "transition": "fadeblack",
+          "sfx": "whoosh",
+          "emoji": [
+            "🤔",
+            "🏠"
+          ],
+          "highlight": [
+            "なぜ"
+          ],
+          "id": "s009",
+          "chapter": 1
+        },
+        {
+          "narration": "ひとつめは、火事への警戒です。江戸は家が建てこんでいて、火事の多い町でした。",
+          "onscreen_text": "理由① 火事",
+          "visual_prompt": "Dense Edo-period townscape of closely packed wooden houses seen from above, a wooden fire lookout tower with a hanging bell standing among the rooftops, hazy evening sky with a faint orange glow on the horizon, tense but restrained atmosphere",
+          "camera": "pan_up",
+          "transition": "wipeleft",
+          "sfx": "impact",
+          "emoji": [
+            "🔥",
+            "🏘️",
+            "🔔"
+          ],
+          "highlight": [
+            "火事"
+          ],
+          "id": "s010",
+          "chapter": 1
+        },
+        {
+          "narration": "お湯を沸かすには、火を使います。家ごとに火を焚けば、それだけ火元が増えてしまいますよね。",
+          "onscreen_text": "",
+          "visual_prompt": "Close-up of a small clay stove in a cramped Edo-period kitchen with flickering firewood flames under an iron pot, wooden walls and straw nearby, dim interior lit only by the fire, cautious mood",
+          "camera": "zoom_in",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "🔥",
+            "🪵",
+            "🫖"
+          ],
+          "highlight": [
+            "火元"
+          ],
+          "id": "s011",
+          "chapter": 1
+        },
+        {
+          "narration": "ふたつめは、手間です。薪などの燃料を用意し、水を何度も運んで、ようやくお湯になります。",
+          "onscreen_text": "理由② 手間",
+          "visual_prompt": "Edo-period man carrying a heavy bundle of firewood on his back along a narrow alley, stacks of split wood beside a wooden house, overcast soft daylight, tired but steady atmosphere, historical illustration",
+          "camera": "pan_left",
+          "transition": "slideright",
+          "sfx": "pop",
+          "emoji": [
+            "🪵",
+            "🪣",
+            "💦"
+          ],
+          "highlight": [
+            "手間"
+          ],
+          "id": "s012",
+          "chapter": 1
+        },
+        {
+          "narration": "水は井戸からくむもの。毎日お風呂をわかすとなると、かなりの重労働だったんです。",
+          "onscreen_text": "",
+          "visual_prompt": "Shared wooden well in the courtyard of an Edo-period row-house alley, a woman in kimono pulling up a wooden bucket with a rope, water splashing, morning light, neighbors' laundry hanging in the background",
+          "camera": "pan_down",
+          "transition": "smoothleft",
+          "sfx": "none",
+          "emoji": [
+            "🪣",
+            "💧",
+            "👘"
+          ],
+          "highlight": [
+            "重労働"
+          ],
+          "id": "s013",
+          "chapter": 1
+        },
+        {
+          "narration": "そして、長屋の狭さです。ひと間で暮らす家に、湯船を置く場所はなかなかありません。",
+          "onscreen_text": "理由③ 狭さ",
+          "visual_prompt": "Cramped single-room interior of an Edo-period tenement row house, a few tatami mats, folded futon, small chest and cooking corner all squeezed together, no room for a bathtub, soft side light from a small window, intimate and modest mood",
+          "camera": "zoom_out",
+          "transition": "circleopen",
+          "sfx": "pop",
+          "emoji": [
+            "🏠",
+            "🛏️",
+            "📦"
+          ],
+          "highlight": [
+            "長屋の狭さ"
+          ],
+          "id": "s014",
+          "chapter": 1
+        },
+        {
+          "narration": "そこで頼りになったのが町の湯屋です。湯銭は大人でおよそ八文から十文。十九世紀のはじめには、江戸に五百軒ほどあったといわれます。",
+          "onscreen_text": "湯銭は約8〜10文",
+          "visual_prompt": "Exterior of an Edo-period public bathhouse on a busy street corner, wooden facade with a large fabric noren curtain, steam rising from the roof, townspeople coming and going, warm evening lantern light, welcoming atmosphere",
+          "camera": "pan_right",
+          "transition": "zoomin",
+          "sfx": "chime",
+          "emoji": [
+            "♨️",
+            "🏮",
+            "👥"
+          ],
+          "highlight": [
+            "八文から十文",
+            "五百軒"
+          ],
+          "id": "s015",
+          "chapter": 1
+        },
+        {
+          "narration": "仕事の汚れを落とし、体を温める。湯屋は、江戸の暮らしに欠かせない場所だったんですね。",
+          "onscreen_text": "暮らしの必需品",
+          "visual_prompt": "Inside the dressing area of an Edo-period public bathhouse (yuya), polished wooden floorboards, wooden shelves with woven bamboo clothes baskets, a raised wooden attendant's booth (bandai) by the entrance with an indigo noren behind it, a low ornately carved zakuroguchi gable at the back with steam drifting out, small distant figures of adult townsmen with chonmage topknots in cotton kimono and yukata wiping themselves with tenugui towels and dressing, warm paper lantern light, flat ukiyo-e woodblock print style, simple stylized figures, not photorealistic, no modern clothing, no text",
+          "camera": "zoom_in",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "♨️",
+            "😌",
+            "🏮"
+          ],
+          "highlight": [
+            "欠かせない"
+          ],
+          "id": "s016",
+          "chapter": 1
+        },
+        {
+          "narration": "さて、その湯屋の中には、ちょっと変わった入り口がありました。",
+          "onscreen_text": "変わった入り口",
+          "visual_prompt": "Dim interior of an Edo-period bathhouse, a mysterious low wooden doorway with an ornately decorated upper panel, thick steam and darkness beyond it, a single soft light source, intriguing and quiet atmosphere",
+          "camera": "pan_up",
+          "transition": "radial",
+          "sfx": "whoosh",
+          "emoji": [
+            "🚪",
+            "♨️",
+            "❓"
+          ],
+          "highlight": [
+            "変わった入り口"
+          ],
+          "id": "s017",
+          "chapter": 1
+        }
+      ]
+    },
+    {
+      "title": "柘榴口のしかけ",
+      "goal": "湯船の手前にある低い仕切り「柘榴口」をくぐる構造を説明する。湯気と熱を逃がさないための工夫で、そのため中が薄暗かったことでフックを回収する。名前の由来は諸説あると断ったうえで紹介し、蒸し風呂から湯につかる形へ移った流れにも少し触れる。章末で「この暗い湯船には、今と大きく違う点がもうひとつあった」と引く",
+      "seconds": 90.0,
+      "scenes": [
+        {
+          "narration": "それが「柘榴口」です。湯船の手前にある、低い仕切りのような入り口なんです。",
+          "onscreen_text": "柘榴口",
+          "visual_prompt": "Interior of an Edo-period Japanese public bathhouse, a low wooden partition hanging from the ceiling in front of the bathing area, ornate painted wooden gable above the opening, warm dim lantern light, soft steam drifting, wide establishing shot, calm historical atmosphere, no text",
+          "camera": "zoom_in",
+          "transition": "fade",
+          "sfx": "chime",
+          "emoji": [
+            "🛁",
+            "🏮",
+            "🚪"
+          ],
+          "highlight": [
+            "柘榴口",
+            "低い仕切り"
+          ],
+          "id": "s018",
+          "chapter": 2,
+          "_chapter_first": true
+        },
+        {
+          "narration": "天井から板壁が下がっていて、下のすき間は、かがまないと通れないほどでした。",
+          "onscreen_text": "",
+          "visual_prompt": "Close-up side view of a wooden wall hanging down from a bathhouse ceiling, leaving only a low gap near the floor, dark steamy space beyond the gap, aged wood grain, dim warm light, Edo-period Japan, no people, no text",
+          "camera": "pan_down",
+          "transition": "smoothleft",
+          "sfx": "none",
+          "emoji": [
+            "🪵",
+            "🛁"
+          ],
+          "highlight": [
+            "かがまないと"
+          ],
+          "id": "s019",
+          "chapter": 2
+        },
+        {
+          "narration": "客は身をかがめて、この口をくぐり、奥の湯船へ入っていったんですね。",
+          "onscreen_text": "",
+          "visual_prompt": "Silhouette of an anonymous Edo-period townsman bending low to pass under a low wooden opening into a steamy dark bath area, backlit by faint lantern glow, gentle mist, painterly historical style, no faces visible, no text",
+          "camera": "pan_right",
+          "transition": "slideleft",
+          "sfx": "none",
+          "emoji": [
+            "🧎",
+            "🛁",
+            "♨️"
+          ],
+          "highlight": [
+            "身をかがめて"
+          ],
+          "id": "s020",
+          "chapter": 2
+        },
+        {
+          "narration": "では、どうしてわざわざ、入り口をこんなに低くしたのでしょうか。",
+          "onscreen_text": "なぜ低い？",
+          "visual_prompt": "Low-angle view looking at a narrow low opening of an old Japanese bathhouse partition, steam curling out from beneath, shadowy mysterious mood, single warm light source, quiet contemplative composition, no text",
+          "camera": "zoom_out",
+          "transition": "fadeblack",
+          "sfx": "pop",
+          "emoji": [
+            "🤔",
+            "🚪"
+          ],
+          "highlight": [
+            "こんなに低く"
+          ],
+          "id": "s021",
+          "chapter": 2
+        },
+        {
+          "narration": "実は、湯気と熱を外へ逃がさないための工夫だった、と考えられています。",
+          "onscreen_text": "熱を逃がさない",
+          "visual_prompt": "Cross-section illustration style view of an Edo-period bath area enclosed behind a low partition, warm steam trapped inside shown as soft glowing haze, cooler dim dressing area outside, traditional wooden architecture, warm amber tones, no text or labels",
+          "camera": "pan_left",
+          "transition": "circleopen",
+          "sfx": "impact",
+          "emoji": [
+            "♨️",
+            "🔥",
+            "🛁"
+          ],
+          "highlight": [
+            "湯気と熱",
+            "工夫"
+          ],
+          "id": "s022",
+          "chapter": 2
+        },
+        {
+          "narration": "口が小さければ、温かい空気は奥にこもります。そのぶん、光も入りにくくなりますよね。",
+          "onscreen_text": "",
+          "visual_prompt": "Thick steam filling a dim wooden bath chamber, a faint beam of light entering only through a small low opening, light fading into darkness, moody atmospheric lighting, Edo-period Japan, no people, no text",
+          "camera": "zoom_in",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "💨",
+            "🕯️"
+          ],
+          "highlight": [
+            "光も入りにくく"
+          ],
+          "id": "s023",
+          "chapter": 2
+        },
+        {
+          "narration": "そう、冒頭でお話しした湯船の薄暗さは、このしかけから生まれていたんです。",
+          "onscreen_text": "薄暗さの正体",
+          "visual_prompt": "Dim, steamy wooden bathtub in an Edo-period bathhouse, barely visible through dense mist, a single paper lantern glowing faintly, hushed and mysterious atmosphere, soft focus, no text",
+          "camera": "zoom_out",
+          "transition": "radial",
+          "sfx": "chime",
+          "emoji": [
+            "🛁",
+            "🏮",
+            "🌫️"
+          ],
+          "highlight": [
+            "薄暗さ",
+            "このしかけ"
+          ],
+          "id": "s024",
+          "chapter": 2
+        },
+        {
+          "narration": "では、なぜ「柘榴」という名前なのでしょう。その由来には、いくつかの説があります。",
+          "onscreen_text": "名前の由来は？",
+          "visual_prompt": "Ripe pomegranates on a simple wooden tray, one split open showing red seeds, soft natural light, traditional Japanese setting with tatami in background, still life composition, no text",
+          "camera": "pan_up",
+          "transition": "wipeleft",
+          "sfx": "whoosh",
+          "emoji": [
+            "🍎",
+            "❓"
+          ],
+          "highlight": [
+            "いくつかの説"
+          ],
+          "id": "s025",
+          "chapter": 2
+        },
+        {
+          "narration": "よく知られるのが、昔は鏡を磨くのに、柘榴の実の酢を使ったという話です。",
+          "onscreen_text": "",
+          "visual_prompt": "Traditional round bronze mirror being polished with a cloth on a wooden table, a cut pomegranate beside it, warm soft light, Edo-period craftsman's workspace, hands only, no faces, no text",
+          "camera": "pan_right",
+          "transition": "smoothleft",
+          "sfx": "none",
+          "emoji": [
+            "🪞",
+            "🍎"
+          ],
+          "highlight": [
+            "鏡を磨く"
+          ],
+          "id": "s026",
+          "chapter": 2
+        },
+        {
+          "narration": "「鏡いる」と「屈み入る」をかけた言葉遊び、というわけですね。ただ、確かなことは分かっていません。",
+          "onscreen_text": "屈み入る＝鏡いる？",
+          "visual_prompt": "Split composition: on one side a bronze mirror with a pomegranate, on the other a figure silhouette bending to enter a low bathhouse opening, soft warm tones, gentle playful mood, painterly style, no text",
+          "camera": "zoom_in",
+          "transition": "slideright",
+          "sfx": "pop",
+          "emoji": [
+            "🪞",
+            "🧎",
+            "🍎"
+          ],
+          "highlight": [
+            "言葉遊び"
+          ],
+          "id": "s027",
+          "chapter": 2
+        },
+        {
+          "narration": "もともと湯屋は、湯気で体を温める蒸し風呂が中心でした。柘榴口は、その名残ともいわれます。",
+          "onscreen_text": "蒸し風呂から",
+          "visual_prompt": "Early Edo-period todana-buro style steam bath: a small enclosed wooden cabinet-like chamber with a low sliding wooden door, a shallow layer of hot water on the slatted wooden floor sending up dense steam, plank walls and low ceiling with no windows and no shoji, faint light leaking through narrow gaps between the boards, wooden buckets outside the door, no people, flat ukiyo-e woodblock print style, muted indigo and warm wood tones, no text",
+          "camera": "pan_left",
+          "transition": "fadeblack",
+          "sfx": "none",
+          "emoji": [
+            "♨️",
+            "🌫️",
+            "🪵"
+          ],
+          "highlight": [
+            "蒸し風呂",
+            "名残"
+          ],
+          "id": "s028",
+          "chapter": 2
+        },
+        {
+          "narration": "やがて湯に深くつかる形が広まりましたが、熱を閉じこめる工夫は、受けつがれたんですね。",
+          "onscreen_text": "湯につかる形へ",
+          "visual_prompt": "Deep wooden bathtub filled with hot water inside a dim Edo-period bathhouse, steam rising gently, warm lantern light reflecting on the water surface, peaceful composition, no people, no text",
+          "camera": "zoom_out",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "🛁",
+            "♨️"
+          ],
+          "highlight": [
+            "深くつかる"
+          ],
+          "id": "s029",
+          "chapter": 2
+        },
+        {
+          "narration": "そしてこの暗い湯船には、今とは大きく違う点が、もうひとつありました。",
+          "onscreen_text": "もうひとつの違い",
+          "visual_prompt": "Steam-filled dark Edo-period bathhouse interior seen from the entrance, vague distant silhouettes softly blurred by thick mist, mysterious and calm mood, warm dim lantern glow, nothing explicit, no faces, no text",
+          "camera": "pan_up",
+          "transition": "zoomin",
+          "sfx": "whoosh",
+          "emoji": [
+            "🛁",
+            "❓",
+            "🌫️"
+          ],
+          "highlight": [
+            "大きく違う点"
+          ],
+          "id": "s030",
+          "chapter": 2
+        }
+      ]
+    },
+    {
+      "title": "混浴と幕府の禁令",
+      "goal": "男女が同じ湯に入る「入込湯」が珍しくなかったことと、寛政三年（1791年）の町触れで幕府が禁じ、天保の改革でも改めて禁じたことを紹介する。ただし徹底されず、日を分けたり仕切りを設けたりと店や地域で対応が分かれたことを、断定を避けて伝える。章末で「湯から上がった男たちが向かったのは、上の階でした」と引く",
+      "seconds": 90.0,
+      "scenes": [
+        {
+          "narration": "江戸の湯屋では、男女が同じ湯船に入ることが、決して珍しくなかったんです。",
+          "onscreen_text": "男女が同じ湯船に",
+          "visual_prompt": "Dim interior of an Edo-period Japanese public bathhouse, a large wooden bathtub filled with steaming water, silhouettes of several men and women soaking together seen softly through thick steam, warm faint lantern glow, calm documentary illustration style, ukiyo-e inspired color palette, no text",
+          "camera": "zoom_in",
+          "transition": "fade",
+          "sfx": "whoosh",
+          "emoji": [
+            "♨️",
+            "👘"
+          ],
+          "highlight": [
+            "男女",
+            "同じ湯船"
+          ],
+          "id": "s031",
+          "chapter": 3,
+          "_chapter_first": true
+        },
+        {
+          "narration": "こうした男女いっしょの湯は、「入込湯」と呼ばれていました。いりこみゆ、と読みます。",
+          "onscreen_text": "入込湯（いりこみゆ）",
+          "visual_prompt": "Close view of the steaming surface of a wooden bathtub in an old Japanese bathhouse, wooden walls and beams faintly visible, soft amber light filtering through steam, quiet and nostalgic mood, painterly illustration, no text",
+          "camera": "pan_right",
+          "transition": "smoothleft",
+          "sfx": "pop",
+          "emoji": [
+            "♨️",
+            "🪵"
+          ],
+          "highlight": [
+            "入込湯"
+          ],
+          "id": "s032",
+          "chapter": 3
+        },
+        {
+          "narration": "薄暗い湯気の中ですから、今の感覚ほどは、気にされなかったのかもしれませんね。",
+          "onscreen_text": "",
+          "visual_prompt": "Thick white steam drifting across a dark bathhouse interior in Edo Japan, faint outlines of bathers barely visible, a single small oil lamp glowing dimly, mysterious and gentle atmosphere, soft focus illustration, no text",
+          "camera": "zoom_out",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "🏮",
+            "♨️"
+          ],
+          "highlight": [
+            "薄暗い湯気"
+          ],
+          "id": "s033",
+          "chapter": 3
+        },
+        {
+          "narration": "これを風紀の乱れだとして、問題にしたのが幕府でした。",
+          "onscreen_text": "幕府が問題視",
+          "visual_prompt": "Stern traditional Japanese government hall of the Edo period, tatami room with low wooden desk, scrolls and brush, anonymous samurai officials in formal attire seen from behind, cool muted daylight, serious atmosphere, historical illustration, no text, no recognizable faces",
+          "camera": "pan_left",
+          "transition": "fadeblack",
+          "sfx": "impact",
+          "emoji": [
+            "🏯",
+            "📜"
+          ],
+          "highlight": [
+            "風紀の乱れ",
+            "幕府"
+          ],
+          "id": "s034",
+          "chapter": 3
+        },
+        {
+          "narration": "寛政三年、一七九一年。寛政の改革の中で、幕府は入込湯を禁じる町触れを出しました。",
+          "onscreen_text": "1791年 寛政の改革",
+          "visual_prompt": "A wooden public notice board standing at a street corner in an Edo-period town, blank paper notices pasted on it, townspeople in kimono gathering to look, overcast soft light, historical genre illustration, notices completely blank with no writing",
+          "camera": "zoom_in",
+          "transition": "slideleft",
+          "sfx": "chime",
+          "emoji": [
+            "📜",
+            "🏘️"
+          ],
+          "highlight": [
+            "寛政三年",
+            "禁じる町触れ"
+          ],
+          "id": "s035",
+          "chapter": 3
+        },
+        {
+          "narration": "寛政の改革というのは、老中の松平定信が中心となって進めた、引き締めの政治のことです。",
+          "onscreen_text": "引き締めの政治",
+          "visual_prompt": "Interior of an Edo castle chamber with folding screens and tatami, an anonymous high-ranking official in formal kamishimo seen from behind, seated before a low desk with rolled documents, restrained warm light, dignified mood, illustration, no text, no identifiable face",
+          "camera": "pan_up",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "🏯",
+            "📜"
+          ],
+          "highlight": [
+            "引き締め"
+          ],
+          "id": "s036",
+          "chapter": 3
+        },
+        {
+          "narration": "その後、天保の改革でも改めて禁じられます。では、これで混浴はなくなったのでしょうか。",
+          "onscreen_text": "天保の改革でも禁止",
+          "visual_prompt": "Entrance of an Edo-period bathhouse with a hanging cloth noren curtain gently swaying, people in kimono walking in and out, evening light, question-like contemplative mood, wide shot, illustration, noren with no letters or symbols",
+          "camera": "zoom_out",
+          "transition": "circleopen",
+          "sfx": "whoosh",
+          "emoji": [
+            "♨️",
+            "🚪"
+          ],
+          "highlight": [
+            "天保の改革"
+          ],
+          "id": "s037",
+          "chapter": 3
+        },
+        {
+          "narration": "実は、禁令は隅々まで行き届かず、店ごとにやり方を工夫していたようです。",
+          "onscreen_text": "店ごとの工夫",
+          "visual_prompt": "Bird's-eye view of an Edo-period Japanese townscape: rows of low two-story wooden machiya with dark grey kawara tile roofs, narrow dirt alleys, white plaster storehouses (kura), a wooden fire lookout ladder tower, several bathhouses marked by indigo noren curtains and thin smoke from their boiler chimneys, Mount Fuji faint on the horizon, soft afternoon light, no pagodas, no Chinese-style curved roofs or towers, flat ukiyo-e woodblock print style, no text",
+          "camera": "pan_right",
+          "transition": "smoothleft",
+          "sfx": "none",
+          "emoji": [
+            "🏘️",
+            "♨️"
+          ],
+          "highlight": [
+            "店ごとに"
+          ],
+          "id": "s038",
+          "chapter": 3
+        },
+        {
+          "narration": "たとえば、男湯の日と女湯の日を分けて、営業した店があったといわれます。",
+          "onscreen_text": "日を分けて営業",
+          "visual_prompt": "Two-panel ukiyo-e woodblock print style composition showing the same Edo-period wooden bathhouse entrance on two different days, left panel: indigo noren curtain with small distant adult men in cotton kimono and chonmage topknots carrying tenugui towels and wooden buckets walking in, right panel: vermilion noren curtain with small distant women in kimono with traditional Japanese hair buns walking in, tiled roof and wooden lattice facade identical in both panels, soft morning light, simple stylized figures, no text on curtains",
+          "camera": "pan_left",
+          "transition": "wipeleft",
+          "sfx": "pop",
+          "emoji": [
+            "📅",
+            "👘",
+            "♨️"
+          ],
+          "highlight": [
+            "日を分けて"
+          ],
+          "id": "s039",
+          "chapter": 3
+        },
+        {
+          "narration": "湯船の中に板の仕切りを設けて、男女を分けるやり方も見られました。",
+          "onscreen_text": "仕切りを設ける",
+          "visual_prompt": "Inside a dim Edo-period bathhouse, a large wooden bathtub divided down the middle by a simple wooden plank partition, steam rising on both sides, warm lantern light, detailed carpentry texture, illustration, no people faces, no text",
+          "camera": "zoom_in",
+          "transition": "slideright",
+          "sfx": "none",
+          "emoji": [
+            "🪵",
+            "♨️"
+          ],
+          "highlight": [
+            "仕切り"
+          ],
+          "id": "s040",
+          "chapter": 3
+        },
+        {
+          "narration": "ただ、その仕切りも形だけだった、という話もあり、実態は店や地域でさまざまだったようです。",
+          "onscreen_text": "店や地域でさまざま",
+          "visual_prompt": "Row of different Edo-period bathhouses along a town street, each with slightly different entrances and noren curtains, people in kimono passing by, soft golden late-afternoon light, varied and lively mood, wide historical illustration, no text or symbols on curtains",
+          "camera": "pan_right",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "🏘️",
+            "♨️"
+          ],
+          "highlight": [
+            "形だけ",
+            "さまざま"
+          ],
+          "id": "s041",
+          "chapter": 3
+        },
+        {
+          "narration": "上からの決まりと、町の暮らしのあいだで、湯屋はゆれ動いていたんですね。",
+          "onscreen_text": "決まりと暮らし",
+          "visual_prompt": "Quiet dusk scene of an Edo bathhouse exterior, smoke rising from its chimney into a purple evening sky, lanterns being lit along the street, reflective and calm atmosphere, painterly illustration, no text",
+          "camera": "zoom_out",
+          "transition": "fadeblack",
+          "sfx": "none",
+          "emoji": [
+            "🏮",
+            "♨️"
+          ],
+          "highlight": [
+            "ゆれ動いて"
+          ],
+          "id": "s042",
+          "chapter": 3
+        },
+        {
+          "narration": "さて、そんな湯から上がった男たちが向かったのは、実は、上の階でした。",
+          "onscreen_text": "向かった先は上の階",
+          "visual_prompt": "Steep wooden staircase inside an Edo-period bathhouse leading up to a softly lit second floor, warm light spilling down from above, steam lingering at the bottom, inviting and curious mood, low-angle view looking upward, illustration, no text",
+          "camera": "pan_up",
+          "transition": "zoomin",
+          "sfx": "chime",
+          "emoji": [
+            "🪜",
+            "♨️"
+          ],
+          "highlight": [
+            "上の階"
+          ],
+          "id": "s043",
+          "chapter": 3
+        }
+      ]
+    },
+    {
+      "title": "二階は町のサロン",
+      "goal": "男湯の二階にあった座敷で、湯上がりの客がお茶を飲み、将棋や碁を楽しみ、うわさ話をしたことを、『守貞謾稿』の記録にも触れて紹介する。式亭三馬の滑稽本『浮世風呂』（1809年から刊行）が湯屋での会話を描いたことにも触れ、立場の違う人が交わる情報交換の場だったことを伝える。章末で「では、江戸の銭湯とは結局どんな場所だったのか」とまとめにつなぐ",
+      "seconds": 100.0,
+      "scenes": [
+        {
+          "narration": "階段を上がると、畳敷きの座敷がありました。男湯の二階です。江戸の風俗を記した『守貞謾稿』にも、その様子が書かれています。",
+          "onscreen_text": "男湯の二階",
+          "visual_prompt": "Interior of an Edo-period Japanese bathhouse, narrow wooden staircase leading up to a spacious tatami-floored room on the second floor, warm afternoon light through paper shoji screens, steam faintly rising from below, calm nostalgic atmosphere, painterly historical illustration, no text",
+          "camera": "pan_up",
+          "transition": "fade",
+          "sfx": "whoosh",
+          "emoji": [
+            "🪜",
+            "🏠",
+            "♨️"
+          ],
+          "highlight": [
+            "男湯の二階",
+            "守貞謾稿"
+          ],
+          "id": "s044",
+          "chapter": 4,
+          "_chapter_first": true
+        },
+        {
+          "narration": "湯上がりの客は、ここで火照った体を冷ましながら、ゆっくりひと休みしたんです。",
+          "onscreen_text": "湯上がりの休憩所",
+          "visual_prompt": "Relaxed Edo-period townsmen in light cotton robes sitting on tatami mats after bathing, fanning themselves with paper fans, soft breeze through open wooden lattice windows, warm golden light, peaceful mood, historical Japanese illustration style, no text",
+          "camera": "zoom_in",
+          "transition": "smoothleft",
+          "sfx": "none",
+          "emoji": [
+            "🧘",
+            "🪭",
+            "♨️"
+          ],
+          "highlight": [
+            "ひと休み"
+          ],
+          "id": "s045",
+          "chapter": 4
+        },
+        {
+          "narration": "湯銭とは別に少しお金を払うと、お茶やお菓子も出してもらえたようです。",
+          "onscreen_text": "お茶とお菓子",
+          "visual_prompt": "Close-up of a simple ceramic Japanese teacup with green tea and small traditional sweets on a wooden tray placed on tatami, gentle steam from the tea, soft side lighting, Edo-period setting, warm and intimate atmosphere, no text",
+          "camera": "zoom_out",
+          "transition": "fade",
+          "sfx": "pop",
+          "emoji": [
+            "🍵",
+            "🍡"
+          ],
+          "highlight": [
+            "お茶やお菓子"
+          ],
+          "id": "s046",
+          "chapter": 4
+        },
+        {
+          "narration": "座敷の片隅では、将棋や碁を囲む人たちの姿もありました。",
+          "onscreen_text": "将棋と碁",
+          "visual_prompt": "Two Edo-period men seated on tatami concentrating over a wooden shogi board, another pair playing go in the background, onlookers leaning in curiously, warm lantern-like light, cozy second-floor room of a traditional bathhouse, historical illustration, no text",
+          "camera": "pan_right",
+          "transition": "slideleft",
+          "sfx": "none",
+          "emoji": [
+            "♟️",
+            "⚫",
+            "⚪"
+          ],
+          "highlight": [
+            "将棋や碁"
+          ],
+          "id": "s047",
+          "chapter": 4
+        },
+        {
+          "narration": "一局打ちながら、近所のうわさや世の中の出来事を、あれこれ話していたんですね。",
+          "onscreen_text": "",
+          "visual_prompt": "Group of Edo-period townspeople chatting animatedly around a game board on tatami, one man gesturing as he tells a story, others laughing softly, warm afternoon light, lively yet calm mood, Japanese historical illustration, no text",
+          "camera": "zoom_in",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "🗣️",
+            "👂",
+            "🏘️"
+          ],
+          "highlight": [
+            "うわさ"
+          ],
+          "id": "s048",
+          "chapter": 4
+        },
+        {
+          "narration": "ところで、そんな湯屋の会話を、そのまま本にした人がいます。",
+          "onscreen_text": "会話が本に？",
+          "visual_prompt": "Old Japanese woodblock-printed book with stitched binding lying open on a low wooden desk, brush and inkstone beside it, soft candlelight, quiet evening atmosphere, Edo-period study room, no readable text on pages",
+          "camera": "pan_left",
+          "transition": "fadeblack",
+          "sfx": "whoosh",
+          "emoji": [
+            "📖",
+            "🖌️"
+          ],
+          "highlight": [
+            "本にした"
+          ],
+          "id": "s049",
+          "chapter": 4
+        },
+        {
+          "narration": "江戸後期の戯作者、式亭三馬。一八〇九年から刊行された『浮世風呂』です。",
+          "onscreen_text": "『浮世風呂』1809年〜",
+          "visual_prompt": "Anonymous Edo-period writer seen from behind, seated at a low desk writing with a brush by lantern light, stacks of handmade paper, warm amber glow, contemplative mood, faceless figure, historical illustration, no text",
+          "camera": "zoom_in",
+          "transition": "circleopen",
+          "sfx": "chime",
+          "emoji": [
+            "✍️",
+            "📜",
+            "🏮"
+          ],
+          "highlight": [
+            "式亭三馬",
+            "浮世風呂"
+          ],
+          "id": "s050",
+          "chapter": 4
+        },
+        {
+          "narration": "滑稽本、つまり笑いを誘う読み物で、湯屋に集まる人々のおしゃべりを生き生きと描きました。",
+          "onscreen_text": "滑稽本",
+          "visual_prompt": "Scene in the style of an Edo-period comic illustrated book (kokkeibon) woodblock illustration: the wooden dressing area of a public bathhouse with woven clothes baskets, wooden buckets and a raised bandai attendant's booth, a low carved zakuroguchi gable with steam in the background, small distant townsmen with chonmage topknots in cotton yukata gathered in little groups chatting, gesturing and laughing, an old man with a long kiseru pipe, flat colors of indigo, kinari cream and muted vermilion, simple stylized figures, not photorealistic, no desk, no lamps, no modern objects, no text",
+          "camera": "pan_right",
+          "transition": "wipeleft",
+          "sfx": "none",
+          "emoji": [
+            "😄",
+            "♨️",
+            "👥"
+          ],
+          "highlight": [
+            "滑稽本",
+            "おしゃべり"
+          ],
+          "id": "s051",
+          "chapter": 4
+        },
+        {
+          "narration": "職人、商人、隠居したお年寄り。立場の違う人たちが、同じ湯屋で言葉を交わしていたんです。",
+          "onscreen_text": "立場を超えて",
+          "visual_prompt": "Diverse group of Edo-period people sitting together on tatami: a craftsman with rolled sleeves, a merchant in a neat kimono, an elderly retired man with a pipe, all chatting at ease, soft natural daylight, harmonious atmosphere, historical illustration, no text",
+          "camera": "pan_left",
+          "transition": "slideright",
+          "sfx": "none",
+          "emoji": [
+            "🔨",
+            "🧮",
+            "👴"
+          ],
+          "highlight": [
+            "立場の違う人"
+          ],
+          "id": "s052",
+          "chapter": 4
+        },
+        {
+          "narration": "武士の客もいて、二階には刀掛けが置かれていたと伝わっています。",
+          "onscreen_text": "",
+          "visual_prompt": "Wooden sword rack on the second floor of a traditional Japanese bathhouse holding sheathed katana, tatami room in soft focus behind, quiet light through shoji, calm and dignified atmosphere, Edo-period setting, no people, no text",
+          "camera": "zoom_out",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "⚔️",
+            "🏯"
+          ],
+          "highlight": [
+            "刀掛け"
+          ],
+          "id": "s053",
+          "chapter": 4
+        },
+        {
+          "narration": "裸になれば、肩書きも少し遠のきます。だからこそ、気軽に話せたのかもしれません。",
+          "onscreen_text": "",
+          "visual_prompt": "Soft, dreamy view of steam drifting through a dim wooden bathhouse, silhouettes of relaxed figures in the haze, warm muted tones, gentle and reflective mood, Edo-period Japan, painterly style, no text",
+          "camera": "pan_down",
+          "transition": "smoothleft",
+          "sfx": "none",
+          "emoji": [
+            "♨️",
+            "🤝"
+          ],
+          "highlight": [
+            "気軽に話せた"
+          ],
+          "id": "s054",
+          "chapter": 4
+        },
+        {
+          "narration": "値段の話、仕事の話、町の評判。二階の座敷は、いわば町の情報が行き交うサロンだったんです。",
+          "onscreen_text": "町のサロン",
+          "visual_prompt": "Wide view of a bustling second-floor tatami salon in an Edo-period bathhouse, many townsmen in small groups talking, playing games, drinking tea, warm late-afternoon sunlight through lattice windows, lively community atmosphere, historical illustration, no text",
+          "camera": "zoom_out",
+          "transition": "zoomin",
+          "sfx": "impact",
+          "emoji": [
+            "🗣️",
+            "🍵",
+            "🏘️"
+          ],
+          "highlight": [
+            "サロン"
+          ],
+          "id": "s055",
+          "chapter": 4
+        },
+        {
+          "narration": "お湯につかる場所であり、人と人がつながる場所でもあった湯屋。",
+          "onscreen_text": "",
+          "visual_prompt": "Exterior of an Edo-period wooden bathhouse at dusk, a fabric noren curtain at the entrance, warm light glowing from the second-floor windows, people walking along a narrow town street, steam rising from the roof, nostalgic atmosphere, no text on curtain",
+          "camera": "pan_up",
+          "transition": "fade",
+          "sfx": "none",
+          "emoji": [
+            "♨️",
+            "🏠",
+            "🌆"
+          ],
+          "highlight": [
+            "つながる場所"
+          ],
+          "id": "s056",
+          "chapter": 4
+        },
+        {
+          "narration": "では、江戸の銭湯とは、結局どんな場所だったのでしょうか。",
+          "onscreen_text": "湯屋の正体とは？",
+          "visual_prompt": "Quiet twilight scene of an Edo-period town street lined with wooden houses, a single bathhouse glowing softly with steam rising into the evening sky, lanterns beginning to light, contemplative and inviting mood, painterly historical illustration, no text",
+          "camera": "zoom_in",
+          "transition": "fadeblack",
+          "sfx": "chime",
+          "emoji": [
+            "❓",
+            "♨️",
+            "🏮"
+          ],
+          "highlight": [
+            "どんな場所"
+          ],
+          "id": "s057",
+          "chapter": 4
+        }
+      ]
+    },
+    {
+      "title": "まとめ：湯屋の正体",
+      "goal": "暮らしの設備、熱を閉じこめる工夫の建物、二度の禁令に揺れた場所、二階の社交場という4つの顔を一文ずつ短く振り返る。明治に柘榴口が姿を消し、明るい今の銭湯の形へ変わったという新しい情報を加え、「集う場所」としての意味が今の銭湯やサウナにもつながることを伝えて、視聴者に「あなたなら湯屋の二階で何を話しますか」と問いかけて締める",
+      "seconds": 70.0,
+      "scenes": [
+        {
+          "narration": "答えは、ひとつではありません。湯屋には、四つの顔がありました。",
+          "onscreen_text": "湯屋の四つの顔",
+          "visual_prompt": "Wide view of an Edo-period Japanese bathhouse exterior at dusk, wooden building with a hanging cloth curtain at the entrance, soft lantern glow, steam rising from the roof, calm nostalgic atmosphere, painterly style, no text",
+          "camera": "zoom_in",
+          "transition": "fadeblack",
+          "sfx": "chime",
+          "emoji": [
+            "♨️",
+            "🏮"
+          ],
+          "highlight": [
+            "四つの顔"
+          ],
+          "id": "s058",
+          "chapter": 5,
+          "_chapter_first": true
+        },
+        {
+          "narration": "ひとつは、内風呂のない町人の毎日を支える、暮らしの設備。",
+          "onscreen_text": "① 暮らしの設備",
+          "visual_prompt": "Edo-period townspeople in simple kimono walking along a narrow street toward a public bathhouse in the morning, carrying small wooden buckets and towels, cramped row houses on both sides, soft warm sunlight, everyday life mood, painterly style, no text",
+          "camera": "pan_right",
+          "transition": "slideleft",
+          "sfx": "pop",
+          "emoji": [
+            "🏘️",
+            "🪣",
+            "♨️"
+          ],
+          "highlight": [
+            "暮らしの設備"
+          ],
+          "id": "s059",
+          "chapter": 5
+        },
+        {
+          "narration": "ふたつめは、柘榴口で熱を閉じこめた、工夫の建物。だから湯船は薄暗かったんです。",
+          "onscreen_text": "② 熱を逃がさない",
+          "visual_prompt": "Interior of an Edo-period bathhouse, a low ornate wooden partition above the entrance to the bathing area, figures bending down to pass under it, dim light inside, thick steam glowing faintly, mysterious warm atmosphere, painterly style, no text",
+          "camera": "zoom_out",
+          "transition": "smoothleft",
+          "sfx": "pop",
+          "emoji": [
+            "🚪",
+            "💨",
+            "♨️"
+          ],
+          "highlight": [
+            "柘榴口",
+            "薄暗かった"
+          ],
+          "id": "s060",
+          "chapter": 5
+        },
+        {
+          "narration": "みっつめは、寛政と天保、二度の禁令に揺れた場所。",
+          "onscreen_text": "③ 禁令に揺れる",
+          "visual_prompt": "An old Japanese paper notice board on a wooden post in front of an Edo-period bathhouse, blank parchment sheets without readable writing, townspeople glancing at it, overcast soft light, quiet historical mood, painterly style, no text",
+          "camera": "pan_left",
+          "transition": "wipeleft",
+          "sfx": "pop",
+          "emoji": [
+            "📜",
+            "⚖️"
+          ],
+          "highlight": [
+            "二度の禁令"
+          ],
+          "id": "s061",
+          "chapter": 5
+        },
+        {
+          "narration": "そしてよっつめが、お茶や将棋、碁を楽しむ、二階の社交場です。",
+          "onscreen_text": "④ 町の社交場",
+          "visual_prompt": "Wide view of the second-floor tatami room of an Edo-period bathhouse, wooden lattice windows and paper shoji, a low wooden go board and a shogi board on the tatami, a lacquered tea tray with an earthenware teapot and small cups, a wooden sword rack (katanakake) holding sheathed swords on the wall, a tobacco tray (tabako-bon), small distant figures of adult townsmen with chonmage topknots in cotton yukata sitting in groups playing and chatting, flat ukiyo-e woodblock print style, simple stylized figures, not photorealistic, men only, no women or children, no text",
+          "camera": "pan_up",
+          "transition": "circleopen",
+          "sfx": "pop",
+          "emoji": [
+            "🍵",
+            "♟️",
+            "🗣️"
+          ],
+          "highlight": [
+            "二階の社交場"
+          ],
+          "id": "s062",
+          "chapter": 5
+        },
+        {
+          "narration": "明治に入ると柘榴口はしだいに姿を消し、湯屋は明るく広い、今の銭湯の形へ変わっていきました。",
+          "onscreen_text": "明治、明るい銭湯へ",
+          "visual_prompt": "Interior of a Meiji-era Japanese public bathhouse after reform, a bright open wooden bathing hall with a high ceiling and a skylight letting in daylight, a wide wooden bathtub with no low partition in front of it, wooden buckets on the slatted floor, small distant bathers as simple stylized figures, flat Meiji nishiki-e woodblock print style, indigo, kinari cream and muted vermilion tones, no modern tiles or faucets, no text",
+          "camera": "zoom_out",
+          "transition": "fade",
+          "sfx": "impact",
+          "emoji": [
+            "♨️",
+            "💡",
+            "🏠"
+          ],
+          "highlight": [
+            "明治",
+            "今の銭湯の形"
+          ],
+          "id": "s063",
+          "chapter": 5
+        },
+        {
+          "narration": "それでも、ふと誰かと話したくなる「集う場所」の気分は、今の銭湯やサウナにも受けつがれていそうです。",
+          "onscreen_text": "今につながる",
+          "visual_prompt": "A modern Japanese neighborhood public bathhouse entrance at night with warm light spilling out, a tall chimney and steam rising, a quiet street, nostalgic and welcoming mood, cinematic soft lighting, no text, no logos",
+          "camera": "pan_right",
+          "transition": "slideright",
+          "sfx": "none",
+          "emoji": [
+            "♨️",
+            "🧖"
+          ],
+          "highlight": [
+            "集う場所"
+          ],
+          "id": "s064",
+          "chapter": 5
+        },
+        {
+          "narration": "もし江戸の湯屋の二階に上がれたら、あなたなら、何を話しますか。よかったら、コメントで聞かせてください。",
+          "onscreen_text": "二階で何を話す？",
+          "visual_prompt": "View from the top of a wooden staircase into an empty sunlit tatami room of an Edo-period bathhouse, a teapot and cups waiting on a low table, an open cushion inviting the viewer, gentle warm light, inviting contemplative mood, painterly style, no text",
+          "camera": "zoom_in",
+          "transition": "zoomin",
+          "sfx": "chime",
+          "emoji": [
+            "🪜",
+            "🍵",
+            "💭"
+          ],
+          "highlight": [
+            "何を話しますか"
+          ],
+          "id": "s065",
+          "chapter": 5
+        },
+        {
+          "narration": "楽しんでいただけたら、高評価とチャンネル登録をしていただけると励みになります。",
+          "onscreen_text": "",
+          "visual_prompt": "Close-up of steam gently rising over a wooden bathtub in soft golden light, calm and warm atmosphere, shallow depth of field, painterly style, no text",
+          "camera": "pan_down",
+          "transition": "fade",
+          "sfx": "pop",
+          "emoji": [
+            "♨️",
+            "👍"
+          ],
+          "highlight": [
+            "高評価",
+            "チャンネル登録"
+          ],
+          "id": "s066",
+          "chapter": 5
+        },
+        {
+          "narration": "ご覧いただき、ありがとうございました。また次の動画でお会いしましょう。",
+          "onscreen_text": "",
+          "visual_prompt": "An Edo-period bathhouse street at twilight, the entrance curtain swaying in a gentle breeze, paper lanterns glowing, last wisps of steam fading into a purple sky, peaceful farewell mood, painterly style, no text",
+          "camera": "zoom_out",
+          "transition": "fadeblack",
+          "sfx": "none",
+          "emoji": [
+            "🏮",
+            "🌆"
+          ],
+          "highlight": [],
+          "id": "s067",
+          "chapter": 5
+        }
+      ]
+    }
+  ],
+  "theme": "江戸の銭湯はどんな場所だった？",
+  "target_seconds": 480.0,
+  "shorts": null
+}
