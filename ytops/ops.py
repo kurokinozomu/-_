@@ -32,10 +32,11 @@ MAX_ATTEMPTS = 2
 # チャンネル共通の画風と時代考証 (映像審査で「現代風の服・照明」「中国風の屋根」「写実的な人物」を指摘されたため)
 STYLE_ENV = {
     "AIVIDEO_STYLE": "calm",
-    "AIVIDEO_PROMPT_SUFFIX": ("traditional Japanese painterly illustration in the style of a historical picture book, "
-                              "soft washi paper texture, muted indigo and warm earth tones, historically accurate Japanese "
-                              "architecture and clothing of the depicted era, people small and seen from a distance, "
-                              "no modern objects, no electric lights, no Chinese architecture, not photorealistic"),
+    # 画像 AI は否定形 (no 〜) を無視しやすく、物の名前を書くと逆に描かれることがあるため、肯定形で指定する
+    "AIVIDEO_PROMPT_SUFFIX": ("ukiyo-e inspired Japanese woodblock print style, flat muted colors, visible paper grain, "
+                              "early 19th century Edo period Japan, wooden machiya townhouses with tiled roofs, "
+                              "people in kimono with traditional topknot hairstyles drawn small in the distance, "
+                              "lit only by paper andon lanterns and candlelight"),
 }
 
 KIND_ENV = {
@@ -194,7 +195,9 @@ def review(vid: str, rules: dict, use_llm: bool = True) -> dict:
             thumbs.make(Path(v["dir"]))  # サムネイル候補 3 種 (作業用の画像を消す前に作る)
         except Exception as e:
             db.log_event("warn", "thumbs", f"{vid} サムネイル候補の作成に失敗: {e}")
-    res = qa.review(Path(v["dir"]), use_llm=use_llm, min_score=rules["qa_min_score"])
+    # 修正版は元の版 (ID の前方一致) と比べない (自分自身との重複判定を防ぐ)
+    ancestors = [Path(a["dir"]) for a in db.videos() if a["id"] != vid and vid.startswith(a["id"]) and a.get("dir")]
+    res = qa.review(Path(v["dir"]), use_llm=use_llm, min_score=rules["qa_min_score"], exclude=ancestors)
     try:
         from . import scriptsheet
         scriptsheet.write(Path(v["dir"]), vid)

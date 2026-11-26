@@ -102,13 +102,19 @@ def narration_of(plan: dict) -> str:
     return "\n".join(s.get("narration", "") for ch in plan.get("chapters", []) for s in ch.get("scenes", []))
 
 
-def past_narrations(exclude_dir: Path) -> list[tuple[str, str]]:
-    """過去に作った動画の台本 (plan.json) を集める。"""
+def past_narrations(exclude_dir: Path, exclude: list | None = None) -> list[tuple[str, str]]:
+    """過去に作った動画の台本 (plan.json) を集める。exclude: 比較しないフォルダ (修正前の版など)"""
     from aivideo import registry
     out = []
+    skip = {Path(exclude_dir).resolve()} | {Path(e).resolve() for e in (exclude or [])}
+    from .config import state_dir
+    managed = (state_dir() / "videos").resolve()
+    own_root = Path(exclude_dir).resolve().parent  # ytops 管理の動画は ID ごとのフォルダ。同じフォルダ内は作り直しの版
     for v in registry.load().get("videos", []):
         d = Path(v.get("dir", ""))
-        if d.resolve() == exclude_dir.resolve():
+        if d.resolve() in skip:
+            continue
+        if own_root.parent == managed and d.resolve().parent == own_root:
             continue
         pj = d / "plan.json"
         if pj.exists():
@@ -218,9 +224,12 @@ def check_metadata(vdir: Path, kind: str, r: QAResult) -> dict:
     elif kind != "short" and len(list((vdir / "thumbs").glob("thumb_*.png"))) < 3:
         r.issues.append(("low", "サムネイル候補が 3 種類未満"))
         score -= 0.5
-    t_words = set(re.findall(r"[一-龥ぁ-んァ-ン]{2,}", meta.get("thumbnail", {}).get("text", "")))
-    if t_words and t_words <= set(re.findall(r"[一-龥ぁ-んァ-ン]{2,}", t0)):
-        r.issues.append(("low", "サムネイルの文字がタイトルの繰り返しになっている"))
+    th = meta.get("thumbnail", {})
+    th_text = "".join(x for x in (th.get("line1"), th.get("line2")) if x) or th.get("text", "")
+    if th_text and similarity(th_text, t0) >= 0.5:
+        others = [t for t in titles[1:] if similarity(th_text, t) < 0.3]
+        r.issues.append(("low", "サムネイルの文字がタイトルの繰り返しになっている"
+                         + (f" (別案: 「{others[0]}」)" if others else "")))
         score -= 0.5
     tags = meta.get("tags", [])
     if sum(len(t) for t in tags) > 450:
@@ -246,10 +255,10 @@ def check_metadata(vdir: Path, kind: str, r: QAResult) -> dict:
     return meta
 
 
-def check_originality(vdir: Path, plan: dict, r: QAResult) -> float:
+def check_originality(vdir: Path, plan: dict, r: QAResult, exclude: list | None = None) -> float:
     mine = narration_of(plan)
     best, best_title = 0.0, ""
-    for title, text in past_narrations(vdir):
+    for title, text in past_narrations(vdir, exclude):
         s = similarity(mine, text)
         if s > best:
             best, best_title = s, title
@@ -400,7 +409,7 @@ def kind_of(vdir: Path, plan: dict) -> str:
     return "long"
 
 
-def review(vdir: Path, use_llm: bool = True, min_score: float = 85) -> dict:
+def review(vdir: Path, use_llm: bool = True, min_score: float = 85, exclude: list | None = None) -> dict:
     vdir = Path(vdir)
     plan = json.loads((vdir / "plan.json").read_text(encoding="utf-8"))
     kind = kind_of(vdir, plan)
@@ -408,7 +417,7 @@ def review(vdir: Path, use_llm: bool = True, min_score: float = 85) -> dict:
     tech = check_technical(vdir / "video.mp4", kind, r)
     check_subtitles(vdir, kind, r)
     meta = check_metadata(vdir, kind, r)
-    sim = check_originality(vdir, plan, r)
+    sim = check_originality(vdir, plan, r, exclude)
     title = (meta.get("titles") or [plan.get("theme", "")])[0]
     if use_llm:
         llm_review(plan, title, kind, r)

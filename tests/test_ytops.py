@@ -124,3 +124,12 @@ def test_tts_readings_fix_misread_terms():
     from aivideo.tts import apply_readings
     assert apply_readings("柘榴口と二八そば") == "ザクログチとニハチソバ"
     assert apply_readings("何もない文") == "何もない文"
+
+
+def test_safe_text_replaces_missing_glyphs():
+    from aivideo import assets
+    from aivideo.visuals import safe_text
+    f = assets.font("heavy")
+    if not f:
+        pytest.skip("font not downloaded")
+    assert safe_text("理由① 火事", f[0]) == "理由1. 火事"

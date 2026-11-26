@@ -328,12 +328,38 @@ def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
     return bg.convert("RGB")
 
 
+_GLYPH_CACHE: dict = {}
+
+
+def safe_text(text: str, font_path: str) -> str:
+    """フォントにない文字 (①など) が「□」で表示されるのを防ぐ。丸数字は数字に、その他の未収録文字は除く。"""
+    if not text or not font_path:
+        return text
+    f = ImageFont.truetype(font_path, 48)
+    def sig(c):
+        m = f.getmask(c)
+        return (m.size, bytes(m))
+    notdef = sig("\U0010FFFD")
+    circled = {chr(0x2460 + i): str(i + 1) for i in range(20)}
+    out = []
+    for ch in text:
+        key = (font_path, ch)
+        if key not in _GLYPH_CACHE:
+            _GLYPH_CACHE[key] = ch.isspace() or sig(ch) != notdef
+        if _GLYPH_CACHE[key]:
+            out.append(ch)
+        elif ch in circled:
+            out.append(circled[ch] + ".")
+    return "".join(out)
+
+
 CALM = os.environ.get("AIVIDEO_STYLE", "") == "calm"
 BRAND = {"indigo": (31, 58, 95), "kinari": (244, 239, 228), "kincha": (184, 134, 43)}
 
 
 def telop(img: Image.Image, text: str, font_path: str, color: tuple) -> None:
     """テレビ番組風の見出しテロップ (左上の色帯 + 白文字)。AIVIDEO_STYLE=calm なら落ち着いた藍の帯。"""
+    text = safe_text(text, font_path)
     if not text:
         return
     W, H = img.size

@@ -33,7 +33,9 @@ def owner_tasks() -> list[str]:
     with db.connect() as con:
         crit = con.execute("SELECT message FROM events WHERE level='critical' AND ts > ? ORDER BY ts DESC LIMIT 3",
                            ((datetime.now(JST) - timedelta(days=1)).isoformat(),)).fetchall()
-    tasks += [f"重大: {r['message']}" for r in crit]
+    from .ops import is_paused
+    tasks += [f"重大: {r['message']}" for r in crit
+              if not (r["message"].startswith("自動運転を停止") and not is_paused())]  # 再開済みの停止は除く
     return tasks
 
 
