@@ -1,0 +1,28 @@
+{
+  "name": "むかし暮らし研究所",
+  "handle_candidates": ["@mukashi-kurashi-lab", "@mukashikurashi", "@kurashi-konjaku"],
+  "start_date": "2026-11-26",
+  "language": "ja",
+  "timezone": "Asia/Tokyo",
+  "genre": "生活史 (江戸〜昭和の庶民の暮らし) × 睡眠用・聞き流し教養",
+  "concept": "教科書に載らない『昔のふつうの一日』を、史料と研究をもとに再現する教養チャンネル。英雄や合戦ではなく、長屋の朝ごはん・銭湯・物の値段・仕事・季節の行事など、庶民の暮らしの『なぜ』を落ち着いた語りで解き明かす。眠る前に聞ける長編朗読シリーズも持つ。",
+  "catchphrase": "昔の『あたりまえ』を、いま確かめる。",
+  "target": "日本語話者の 25〜64 歳。歴史好き・雑学好き・寝る前に音声で教養を聞く人。家事や作業中の聞き流し層",
+  "series": [
+    {"name": "1分むかし暮らし", "kind": "short", "desc": "暮らしの意外な事実を 1 つだけ、理由とともに 40 秒で (縦型)"},
+    {"name": "暮らしの謎解き", "kind": "long", "desc": "『江戸の人はなぜ〇〇したのか』を史料で解く 8〜12 分の解説"},
+    {"name": "もしもその時代に暮らしたら", "kind": "long", "desc": "現代人が江戸・明治・昭和で 1 日を過ごす想定で、時刻と値段を追う再現ドキュメント"},
+    {"name": "眠れるむかし暮らし", "kind": "sleep", "desc": "30〜60 分の静かな朗読。町の情景・季節・手仕事を穏やかにたどる睡眠用"},
+    {"name": "むかしの値段", "kind": "short", "desc": "そば・湯銭・家賃などを現代の金額の目安と比べる (換算の前提を必ず明示)"}
+  ],
+  "voice": {
+    "cloud": "Open JTalk / HTS Voice Mei (CC BY 3.0・クレジット表記)",
+    "pc_recommended": "VOICEVOX:冥鳴ひまり (睡眠用) / VOICEVOX:春日部つむぎ (解説)。各キャラクターの規約を確認のうえ使用"
+  },
+  "brand": {
+    "colors": {"indigo": "#1F3A5F", "kinari": "#F4EFE4", "shu": "#C0392B", "sumi": "#1D1D1F", "kincha": "#B8862B"},
+    "fonts": {"title": "Shippori Mincho B1 ExtraBold", "thumbnail": "Dela Gothic One", "subtitle": "M PLUS Rounded 1c ExtraBold"}
+  },
+  "posting": {"shorts_per_day": 2, "longs_per_week": 2, "sleep_per_week": 1},
+  "disclosure": "ナレーションは音声合成、映像の一部は画像生成 AI で制作。内容は資料で確認し、出典を概要欄に記載"
+}

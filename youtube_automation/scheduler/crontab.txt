@@ -1,0 +1,13 @@
+# オーナーの PC (Linux / macOS) で `crontab -e` に貼り付ける。パスは自分の環境に合わせて変更する。
+# PC がスリープ・停止している時刻の実行は飛ばされる (次の回で続きから再開する設計)。
+CRON_TZ=Asia/Tokyo
+REPO=/path/to/-_
+# 06:00 毎日の自動運営 (分析→企画→制作→品質審査→非公開アップロード→承認済みの予約→日報)
+0 6 * * *  cd $REPO && .venv/bin/python -m ytops daily >> state/logs/cron.log 2>&1
+# 12:30 承認済みの予約だけを追加で処理 (制作はしない)
+30 12 * * * cd $REPO && .venv/bin/python -m ytops daily --no-produce >> state/logs/cron.log 2>&1
+# 22:00 当日の分析と日報
+0 22 * * * cd $REPO && .venv/bin/python -m ytops daily --no-produce --no-llm >> state/logs/cron.log 2>&1
+# 日曜 23:00 週次経営会議 / 毎日 23:30 バックアップ
+0 23 * * 0 cd $REPO && .venv/bin/python -m ytops report --weekly >> state/logs/cron.log 2>&1
+30 23 * * * cd $REPO && .venv/bin/python -m ytops backup >> state/logs/cron.log 2>&1
