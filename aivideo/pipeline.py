@@ -322,6 +322,8 @@ def make_video(theme: str, seconds: float, settings: Settings, out_root: Path | 
     outer = vivid(imager.palette[0], 0.2, 0.3, 0.7) if imager.palette else (20, 60, 140)
     if plan.get("hud"):
         outer = (0, 0, 0)  # ドキュメンタリー調: 色フチなしの白文字 + 黒フチ
+    elif os.environ.get("AIVIDEO_STYLE", "") == "calm":
+        outer = (31, 58, 95)  # ブランドの藍
     subtitles.write_ass(events, ass, sub_font_name, outer, config.WIDTH, config.HEIGHT)
     hud = plan.get("hud")
     if hud:  # 「1秒ごとに2倍」系: 経過秒数と倍率のカウンターを常に表示

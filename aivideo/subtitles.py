@@ -161,7 +161,8 @@ def _ass_color(rgb: tuple[int, int, int], alpha: int = 0) -> str:
     return f"&H{alpha:02X}{b:02X}{g:02X}{r:02X}"
 
 
-HIGHLIGHT = (255, 230, 0)   # 強調語は黄色
+import os as _os
+HIGHLIGHT = (240, 205, 130) if _os.environ.get("AIVIDEO_STYLE", "") == "calm" else (255, 230, 0)  # 強調語 (通常は黄色)
 
 
 def _highlight(line: str, words: list[str]) -> str:

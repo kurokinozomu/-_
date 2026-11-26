@@ -336,6 +336,62 @@ def llm_review(plan: dict, title: str, kind: str, r: QAResult, use_web: bool = T
             r.needs_human.append(h)
 
 
+VISUAL_PROMPT = """あなたは教養系 YouTube チャンネル「{channel}」の映像監修者です。
+カレントディレクトリにある frame_*.png は、動画から一定間隔で切り出した画面です。Read ツールで全部見てください。
+各画面の時刻とその時点のナレーションは次のとおりです:
+{timeline}
+
+ブランドの方針: 落ち着いた教養番組の質感 (藍・生成り・朱を少し)。バラエティ番組風の派手さは避ける。
+次の観点で採点し、JSON だけを出力:
+{{"visual": 0-15 の点数, "issues": ["問題点 (どの画面で何が問題か)"], "human_review": ["人の確認が必要な点"]}}
+減点の基準: ナレーションと絵が合わない / 時代に合わない物 (その時代にない道具・服装・建物、現代の文字や日付) /
+本物と誤解されうる写実的な人物 / 読めない・崩れた文字 / 字幕が画面端やボタン位置に重なる / ブランドに合わない派手さ / 同じ絵の繰り返し
+"""
+
+
+def visual_review(vdir: Path, plan: dict, r: QAResult, kind: str, n: int = 6) -> None:
+    """動画から n 枚のフレームを切り出し、LLM が絵の内容 (ナレーションとの一致・時代考証・ブランド) を審査する。"""
+    import shutil
+    import tempfile
+    from aivideo.llm import extract_json
+    from .config import Channel
+    if not shutil.which("claude"):
+        r.needs_human.append("映像の内容審査 (LLM) が未実施")
+        return
+    video = vdir / "video.mp4"
+    dur = float(probe(video).get("format", {}).get("duration", 0) or 0)
+    if dur <= 0:
+        return
+    srt = (vdir / "subtitles.srt").read_text(encoding="utf-8") if (vdir / "subtitles.srt").exists() else ""
+    cues = []
+    for m in re.finditer(r"(\d+):(\d+):(\d+),(\d+) --> [^\n]+\n([\s\S]*?)(?:\n\n|\Z)", srt):
+        h, mi, se, ms, txt = m.groups()
+        cues.append((int(h) * 3600 + int(mi) * 60 + int(se) + int(ms) / 1000, txt.replace("\n", "")))
+    lines = []
+    with tempfile.TemporaryDirectory() as tmp:
+        for i in range(n):
+            t = dur * (i + 0.5) / n
+            _run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", str(video), "-frames:v", "1",
+                  "-vf", "scale=640:-2", str(Path(tmp) / f"frame_{i}.png")])
+            said = next((c[1] for c in reversed(cues) if c[0] <= t), "")
+            lines.append(f"frame_{i}.png ({t:.0f}秒): {said}")
+        prompt = VISUAL_PROMPT.format(channel=Channel.load().get("name", ""), timeline="\n".join(lines))
+        try:
+            p = subprocess.run(["claude", "-p", "--output-format", "text", "--allowedTools", "Read"], input=prompt,
+                               capture_output=True, text=True, timeout=900, cwd=tmp)
+            data = extract_json(p.stdout)
+        except Exception as e:
+            r.needs_human.append(f"映像の内容審査に失敗: {e}")
+            return
+    v = max(0.0, min(15.0, float(data.get("visual", 0))))
+    r.scores["映像の品質"] = min(r.scores.get("映像の品質", 15.0), v)
+    for it in data.get("issues", [])[:6]:
+        r.issues.append(("medium", f"映像: {it}"))
+    for h in data.get("human_review", []):
+        if h:
+            r.needs_human.append(f"映像: {h}")
+
+
 def kind_of(vdir: Path, plan: dict) -> str:
     if plan.get("shorts"):
         return "short"
@@ -356,6 +412,7 @@ def review(vdir: Path, use_llm: bool = True, min_score: float = 85) -> dict:
     title = (meta.get("titles") or [plan.get("theme", "")])[0]
     if use_llm:
         llm_review(plan, title, kind, r)
+        visual_review(vdir, plan, r, kind)
     else:
         r.needs_human.append("事実確認 (LLM) を省略")
         r.scores.setdefault("情報の正確性", 10)

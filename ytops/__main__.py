@@ -53,6 +53,7 @@ def main(argv=None) -> int:
     im = sub.add_parser("import-studio"); im.add_argument("csv", type=Path)
     sub.add_parser("backup")
     sub.add_parser("competitors")
+    rv = sub.add_parser("revise"); rv.add_argument("id"); rv.add_argument("--force", action="store_true")
     sv = sub.add_parser("save-state"); sv.add_argument("--force", action="store_true")
     sub.add_parser("load-state")
     x = ap.parse_args(argv)
@@ -168,6 +169,9 @@ def main(argv=None) -> int:
         for old in sorted(dst.glob("ytops_*.sqlite3"))[:-14]:
             old.unlink()
         print("バックアップ:", out)
+    elif x.cmd == "revise":
+        from . import ops
+        print("修正版:", ops.revise(x.id, db.active_rules(), force=x.force))
     elif x.cmd == "competitors":
         from . import competitors
         print(competitors.run())

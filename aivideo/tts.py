@@ -178,6 +178,25 @@ def get_tts(settings: Settings):
     return OpenJTalkTTS(settings.tts_speed, settings.voice_style)
 
 
+_READINGS: dict | None = None
+
+
+def apply_readings(text: str) -> str:
+    """誤読しやすい語を読みに置き換える (音声だけ。字幕は元の表記)。辞書: data/readings.json"""
+    global _READINGS
+    if _READINGS is None:
+        import json
+        from .config import ROOT
+        p = ROOT / "data" / "readings.json"
+        d = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+        _READINGS = dict(sorted(((k, v) for k, v in d.items() if not k.startswith("_")),
+                                key=lambda kv: -len(kv[0])))  # 長い語から置換
+    for k, v in _READINGS.items():
+        if k in text:
+            text = text.replace(k, v)
+    return text
+
+
 class Narrator:
     def __init__(self, engine, cache_dir: Path):
         self.engine = engine
@@ -185,6 +204,7 @@ class Narrator:
         self.cache.mkdir(parents=True, exist_ok=True)
 
     def _sentence(self, text: str) -> np.ndarray:
+        text = apply_readings(text)
         key = hashlib.sha1(f"{self.engine.name}|{getattr(self.engine, 'speaker', '')}|"
                            f"{self.engine.speed}|{text}".encode()).hexdigest()[:20]
         f = self.cache / f"{key}.npy"

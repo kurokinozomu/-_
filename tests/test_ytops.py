@@ -118,3 +118,9 @@ def test_contrast_ratio():
 def test_dashboard_builds_without_data():
     html = __import__("ytops.dashboard", fromlist=["build"]).build("tok")
     assert "収益化までの進捗" in html and "tok" in html
+
+
+def test_tts_readings_fix_misread_terms():
+    from aivideo.tts import apply_readings
+    assert apply_readings("柘榴口と二八そば") == "ザクログチとニハチソバ"
+    assert apply_readings("何もない文") == "何もない文"

@@ -328,13 +328,27 @@ def illustration_scene(emojis: list[str], palette: list[tuple], seed: int,
     return bg.convert("RGB")
 
 
+CALM = os.environ.get("AIVIDEO_STYLE", "") == "calm"
+BRAND = {"indigo": (31, 58, 95), "kinari": (244, 239, 228), "kincha": (184, 134, 43)}
+
+
 def telop(img: Image.Image, text: str, font_path: str, color: tuple) -> None:
-    """テレビ番組風の見出しテロップ (左上の色帯 + 白文字)。"""
+    """テレビ番組風の見出しテロップ (左上の色帯 + 白文字)。AIVIDEO_STYLE=calm なら落ち着いた藍の帯。"""
     if not text:
         return
     W, H = img.size
     d = ImageDraw.Draw(img)
     tall = H > W
+    if CALM or os.environ.get("AIVIDEO_STYLE", "") == "calm":
+        f = _fit_font(d, text, font_path, W * (0.8 if tall else 0.5), int(min(H * 0.065, W * 0.08)), 32)
+        tw = d.textlength(text, font=f)
+        x, y = int(W * 0.06), int(H * (0.12 if tall else 0.07))
+        px, py = int(f.size * 0.5), int(f.size * 0.3)
+        box = [x - px, y - py, x + tw + px, y + f.size * 1.12 + py]
+        d.rectangle(box, fill=(*BRAND["indigo"], 225))
+        d.rectangle([box[0], box[3] - 5, box[2], box[3]], fill=(*BRAND["kincha"], 255))
+        d.text((x, y), text, font=f, fill=(*BRAND["kinari"], 255))
+        return
     f = _fit_font(d, text, font_path, W * (0.82 if tall else 0.62),
                   int(min(H * 0.085, W * 0.1)), 36)
     tw = d.textlength(text, font=f)
@@ -627,6 +641,10 @@ class SceneImager:
                        else "オフライン生成グラフィックを使用します。"))
         self.used: set[str] = set()
         self.first_ai: Image.Image | None = None
+        self.last_ai: Image.Image | None = None
+        # 1: AI 画像を使わないシーンでは絵文字イラストではなく直前の AI 画像を再利用する
+        #    (カメラワークは別なので画面は変わる。落ち着いた教養チャンネル向け)
+        self.reuse_ai = os.environ.get("AIVIDEO_REUSE_AI", "") in ("1", "true", "yes")
 
     def plan_scenes(self) -> list[dict]:
         return [sc for ch in self.plan.get("chapters", []) for sc in ch.get("scenes", [])]
@@ -656,14 +674,20 @@ class SceneImager:
     def base_image(self, scene: dict) -> tuple[Image.Image, str]:
         """(画像, 種類 'ai' | 'illustration' | 'procedural') を返す。"""
         prompt = f"{scene.get('visual_prompt', '')}, {self.plan.get('visual_style', '')}, no text, no watermark"
+        suffix = os.environ.get("AIVIDEO_PROMPT_SUFFIX", "").strip()
+        if suffix:  # チャンネル共通の画風・時代考証の指定
+            prompt = f"{prompt}, {suffix}"
         seed = int(hashlib.sha1(scene["id"].encode() + prompt.encode()).hexdigest()[:7], 16)
-        if self.ai and self._use_ai(scene):
+        if self.ai and (self._use_ai(scene) or (self.reuse_ai and self.last_ai is None)):
             img = self._ai_image(prompt, seed)
             if img is not None:
                 self.used.add(self.ai.credit)
                 if self.first_ai is None:
                     self.first_ai = img
+                self.last_ai = img
                 return img, "ai"
+        if self.ai and self.reuse_ai and self.last_ai is not None:
+            return self.last_ai.copy(), "ai"
         if self.illustrations and scene.get("emoji"):
             img = illustration_scene(scene["emoji"], self.palette, seed,
                                      char_space=bool(self.plan.get("_animate")),

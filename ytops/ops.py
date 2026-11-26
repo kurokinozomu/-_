@@ -29,13 +29,23 @@ from .youtube import AuthError, QuotaError, YouTube, is_configured, next_slots, 
 MIN_FREE_GB = 5
 MAX_ATTEMPTS = 2
 
+# チャンネル共通の画風と時代考証 (映像審査で「現代風の服・照明」「中国風の屋根」「写実的な人物」を指摘されたため)
+STYLE_ENV = {
+    "AIVIDEO_STYLE": "calm",
+    "AIVIDEO_PROMPT_SUFFIX": ("traditional Japanese painterly illustration in the style of a historical picture book, "
+                              "soft washi paper texture, muted indigo and warm earth tones, historically accurate Japanese "
+                              "architecture and clothing of the depicted era, people small and seen from a distance, "
+                              "no modern objects, no electric lights, no Chinese architecture, not photorealistic"),
+}
+
 KIND_ENV = {
     "short": {"AIVIDEO_TONE": "落ち着いた知的な語り口。最初の一文で意外な事実を示し、煽らずに理由を一つだけ説明する",
-              "AIVIDEO_VOICE": "normal"},
+              "AIVIDEO_VOICE": "normal", "AIVIDEO_AI_EVERY": "1", "AIVIDEO_REUSE_AI": "1"},
     "long": {"AIVIDEO_TONE": "落ち着いた知的な教養番組の語り口。やさしく、誇張や煽りはせず、史料で確かめられることと諸説あることを区別して話す",
-             "AIVIDEO_VOICE": "normal"},
+             "AIVIDEO_VOICE": "normal", "AIVIDEO_AI_EVERY": "2", "AIVIDEO_REUSE_AI": "1"},
     "sleep": {"AIVIDEO_TONE": "睡眠前に聞く、静かでゆっくりした朗読の語り口。驚かせる表現・大きな展開・問いかけの連発を避け、情景を穏やかに描写する",
-              "AIVIDEO_VOICE": "bashful", "AIVIDEO_TTS_SPEED": "0.95", "AIVIDEO_AI_EVERY": "3"},
+              "AIVIDEO_VOICE": "bashful", "AIVIDEO_TTS_SPEED": "0.95", "AIVIDEO_AI_EVERY": "3",
+              "AIVIDEO_REUSE_AI": "1"},
 }
 
 
@@ -91,7 +101,7 @@ def produce(idea: dict, rules: dict) -> str:
 
 
 def _render(vid: str, theme: str, kind: str, secs: float, out_root: Path, plan: Path | None = None) -> str:
-    env = {**os.environ, **KIND_ENV[kind]}
+    env = {**os.environ, **STYLE_ENV, **KIND_ENV[kind]}
     cmd = [sys.executable, "-m", "aivideo", "--theme", theme, "--seconds", str(int(secs)), "--out", str(out_root)]
     if kind == "short":
         cmd += ["--shorts", "--related"]
@@ -124,6 +134,56 @@ def regenerate(old_id: str, rules: dict) -> str:
     _render(vid, old["theme"], old["kind"], secs, out_root, plan=plan if plan.exists() else None)
     review(vid, rules)
     return vid
+
+
+REVISE_PROMPT = """以下は YouTube 動画の台本データ (JSON) と、品質審査の指摘事項です。
+指摘を反映して台本を修正し、同じ構造の JSON だけを出力してください。
+- 事実誤り・未確認の主張は、削除するか「〜と言われています」など確かさに合った表現に直す (新しい事実を足すときは確実なものだけ)
+- 構成 (chapters / scenes の数) と camera・transition はできるだけ維持する
+- 映像の指摘があったシーン (およびナレーションと絵が合っていないシーン) は visual_prompt を書き直す:
+  その時代の建物・衣服・道具を具体的に英語で書き、人物は遠景で小さく、現代の物・写実的な人物は描かない
+- タイトル案 (titles) は 5 個以上、ハッシュタグは 3 個まで
+- 文字数は元とほぼ同じ (尺を変えない)
+
+指摘事項:
+{issues}
+
+台本 JSON:
+{plan}
+"""
+
+
+def revise(vid: str, rules: dict, force: bool = False) -> str | None:
+    """品質審査で基準未達 (fix) の動画を、指摘を反映した台本で 1 回だけ作り直して再審査する。"""
+    import tempfile
+    from aivideo.llm import extract_json
+    v = db.video(vid)
+    q = json.loads(v.get("qa_json") or "{}")
+    if (q.get("verdict") != "fix" and not force) or not shutil.which("claude"):
+        return None
+    d = Path(v["dir"])
+    plan = json.loads((d / "plan.json").read_text(encoding="utf-8"))
+    issues = "\n".join([f"- [{s}] {m}" for s, m in q.get("issues", [])] + [f"- [要確認] {m}" for m in q.get("needs_human", [])]) or "- 合計点が基準未達"
+    with tempfile.TemporaryDirectory() as tmp:
+        p = subprocess.run(["claude", "-p", "--output-format", "text"], cwd=tmp, capture_output=True, text=True,
+                           timeout=1800, input=REVISE_PROMPT.format(issues=issues, plan=json.dumps(plan, ensure_ascii=False)))
+    new_plan = extract_json(p.stdout)
+    if not isinstance(new_plan, dict) or not new_plan.get("chapters"):
+        db.log_event("warn", "revise", f"{vid} 台本の修正に失敗")
+        return None
+    new_plan.setdefault("theme", plan.get("theme"))
+    new_plan.setdefault("target_seconds", plan.get("target_seconds"))
+    new_plan.setdefault("shorts", plan.get("shorts"))
+    rp = state_dir() / "videos" / f"{vid}-revised-plan.json"
+    rp.write_text(json.dumps(new_plan, ensure_ascii=False, indent=2), encoding="utf-8")
+    nid = f"{vid}-r1"
+    out_root = state_dir() / "videos" / nid
+    db.upsert_video(id=nid, kind=v["kind"], theme=v["theme"], status="planned", idea_id=v.get("idea_id"),
+                    series=v.get("series"), dir=str(out_root), notes=f"{vid} を審査の指摘で修正")
+    db.upsert_video(id=vid, status="rejected", notes=f"修正版 {nid} に置き換え")
+    _render(nid, v["theme"], v["kind"], float(new_plan.get("target_seconds") or 60), out_root, plan=rp)
+    review(nid, rules)
+    return nid
 
 
 def review(vid: str, rules: dict, use_llm: bool = True) -> dict:
@@ -304,6 +364,8 @@ def daily(produce_videos: bool = True, use_llm: bool = True) -> dict:
                         vid = produce(idea, rules)
                         made.append(vid)
                         step(f"qa:{vid}", lambda vid=vid: review(vid, rules, use_llm))
+                        if use_llm and (db.video(vid) or {}).get("status") == "qa_failed":
+                            step(f"revise:{vid}", lambda vid=vid: revise(vid, rules))  # 修正して再審査 (1 回まで)
                     except Exception as e:
                         summary["errors"].append(f"produce:{kind}: {e}")
                         db.log_event("error", "produce", str(e))
