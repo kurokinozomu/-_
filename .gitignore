@@ -7,3 +7,4 @@ __pycache__/
 .venv/
 state/
 youtube_automation/database/*.sqlite3
+test_outputs/
